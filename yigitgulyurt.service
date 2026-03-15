@@ -1,17 +1,13 @@
 [Unit]
-Description=Yigit Gulyurt Portfolio - Gunicorn
+Description=Gunicorn instance to serve Yigit Gulyurt Portfolio
 After=network.target
 
 [Service]
-User=www-data
+User=yigitgulyurt
 Group=www-data
 WorkingDirectory=/var/www/yigitgulyurt
 Environment="PATH=/var/www/yigitgulyurt/venv/bin"
-EnvironmentFile=/var/www/yigitgulyurt/.env
-ExecStart=/var/www/yigitgulyurt/venv/bin/gunicorn -c gunicorn.conf.py wsgi:app
-ExecReload=/bin/kill -s HUP $MAINPID
-Restart=on-failure
-RestartSec=5
+ExecStart=/var/www/yigitgulyurt/venv/bin/gunicorn --workers 5 --bind unix:yigitgulyurt.sock -m 007 wsgi:app
 
 [Install]
 WantedBy=multi-user.target
