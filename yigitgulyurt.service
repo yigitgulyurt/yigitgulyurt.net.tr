@@ -1,0 +1,17 @@
+[Unit]
+Description=Yigit Gulyurt Portfolio - Gunicorn
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/yigitgulyurt
+Environment="PATH=/var/www/yigitgulyurt/venv/bin"
+EnvironmentFile=/var/www/yigitgulyurt/.env
+ExecStart=/var/www/yigitgulyurt/venv/bin/gunicorn -c gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
