@@ -36,6 +36,10 @@ def index():
                            stream_live=stream_live,
                            stream_config=stream_config)
 
+@bp.route('/ataturk')
+def ataturk():
+    return render_template('main/ataturk.html')
+
 @bp.route('/hakkimda')
 def about():
     projects = Project.query.order_by(Project.order, Project.created_at.desc()).all()

@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}Mustafa Kemal Atatürk — yigitgulyurt.net.tr{% endblock %}
+{% block description %}Türkiye Cumhuriyeti'nin kurucusu Mustafa Kemal Atatürk'ün hayatı, inkılapları ve mirası.{% endblock %}
+{% block og_title %}Mustafa Kemal Atatürk — yigitgulyurt.net.tr{% endblock %}
+{% block og_description %}Türkiye Cumhuriyeti'nin kurucusu Mustafa Kemal Atatürk'ün hayatı, inkılapları ve mirası.{% endblock %}
+
+{% block head %}
+<style>
+  /* ── ATATÜRK SAYFASI ── */
+  .atk-page {
+    --red: #e30a17;
+    --red-dim: rgba(227,10,23,0.15);
+    --red-line: rgba(227,10,23,0.2);
+    --gold: #c5a059;
+    --gold-dim: rgba(197,160,89,0.12);
+  }
+
+  /* HERO */
+  .atk-hero {
+    position: relative;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 60px;
+    text-align: center;
+    overflow: hidden;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .atk-hero-bg {
+    position: absolute; inset: 0;
+    background-image: url('/static/img/ataturk/ataturk.jpg');
+    background-size: cover;
+    background-position: center 15%;
+    filter: grayscale(1) contrast(1.05) brightness(0.4);
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    z-index: 0;
+  }
+  .atk-hero-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(227,10,23,0.06) 0%, transparent 70%);
+    z-index: 1;
+  }
+  .atk-hero-content {
+    position: relative; z-index: 2;
+    padding: 0 24px;
+  }
+  .atk-eyebrow {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--atk-page, var(--text2));
+    color: rgba(197,160,89,0.7);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .atk-hero-name {
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    font-weight: 500;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .atk-hero-name em {
+    color: var(--red);
+    font-style: normal;
+  }
+  .atk-hero-dates {
+    font-size: 12px;
+    color: var(--text2);
+    letter-spacing: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .atk-hero-dates::before { content: '//'; color: rgba(197,160,89,0.5); }
+
+  /* LAYOUT */
+  .atk-body {
+    padding: 48px 32px;
+    max-width: 860px;
+  }
+
+  /* SECTION */
+  .atk-section {
+    margin-bottom: 56px;
+    padding-bottom: 56px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .atk-section:last-of-type { border-bottom: none; }
+  .atk-section-title {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .atk-section-title::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: linear-gradient(to right, var(--red-line), transparent);
+  }
+  .atk-text {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--text2);
+  }
+  .atk-text + .atk-text { margin-top: 14px; }
+
+  /* CARDS */
+  .atk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .atk-card {
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    transition: border-color .15s;
+  }
+  .atk-card:hover { border-color: var(--red-line); }
+  .atk-card-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--red);
+    margin-bottom: 8px;
+  }
+  .atk-card-text {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* QUOTE */
+  .atk-quote {
+    border-left: 2px solid var(--red);
+    padding: 16px 20px;
+    margin: 28px 0;
+    background: var(--red-dim);
+    border-radius: 0 4px 4px 0;
+  }
+  .atk-quote-text {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.8;
+    margin-bottom: 8px;
+  }
+  .atk-quote-author {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+
+  /* TIMELINE */
+  .atk-timeline {
+    margin-top: 24px;
+    border-left: 0.5px solid var(--border);
+    padding-left: 24px;
+  }
+  .atk-tnode {
+    position: relative;
+    padding-bottom: 32px;
+  }
+  .atk-tnode:last-child { padding-bottom: 0; }
+  .atk-tnode::before {
+    content: '';
+    position: absolute;
+    left: -28px; top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+  }
+  .atk-tyear {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .atk-tdesc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* HITABE */
+  .atk-hitabe {
+    border: 0.5px solid var(--red-line);
+    border-radius: 6px;
+    padding: 28px;
+    background: var(--red-dim);
+    margin-top: 24px;
+  }
+  .atk-hitabe-text {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 2;
+    white-space: pre-line;
+  }
+  .atk-hitabe-footer {
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  /* REFS */
+  .atk-refs {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 2;
+  }
+  .atk-refs li { margin-bottom: 4px; list-style: none; padding-left: 16px; position: relative; }
+  .atk-refs li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
+
+  /* ROTATING QUOTE */
+  .atk-dyn-quote {
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    margin: 32px 0;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: opacity .6s ease;
+  }
+  .atk-dyn-quote.fade { opacity: 0; }
+
+  @media (max-width: 600px) {
+    .atk-hero { min-height: 60vh; padding-bottom: 40px; }
+    .atk-body { padding: 28px 20px; }
+    .atk-grid { grid-template-columns: 1fr; }
+    .atk-hitabe { padding: 20px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="atk-page">
+
+  <!-- HERO -->
+  <div class="atk-hero">
+    <div class="atk-hero-bg"></div>
+    <div class="atk-hero-overlay"></div>
+    <div class="atk-hero-content">
+      <div class="atk-eyebrow">✦ Milletin Kaderini Değiştiren Ebedi Lider ✦</div>
+      <div class="atk-hero-name">Mustafa Kemal <em>Atatürk</em></div>
+      <div class="atk-hero-dates">1881 — 1938</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="atk-body">
+
+    <!-- BIO -->
+    <div class="atk-section">
+      <div class="atk-section-title">// vizyoner bir devlet adamı</div>
+      <p class="atk-text">
+        Mustafa Kemal Atatürk, askeri dehasının ötesinde, modern Türkiye'nin entelektüel ve kurumsal temellerini atan,
+        Türk milletinin hürriyet ve haysiyet mücadelesini zaferle taçlandıran eşsiz bir devlet adamıdır.
+        Onun liderliği, yalnızca siyasi bir dönüşüm değil; aynı zamanda aklın ve bilimin rehberliğinde şekillenen
+        köklü bir zihniyet devrimidir.
+      </p>
+
+      <!-- Dönen alıntı -->
+      <div class="atk-dyn-quote" id="dynQuote">
+        <div class="atk-quote-text" id="dynQuoteText">"Hayatta en hakiki mürşit ilimdir, fendir."</div>
+        <div class="atk-quote-author">Mustafa Kemal Atatürk</div>
+      </div>
+    </div>
+
+    <!-- DİN HİZMETLERİ -->
+    <div class="atk-section">
+      <div class="atk-section-title">// islam ve din hizmetlerine katkıları</div>
+      <p class="atk-text">
+        Atatürk, İslam dininin doğru anlaşılması ve hurafelerden arındırılarak aslına uygun yaşanması için
+        büyük hizmetlerde bulunmuştur. Cumhuriyet'in ilanıyla birlikte din hizmetlerini kurumsallaştırmış
+        ve Türk milletinin dini kaynaklara doğrudan erişebilmesini sağlamıştır.
+      </p>
+      <div class="atk-grid">
+        <div class="atk-card">
+          <div class="atk-card-title">Diyanet İşleri Başkanlığı</div>
+          <div class="atk-card-text">3 Mart 1924'te din hizmetlerinin siyasetten bağımsız, ehil ellerce ve devlet güvencesinde yürütülmesini sağlamıştır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Hak Dini Kur'an Dili</div>
+          <div class="atk-card-text">Elmalılı Hamdi Yazır'a bizzat talimat vererek hazırlattığı tefsir ile Kur'an'ın en doğru şekilde anlaşılmasına öncülük etmiştir.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Sahih-i Buhari Tercümesi</div>
+          <div class="atk-card-text">Hadis-i şeriflerin Türkçeye kazandırılması için alimler görevlendirerek İslam kültür mirasını halka açmıştır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Hutbelerin Türkçeleşmesi</div>
+          <div class="atk-card-text">Halkın vaaz ve hutbeleri tam olarak anlayabilmesi için Türkçe okunmasını başlatarak dini bilincin artmasını hedeflemiştir.</div>
+        </div>
+      </div>
+
+      <div class="atk-quote" style="margin-top:24px">
+        <div class="atk-quote-text">"Bizim dinimiz en makul ve en doğal bir dindir. Ve ancak bundan dolayıdır ki son din olmuştur."</div>
+        <div class="atk-quote-author">Mustafa Kemal Atatürk</div>
+      </div>
+    </div>
+
+    <!-- MİLLİ MÜCADELE -->
+    <div class="atk-section">
+      <div class="atk-section-title">// milli mücadele ve cumhuriyet</div>
+      <div class="atk-timeline">
+        <div class="atk-tnode">
+          <div class="atk-tyear">1881 — 1915</div>
+          <div class="atk-tdesc">Askeri rüştiyeden Çanakkale siperlerine uzanan, bir milletin kaderini sırtlayan profesyonel bir subayın ve strateji dehasının doğuşu.</div>
+        </div>
+        <div class="atk-tnode">
+          <div class="atk-tyear">1919 — 1922</div>
+          <div class="atk-tdesc">"Ya İstiklal Ya Ölüm" parolasıyla Anadolu'yu birleştiren, Milli Mücadele'yi Başkomutan sıfatıyla zaferle sonuçlandıran kurtuluş süreci.</div>
+        </div>
+        <div class="atk-tnode">
+          <div class="atk-tyear">1923 — 1938</div>
+          <div class="atk-tdesc">Cumhuriyet'in ilanı, kurumların modernizasyonu ve "Yurtta Sulh, Cihanda Sulh" ilkesiyle dünya barışına katkı sunan inşa dönemi.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- İNKILAPLAR -->
+    <div class="atk-section">
+      <div class="atk-section-title">// kurucu ilkeler ve inkılaplar</div>
+      <div class="atk-grid">
+        <div class="atk-card">
+          <div class="atk-card-title">Milli Egemenlik</div>
+          <div class="atk-card-text">Egemenliğin saraydan alınarak kayıtsız şartsız millete verilmesi, modern Türkiye'nin en büyük siyasi başarısıdır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Eğitim ve Kültür</div>
+          <div class="atk-card-text">Tevhid-i Tedrisat Kanunu ve Harf Devrimi ile cehalete karşı topyekun bir savaş açılmış, modern eğitim sistemi kurulmuştur.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Toplumsal Eşitlik</div>
+          <div class="atk-card-text">Kadınlara tanınan siyasi ve sosyal haklarla, Türk toplumu çağdaş uygarlık düzeyinin üzerine çıkma hedefine yaklaşmıştır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">İktisadi Bağımsızlık</div>
+          <div class="atk-card-text">İzmir İktisat Kongresi ve sanayi hamleleriyle, siyasi bağımsızlık ekonomik güçle perçinlenmiştir.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENÇLİĞE HİTABE -->
+    <div class="atk-section">
+      <div class="atk-section-title">// gençliğe hitabe</div>
+      <div class="atk-hitabe">
+        <div class="atk-hitabe-text">Ey Türk gençliği! Birinci vazifen; Türk istiklalini, Türk cumhuriyetini, ilelebet muhafaza ve müdafaa etmektir.
+
+Mevcudiyetinin ve istikbalinin yegâne temeli budur. Bu temel, senin en kıymetli hazinendir. İstikbalde dahi seni bu hazineden mahrum etmek isteyecek dâhilî ve haricî bedhahların olacaktır. Bir gün, istiklal ve cumhuriyeti müdafaa mecburiyetine düşersen, vazifeye atılmak için içinde bulunacağın vaziyetin imkân ve şeraitini düşünmeyeceksin.
+
+Bu imkân ve şerait, çok namüsait bir mahiyette tezahür edebilir. İstiklal ve cumhuriyetine kastedecek düşmanlar, bütün dünyada emsali görülmemiş bir galibiyetin mümessili olabilirler. Cebren ve hile ile aziz vatanın bütün kaleleri zapt edilmiş, bütün tersanelerine girilmiş, bütün orduları dağıtılmış ve memleketin her köşesi bilfiil işgal edilmiş olabilir.
+
+Ey Türk istikbalinin evladı! İşte, bu ahval ve şerait içinde dahi vazifen, Türk istiklal ve cumhuriyetini kurtarmaktır. Muhtaç olduğun kudret, damarlarındaki asil kanda mevcuttur.</div>
+        <div class="atk-hitabe-footer">— Mustafa Kemal Atatürk</div>
+      </div>
+    </div>
+
+    <!-- KAYNAKLAR -->
+    <div class="atk-section">
+      <div class="atk-section-title">// kaynaklar</div>
+      <ul class="atk-refs">
+        <li>Atatürk, M. K. (1927). <em>Nutuk</em>. Ankara: Türk Tarih Kurumu Yayınları.</li>
+        <li>Bardakçı, M. (2017). <em>Atatürk'ün Mutfağı</em>.</li>
+        <li>Diyanet İşleri Başkanlığı Arşivleri. <em>Atatürk ve Din Hizmetleri</em>.</li>
+        <li>Mango, A. (1999). <em>Atatürk</em>. London: John Murray.</li>
+        <li>Gökrail, M. (2001). <em>Atatürk, Din ve Din Adamları</em>. Ankara: TTK.</li>
+      </ul>
+    </div>
+
+  </div><!-- /atk-body -->
+</div><!-- /atk-page -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var quotes = [
+    "Hayatta en hakiki mürşit ilimdir, fendir.",
+    "Benim naçiz vücudum elbet bir gün toprak olacaktır, fakat Türkiye Cumhuriyeti ilelebet payidar kalacaktır.",
+    "Milletimiz din ve dil gibi kuvvetli iki fazilete maliktir.",
+    "Din lüzumlu bir müessesedir. Dinsiz milletlerin devamına imkan yoktur.",
+    "Egemenlik kayıtsız şartsız milletindir.",
+    "Türk milleti çalışkandır, Türk milleti zekidir.",
+    "İstikbal göklerdedir.",
+    "Yurtta sulh, cihanda sulh.",
+    "Türk çocuğu ecdadını tanıdıkça daha büyük işler yapmak için kendinde kuvvet bulacaktır.",
+    "Bizim dinimiz en makul ve en doğal bir dindir."
+  ];
+  var i = 0;
+  var el = document.getElementById('dynQuoteText');
+  var wrap = document.getElementById('dynQuote');
+  if (!el || !wrap) return;
+
+  setInterval(function() {
+    wrap.classList.add('fade');
+    setTimeout(function() {
+      i = (i + 1) % quotes.length;
+      el.textContent = '"' + quotes[i] + '"';
+      wrap.classList.remove('fade');
+    }, 600);
+  }, 5000);
+})();
+</script>
+{% endblock %}
