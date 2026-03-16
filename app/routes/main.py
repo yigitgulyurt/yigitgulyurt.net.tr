@@ -13,21 +13,20 @@ def index():
         'posts': BlogPost.query.filter_by(published=True).count(),
     }
 
-    # Canlı yayın section kontrolü
-    show_stream = current_app.config.get('SHOW_STREAM_SECTION', False)
+    # Canlı yayın section kontrolü — DB'den
+    stream_config = StreamConfig.get()
+    show_stream = stream_config.show_section
     stream_live = False
     if show_stream:
         try:
             import requests as req_lib
-            key = current_app.config.get('STREAM_KEY', '')
+            key = stream_config.stream_key or current_app.config.get('STREAM_KEY', '')
             r = req_lib.get('http://localhost:9997/v3/paths/list', timeout=1)
             items = r.json().get('items', [])
             path = next((p for p in items if p.get('name') == f'canli/{key}'), None)
             stream_live = bool(path and path.get('ready'))
         except Exception:
             stream_live = False
-
-    stream_config = StreamConfig.get() if show_stream else None
 
     return render_template('main/index.html',
                            featured_projects=featured_projects,

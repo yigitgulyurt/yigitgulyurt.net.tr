@@ -145,10 +145,14 @@ def stream_config():
     from app.models import StreamConfig
     cfg = StreamConfig.get()
     if request.method == 'POST':
+        new_key = request.form.get('stream_key', '').strip()
+        if new_key:
+            cfg.stream_key = new_key
+        cfg.show_section = bool(request.form.get('show_section'))
         cfg.title = request.form.get('title', '').strip() or 'Canlı Yayın'
         cfg.subtitle = request.form.get('subtitle', '').strip()
         db.session.commit()
-        flash('Yayın bilgileri güncellendi.', 'success')
+        flash('Yayın ayarları güncellendi.', 'success')
         return redirect(url_for('admin.stream_config'))
     return render_template('admin/stream_config.html', cfg=cfg)
 

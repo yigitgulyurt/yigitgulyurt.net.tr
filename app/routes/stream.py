@@ -29,17 +29,19 @@ def _get_ip():
 @bp.route('/')
 def canli_root():
     from flask import redirect
-    key = current_app.config.get('STREAM_KEY', '')
+    from app.models import StreamConfig
+    cfg = StreamConfig.get()
+    key = cfg.stream_key or current_app.config.get('STREAM_KEY', '')
     return redirect(f'/{key}')
 
 @bp.route('/<key>')
 def canli(key):
-    expected = current_app.config.get('STREAM_KEY', '')
+    from app.models import StreamConfig
+    cfg = StreamConfig.get()
+    expected = cfg.stream_key or current_app.config.get('STREAM_KEY', '')
     if not expected or key != expected:
         abort(404)
     stream_url = f'/canli-kaynak/canli/{key}/index.m3u8'
-    from app.models import StreamConfig
-    cfg = StreamConfig.get()
     return render_template('stream/canli.html', stream_url=stream_url, stream_config=cfg)
 
 @bp.route('/ping', methods=['POST'])
@@ -63,7 +65,9 @@ def stream_ping():
 
 @bp.route('/status')
 def stream_status():
-    key = current_app.config.get('STREAM_KEY', '')
+    from app.models import StreamConfig
+    cfg = StreamConfig.get()
+    key = cfg.stream_key or current_app.config.get('STREAM_KEY', '')
     path_name = f'canli/{key}'
     try:
         r = req_lib.get('http://localhost:9997/v3/paths/list', timeout=2)

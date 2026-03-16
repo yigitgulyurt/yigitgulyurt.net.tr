@@ -89,13 +89,19 @@ class StreamConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(256), default='Canlı Yayın')
     subtitle = db.Column(db.String(256), default='')
+    stream_key = db.Column(db.String(256), default='')
+    show_section = db.Column(db.Boolean, default=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     @staticmethod
     def get():
+        import os
         cfg = StreamConfig.query.first()
         if not cfg:
-            cfg = StreamConfig()
+            cfg = StreamConfig(
+                stream_key=os.environ.get('STREAM_KEY', ''),
+                show_section=os.environ.get('SHOW_STREAM_SECTION', 'false').lower() == 'true',
+            )
             db.session.add(cfg)
             db.session.commit()
         return cfg

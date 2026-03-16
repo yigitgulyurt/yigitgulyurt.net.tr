@@ -6,19 +6,44 @@
 <h1 class="page-title" style="margin-bottom:24px">Yayın Ayarları</h1>
 
 <form method="POST" style="max-width:520px">
+
   <div class="form-group">
-    <label>// başlık</label>
-    <input type="text" name="title" value="{{ cfg.title }}" placeholder="Canlı Yayın">
+    <label>// stream key</label>
+    <input type="text" name="stream_key" value="{{ cfg.stream_key }}"
+           placeholder="gizli-stream-anahtari"
+           style="font-family:var(--mono)">
+    <div style="font-size:10px;color:var(--text2);margin-top:4px">
+      RTMP bağlantısı ve yayın URL'si için kullanılır.
+      <span style="color:#f87171">Değiştirince OBS'de de güncelle.</span>
+    </div>
+  </div>
+
+  <div class="form-group" style="display:flex;align-items:center;gap:10px">
+    <input type="checkbox" name="show_section" id="show_section"
+           {{ 'checked' if cfg.show_section }} style="width:auto">
+    <label for="show_section" style="color:var(--text2);margin-bottom:0">
+      Ana sayfada canlı yayın bölümünü göster
+    </label>
+  </div>
+
+  <div style="height:0.5px;background:var(--border);margin:16px 0"></div>
+
+  <div class="form-group">
+    <label>// yayın başlığı</label>
+    <input type="text" name="title" id="inp-title"
+           value="{{ cfg.title }}" placeholder="Canlı Yayın">
     <div style="font-size:10px;color:var(--text2);margin-top:4px">Ana sayfada ve yayın sayfasında görünür</div>
   </div>
+
   <div class="form-group">
     <label>// alt başlık</label>
-    <input type="text" name="subtitle" value="{{ cfg.subtitle }}" placeholder="ör: 18 Mart Töreni">
+    <input type="text" name="subtitle" id="inp-subtitle"
+           value="{{ cfg.subtitle }}" placeholder="ör: 18 Mart Töreni">
     <div style="font-size:10px;color:var(--text2);margin-top:4px">İsteğe bağlı — yayın sayfasında görünür</div>
   </div>
 
-  <div style="border:0.5px solid var(--border);border-radius:4px;padding:12px 16px;margin-bottom:16px;font-size:12px">
-    <div style="font-size:10px;color:var(--accent);margin-bottom:8px">// önizleme</div>
+  <div style="border:0.5px solid var(--border);border-radius:4px;padding:12px 16px;margin-bottom:20px">
+    <div style="font-size:10px;color:var(--accent);margin-bottom:8px">// başlık önizleme</div>
     <div style="font-weight:500;color:var(--text)" id="prev-title">{{ cfg.title or 'Canlı Yayın' }}</div>
     <div style="font-size:11px;color:var(--text2);margin-top:4px" id="prev-subtitle">{{ cfg.subtitle }}</div>
   </div>
@@ -27,15 +52,16 @@
     <button type="submit" class="btn btn-primary">→ kaydet</button>
     <a class="btn" href="{{ url_for('admin.dashboard') }}">iptal</a>
   </div>
+
 </form>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  document.querySelector('[name="title"]').addEventListener('input', function() {
+  document.getElementById('inp-title').addEventListener('input', function() {
     document.getElementById('prev-title').textContent = this.value || 'Canlı Yayın';
   });
-  document.querySelector('[name="subtitle"]').addEventListener('input', function() {
+  document.getElementById('inp-subtitle').addEventListener('input', function() {
     document.getElementById('prev-subtitle').textContent = this.value;
   });
 </script>

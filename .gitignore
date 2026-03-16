@@ -6,3 +6,4 @@ nginx_canli.conf
 yigitgulyurt.service
 deploy.sh
 .env.example
+migrate_stream_config.sh
