@@ -10,14 +10,21 @@
     <span class="tag">{{ tech }}</span>
     {% endfor %}
   </div>
-  <div class="blog-content">{{ project.description }}</div>
-  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+
+  {% if project.content_html %}
+  <div class="blog-content">{{ project.content_html | safe }}</div>
+  {% elif project.description %}
+  <div class="blog-content"><p>{{ project.description }}</p></div>
+  {% endif %}
+
+  <div style="margin-top:32px;display:flex;gap:10px;flex-wrap:wrap">
     {% if project.live_url %}
     <a class="btn btn-primary" href="{{ project.live_url }}" target="_blank" rel="noopener">→ live</a>
     {% endif %}
     {% if project.github_url %}
     <a class="btn" href="{{ project.github_url }}" target="_blank" rel="noopener">GitHub</a>
     {% endif %}
+    <a class="btn" href="{{ url_for('projects.index') }}">← projeler</a>
   </div>
 </div>
 {% endblock %}

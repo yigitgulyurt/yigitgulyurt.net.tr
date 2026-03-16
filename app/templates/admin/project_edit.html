@@ -20,6 +20,10 @@
     <input type="text" name="tech_stack" value="{{ project.tech_stack or '' }}" placeholder="Flask, nginx, Python">
   </div>
   <div class="form-group">
+    <label>// içerik (Markdown) — proje detay sayfasında görünür</label>
+    <textarea name="content" style="min-height:280px;font-size:12px">{{ project.content or '' }}</textarea>
+  </div>
+  <div class="form-group">
     <label>// live url</label>
     <input type="url" name="live_url" value="{{ project.live_url or '' }}">
   </div>

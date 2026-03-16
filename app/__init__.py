@@ -40,5 +40,9 @@ from datetime import datetime
 
 def register_context_processors(app):
     @app.context_processor
-    def inject_now():
-        return {'now': datetime.utcnow()}
+    def inject_globals():
+        from flask import current_app
+        return {
+            'now': datetime.utcnow(),
+            'config': current_app.config,
+        }

@@ -60,6 +60,7 @@ def project_edit(id=None):
         project.slug = request.form.get('slug') or slugify(request.form['title'])
         project.description = request.form.get('description')
         project.tech_stack = request.form.get('tech_stack')
+        project.content = request.form.get('content')
         project.live_url = request.form.get('live_url')
         project.github_url = request.form.get('github_url')
         project.featured = bool(request.form.get('featured'))

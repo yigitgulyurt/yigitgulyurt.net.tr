@@ -35,6 +35,7 @@ class Project(db.Model):
     live_url = db.Column(db.String(256))
     github_url = db.Column(db.String(256))
     image = db.Column(db.String(256))        # static/img/ altındaki dosya adı
+    content = db.Column(db.Text)                   # Markdown — detay sayfası
     featured = db.Column(db.Boolean, default=False)
     order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -78,3 +79,5 @@ class ContactMessage(db.Model):
 
     def __repr__(self):
         return f'<ContactMessage from {self.email}>'
+# NOTE: Project.content alanı migration ile eklenecek
+# Mevcut modele content alanı eklendi (aşağıdaki patch ile)
