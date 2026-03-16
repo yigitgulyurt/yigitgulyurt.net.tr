@@ -236,6 +236,10 @@
     }
     .player-container:hover .custom-controls,
     .player-container.controls-visible .custom-controls { opacity: 1; }
+    :fullscreen .player-container:hover .custom-controls { opacity: 0; }
+    :fullscreen .player-container.controls-visible .custom-controls { opacity: 1; }
+    :-webkit-full-screen .player-container:hover .custom-controls { opacity: 0; }
+    :-webkit-full-screen .player-container.controls-visible .custom-controls { opacity: 1; }
     .controls-row {
       display: flex; align-items: center;
       justify-content: space-between; gap: 8px;
@@ -674,11 +678,74 @@
     var pc = document.getElementById('playerContainer');
     if (!pc) return;
     var hideTimer;
-    pc.addEventListener('touchstart', function() {
+    var controlsVisible = false;
+
+    function showControls() {
       pc.classList.add('controls-visible');
+      pc.style.cursor = '';
+      controlsVisible = true;
       clearTimeout(hideTimer);
-      hideTimer = setTimeout(function() { pc.classList.remove('controls-visible'); }, 3000);
+      hideTimer = setTimeout(hideControls, 3000);
+    }
+
+    function hideControls() {
+      // Sadece tam ekrandayken otomatik gizle
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        pc.classList.remove('controls-visible');
+        pc.style.cursor = 'none';
+        controlsVisible = false;
+      }
+    }
+
+    // Mouse hareketi — tam ekranda kontrolleri göster
+    pc.addEventListener('mousemove', function() {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        showControls();
+      }
     });
+
+    // Mouse tamamen çıkarsa (tam ekranda olmaz ama garanti)
+    pc.addEventListener('mouseleave', function() {
+      clearTimeout(hideTimer);
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        hideTimer = setTimeout(hideControls, 1000);
+      }
+    });
+
+    // Tam ekrana girilince/çıkılınca
+    function onFullscreenChange() {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        // Tam ekrana girdi — kontrolleri kısa süre göster sonra gizle
+        showControls();
+      } else {
+        // Tam ekrandan çıktı — cursor ve hover'ı geri getir
+        pc.style.cursor = '';
+        pc.classList.remove('controls-visible');
+        clearTimeout(hideTimer);
+      }
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    // Kontrollere hover edilince timer'ı durdur (butona tıklamak için)
+    var controls = document.getElementById('customControls');
+    if (controls) {
+      controls.addEventListener('mouseenter', function() {
+        clearTimeout(hideTimer);
+        pc.style.cursor = '';
+      });
+      controls.addEventListener('mouseleave', function() {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+          hideTimer = setTimeout(hideControls, 2000);
+        }
+      });
+    }
+
+    // Mobil: dokunuşta göster
+    pc.addEventListener('touchstart', function() {
+      showControls();
+    });
+
     pc.addEventListener('dblclick', toggleFullscreen);
   })();
 
