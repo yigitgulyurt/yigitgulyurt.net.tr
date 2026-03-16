@@ -643,11 +643,11 @@ html[data-lang="en"] .lang-tr { display: none !important; }
   .form-group textarea { font-size: 13px; }
 
   /* PROJ DETAIL */
-  .proj-detail-header { padding: 24px 16px 16px; }
+  .proj-detail-header { padding: 24px 20px 16px; }
   .proj-detail-header .page-title { font-size: 20px; }
   .proj-detail-lead { font-size: 12px; }
-  .proj-detail-main { padding: 20px 16px 28px; }
-  .proj-detail-sidebar { padding: 16px; }
+  .proj-detail-main { padding: 20px 20px 28px; }
+  .proj-detail-sidebar { padding: 20px; }
   .sidebar-label { font-size: 10px; }
 }
 
