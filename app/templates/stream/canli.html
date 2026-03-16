@@ -526,8 +526,12 @@
       hls = new Hls({ maxBufferLength: 15, maxMaxBufferLength: 30 });
       hls.loadSource(STREAM_URL);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+      hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
         showOverlay(null); setStatus('yayın aktif'); retryCount = 0;
+        // Audio track kontrolü
+        var audioTracks = data.audioTracks || [];
+        console.log('[HLS] audio tracks:', audioTracks.length, audioTracks);
+        console.log('[HLS] levels:', data.levels);
         video.muted = false;
         video.volume = 1;
         video.play().then(function() {
@@ -624,13 +628,24 @@
   }
   function unmute() {
     var video = document.getElementById('canli-video');
+    // Önce muted kaldır
     video.muted = false;
     video.volume = 1;
+    // Bazen HLS yeniden yükleme gerektirir ses için
+    if (hls) {
+      var currentTime = video.currentTime;
+      hls.startLoad();
+      console.log('[unmute] hls.startLoad() called, muted:', video.muted, 'volume:', video.volume);
+    }
     document.getElementById('unmuteOverlay').classList.add('hidden');
     document.getElementById('iconVolume').style.display = 'block';
     document.getElementById('iconMuted').style.display = 'none';
     document.getElementById('volumeSlider').value = 1;
     document.getElementById('volumeSlider').style.backgroundSize = '100% 100%';
+    // Kontrol logu
+    setTimeout(function() {
+      console.log('[unmute check] muted:', video.muted, 'volume:', video.volume, 'paused:', video.paused);
+    }, 500);
   }
   function toggleMute() {
     var video = document.getElementById('canli-video');
