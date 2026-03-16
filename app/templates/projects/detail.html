@@ -2,7 +2,6 @@
 
 {% block title %}{{ project.title }}{% endblock %}
 {% block description %}{{ project.description or project.title }}{% endblock %}
-
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ project.title }} — yigitgulyurt.net.tr{% endblock %}
 {% block og_description %}{{ project.description or project.title }}{% endblock %}
@@ -12,38 +11,65 @@
 {% block tw_image %}{% if project.image %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/projects/' + project.image) }}{% else %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/og-default.png') }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="page">
+<div class="proj-detail-header">
   <div class="hero-prompt">$ cat projects/{{ project.slug }}.md</div>
-
-  {% if project.image %}
-  <div class="proj-cover">
-    <img src="{{ url_for('static', filename='img/projects/' + project.image) }}"
-         alt="{{ project.title }}"
-         class="proj-cover-img">
-  </div>
-  {% endif %}
-
   <h1 class="page-title">{{ project.title }}</h1>
-  <div class="proj-tags" style="margin-bottom:24px">
-    {% for tech in project.tech_list %}
-    <span class="tag">{{ tech }}</span>
-    {% endfor %}
-  </div>
-
-  {% if project.content_html %}
-  <div class="blog-content">{{ project.content_html | safe }}</div>
-  {% elif project.description %}
-  <div class="blog-content"><p>{{ project.description }}</p></div>
+  {% if project.description %}
+  <p class="proj-detail-lead">{{ project.description }}</p>
   {% endif %}
+</div>
 
-  <div style="margin-top:32px;display:flex;gap:10px;flex-wrap:wrap">
-    {% if project.live_url %}
-    <a class="btn btn-primary" href="{{ project.live_url }}" target="_blank" rel="noopener">→ live</a>
+<div class="proj-detail-layout">
+
+  <!-- Sol: içerik -->
+  <div class="proj-detail-main">
+    {% if project.content_html %}
+    <div class="blog-content">{{ project.content_html | safe }}</div>
     {% endif %}
-    {% if project.github_url %}
-    <a class="btn" href="{{ project.github_url }}" target="_blank" rel="noopener">GitHub</a>
-    {% endif %}
-    <a class="btn" href="{{ url_for('projects.index') }}">← projeler</a>
+    <div style="margin-top:32px">
+      <a class="btn" href="{{ url_for('projects.index') }}">← projeler</a>
+    </div>
   </div>
+
+  <!-- Sağ: sidebar -->
+  <aside class="proj-detail-sidebar">
+
+    {% if project.image %}
+    <div class="sidebar-block">
+      <img src="{{ url_for('static', filename='img/projects/' + project.image) }}"
+           alt="{{ project.title }}"
+           class="sidebar-img">
+    </div>
+    {% endif %}
+
+    {% if project.live_url or project.github_url %}
+    <div class="sidebar-block">
+      <div class="sidebar-label">// linkler</div>
+      {% if project.live_url %}
+      <a class="btn btn-primary" href="{{ project.live_url }}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-bottom:8px">→ live</a>
+      {% endif %}
+      {% if project.github_url %}
+      <a class="btn" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">GitHub</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if project.tech_list %}
+    <div class="sidebar-block">
+      <div class="sidebar-label">// teknolojiler</div>
+      <div class="proj-tags" style="gap:6px">
+        {% for tech in project.tech_list %}
+        <span class="tag">{{ tech }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-block">
+      <div class="sidebar-label">// tarih</div>
+      <div style="font-size:12px;color:var(--text2)">{{ project.created_at.strftime('%Y-%m-%d') }}</div>
+    </div>
+
+  </aside>
 </div>
 {% endblock %}
