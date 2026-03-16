@@ -33,6 +33,8 @@
         <button type="button" class="editor-btn" onclick="insertLine('## ')" title="Başlık">H2</button>
         <button type="button" class="editor-btn" onclick="insertLine('- ')" title="Liste">—</button>
         <button type="button" class="editor-btn" onclick="insertMd('[','](https://)')" title="Link">↗</button>
+        <span style="width:0.5px;background:var(--border);align-self:stretch;margin:0 4px"></span>
+        <button type="button" class="editor-btn" onclick="renderPreview()" title="Önizlemeyi güncelle" style="color:var(--accent);border-color:var(--accent)">⟳ önizle</button>
       </div>
     </div>
     <div class="editor-split">
@@ -65,54 +67,74 @@
 const editor  = document.getElementById('md-editor');
 const preview = document.getElementById('md-preview');
 const PREVIEW_URL = '{{ url_for("admin.preview") }}';
-let previewTimer = null;
 
-function renderPreview() {
-  const content = editor.value.trim();
-  if (!content) {
+// Ctrl+Z için undo stack
+let undoStack = [editor.value];
+let undoIndex = 0;
+
+function saveUndo() {
+  // mevcut pozisyondan sonrasını sil, yeni state ekle
+  undoStack = undoStack.slice(0, undoIndex + 1);
+  undoStack.push(editor.value);
+  if (undoStack.length > 100) undoStack.shift();
+  undoIndex = undoStack.length - 1;
+}
+
+window.renderPreview = function() {
+  const text = editor.value.trim();
+  if (!text) {
     preview.innerHTML = '<span style="color:var(--text2);font-size:12px">önizleme burada görünür...</span>';
     return;
   }
+  preview.innerHTML = '<span style="color:var(--text2);font-size:12px">yükleniyor...</span>';
   const form = new FormData();
-  form.append('content', content);
+  form.append('content', text);
   fetch(PREVIEW_URL, { method: 'POST', body: form })
     .then(r => r.json())
     .then(data => { preview.innerHTML = data.html; })
-    .catch(() => {});
+    .catch(() => { preview.innerHTML = '<span style="color:#f87171;font-size:12px">hata oluştu</span>'; });
 }
 
-editor.addEventListener('input', function() {
-  clearTimeout(previewTimer);
-  previewTimer = setTimeout(renderPreview, 300);
-});
+// Toolbar — tarayıcı undo history'sini koruyarak insert
+function execInsert(newVal, newStart, newEnd) {
+  // execCommand deprecated ama undo history'yi koruyan tek yol
+  editor.focus();
+  editor.setSelectionRange(0, editor.value.length);
+  document.execCommand('insertText', false, newVal);
+  editor.setSelectionRange(newStart, newEnd);
+  saveUndo();
+}
 
-// Toolbar — inline sarma
 window.insertMd = function(before, after) {
   const s = editor.selectionStart;
   const e = editor.selectionEnd;
   const sel = editor.value.substring(s, e) || 'metin';
-  editor.setRangeText(before + sel + after, s, e, 'end');
+  const full = editor.value.substring(0, s) + before + sel + after + editor.value.substring(e);
+  editor.value = full;
+  editor.setSelectionRange(s + before.length, s + before.length + sel.length);
   editor.focus();
-  renderPreview();
+  saveUndo();
 }
 
-// Blok sarma (kod bloğu gibi)
 window.insertBlock = function(before, after) {
   const s = editor.selectionStart;
   const e = editor.selectionEnd;
   const sel = editor.value.substring(s, e) || 'kod buraya';
-  editor.setRangeText(before + sel + after, s, e, 'end');
+  const full = editor.value.substring(0, s) + before + sel + after + editor.value.substring(e);
+  editor.value = full;
+  editor.setSelectionRange(s + before.length, s + before.length + sel.length);
   editor.focus();
-  renderPreview();
+  saveUndo();
 }
 
-// Satır başına ekle
 window.insertLine = function(prefix) {
   const s = editor.selectionStart;
   const lineStart = editor.value.lastIndexOf('\n', s - 1) + 1;
-  editor.setRangeText(prefix, lineStart, lineStart, 'end');
+  const full = editor.value.substring(0, lineStart) + prefix + editor.value.substring(lineStart);
+  editor.value = full;
+  editor.setSelectionRange(s + prefix.length, s + prefix.length);
   editor.focus();
-  renderPreview();
+  saveUndo();
 }
 
 // Tab — 2 boşluk
@@ -120,13 +142,36 @@ editor.addEventListener('keydown', function(e) {
   if (e.key === 'Tab') {
     e.preventDefault();
     const s = this.selectionStart;
-    this.setRangeText('  ', s, s, 'end');
-    clearTimeout(previewTimer);
-    previewTimer = setTimeout(renderPreview, 300);
+    this.value = this.value.substring(0, s) + '  ' + this.value.substring(s);
+    this.setSelectionRange(s + 2, s + 2);
+    saveUndo();
+  }
+  // Ctrl+Z
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault();
+    if (undoIndex > 0) {
+      undoIndex--;
+      editor.value = undoStack[undoIndex];
+    }
+  }
+  // Ctrl+Y / Ctrl+Shift+Z — redo
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+    e.preventDefault();
+    if (undoIndex < undoStack.length - 1) {
+      undoIndex++;
+      editor.value = undoStack[undoIndex];
+    }
   }
 });
 
+// Normal yazarken de undo stack'e kaydet (500ms debounce)
+let saveTimer = null;
+editor.addEventListener('input', function() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveUndo, 500);
+});
+
 // Sayfa yüklenince mevcut içeriği render et
-renderPreview();
+if (editor.value.trim()) renderPreview();
 </script>
 {% endblock %}
