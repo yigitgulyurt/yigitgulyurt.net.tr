@@ -17,6 +17,12 @@ def _get_redis():
     url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     return redis_lib.from_url(url, decode_responses=True)
 
+@bp.route('/')
+def canli_root():
+    from flask import redirect, url_for
+    key = current_app.config.get('STREAM_KEY', '')
+    return redirect(f'/{key}')
+
 @bp.route('/<key>')
 def canli(key):
     expected = current_app.config.get('STREAM_KEY', '')
