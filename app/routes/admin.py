@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+import os
+from werkzeug.utils import secure_filename
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import Admin, Project, BlogPost, ContactMessage
 from app import db
@@ -60,6 +62,14 @@ def project_edit(id=None):
         project.slug = request.form.get('slug') or slugify(request.form['title'])
         project.description = request.form.get('description')
         project.tech_stack = request.form.get('tech_stack')
+        # Resim yükleme
+        image_file = request.files.get('image')
+        if image_file and image_file.filename:
+            filename = secure_filename(image_file.filename)
+            upload_dir = os.path.join(current_app.root_path, 'static', 'img', 'projects')
+            os.makedirs(upload_dir, exist_ok=True)
+            image_file.save(os.path.join(upload_dir, filename))
+            project.image = filename
         project.content = request.form.get('content')
         project.live_url = request.form.get('live_url')
         project.github_url = request.form.get('github_url')

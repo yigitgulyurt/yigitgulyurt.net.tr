@@ -75,6 +75,10 @@
     <div class="proj-grid">
       {% for project in featured_projects %}
       <a class="proj-card" href="{{ url_for('projects.detail', slug=project.slug) }}">
+        {% if project.image %}
+        <img src="{{ url_for('static', filename='img/projects/' + project.image) }}"
+             alt="{{ project.title }}" class="proj-thumb">
+        {% endif %}
         <div class="proj-head">
           <div class="proj-name">{{ project.title }}</div>
           <div class="proj-arrow">↗</div>

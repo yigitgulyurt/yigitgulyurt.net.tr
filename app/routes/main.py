@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, Response, url_for
 from app.models import Project, BlogPost
+from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
@@ -19,3 +20,56 @@ def index():
 @bp.route('/hakkimda')
 def about():
     return render_template('main/about.html')
+
+@bp.route('/sitemap.xml')
+def sitemap():
+    pages = []
+    base = 'https://yigitgulyurt.net.tr'
+
+    # Statik sayfalar
+    static_pages = [
+        ('main.index',    '1.0',  'weekly'),
+        ('main.about',    '0.8',  'monthly'),
+        ('projects.index','0.9',  'weekly'),
+        ('blog.index',    '0.9',  'weekly'),
+        ('contact.index', '0.5',  'monthly'),
+    ]
+    for endpoint, priority, changefreq in static_pages:
+        pages.append({
+            'loc': base + url_for(endpoint),
+            'priority': priority,
+            'changefreq': changefreq,
+            'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
+        })
+
+    # Projeler
+    for p in Project.query.all():
+        pages.append({
+            'loc': base + url_for('projects.detail', slug=p.slug),
+            'priority': '0.8',
+            'changefreq': 'monthly',
+            'lastmod': p.created_at.strftime('%Y-%m-%d'),
+        })
+
+    # Blog yazıları
+    for post in BlogPost.query.filter_by(published=True).all():
+        pages.append({
+            'loc': base + url_for('blog.detail', slug=post.slug),
+            'priority': '0.7',
+            'changefreq': 'monthly',
+            'lastmod': post.updated_at.strftime('%Y-%m-%d'),
+        })
+
+    xml = render_template('main/sitemap.xml', pages=pages)
+    return Response(xml, mimetype='application/xml')
+
+@bp.route('/robots.txt')
+def robots():
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin/\n"
+        "\n"
+        "Sitemap: https://yigitgulyurt.net.tr/sitemap.xml\n"
+    )
+    return Response(content, mimetype='text/plain')

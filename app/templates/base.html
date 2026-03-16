@@ -3,9 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  {# ---- Temel meta ---- #}
   <title>{% block title %}Yiğit Gülyurt{% endblock %} — yigitgulyurt.net.tr</title>
   <meta name="description" content="{% block description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <meta name="author" content="Yiğit Gülyurt">
+  <link rel="canonical" href="https://yigitgulyurt.net.tr{{ request.path }}">
+
+  {# ---- Open Graph ---- #}
+  <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title"       content="{% block og_title %}Yiğit Gülyurt — yigitgulyurt.net.tr{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <meta property="og:url"         content="https://yigitgulyurt.net.tr{{ request.path }}">
+  <meta property="og:site_name"   content="yigitgulyurt.net.tr">
+  <meta property="og:image"       content="{% block og_image %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/og-default.png') }}{% endblock %}">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"      content="tr_TR">
+
+  {# ---- Twitter Card ---- #}
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="{% block tw_title %}Yiğit Gülyurt — yigitgulyurt.net.tr{% endblock %}">
+  <meta name="twitter:description" content="{% block tw_description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <meta name="twitter:image"       content="{% block tw_image %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/og-default.png') }}{% endblock %}">
+
+  {# ---- Favicon ---- #}
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+
+  {# ---- Styles ---- #}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   {% block head %}{% endblock %}
 </head>

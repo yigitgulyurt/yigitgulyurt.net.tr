@@ -1,5 +1,13 @@
 {% extends "base.html" %}
+
 {% block title %}{{ post.title }}{% endblock %}
+{% block description %}{{ post.summary or post.title }}{% endblock %}
+
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.title }} — yigitgulyurt.net.tr{% endblock %}
+{% block og_description %}{{ post.summary or post.title }}{% endblock %}
+{% block tw_title %}{{ post.title }} — yigitgulyurt.net.tr{% endblock %}
+{% block tw_description %}{{ post.summary or post.title }}{% endblock %}
 
 {% block content %}
 <div class="page">
