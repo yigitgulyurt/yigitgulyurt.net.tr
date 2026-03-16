@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Admin{% endblock %} — yigitgulyurt</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="{{ url_for('admin.dashboard') }}">admin<span class="cursor"></span></a>
+  <div class="nav-links">
+    <a href="{{ url_for('admin.projects') }}">projeler</a>
+    <a href="{{ url_for('admin.blog') }}">blog</a>
+    <a href="{{ url_for('admin.messages') }}">mesajlar</a>
+    <a href="{{ url_for('admin.logout') }}" style="color:#f87171">çıkış</a>
+  </div>
+</nav>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-messages">
+    {% for c,m in messages %}<div class="flash flash-{{ c }}">{{ m }}</div>{% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+<main>
+  <div class="page" style="max-width:860px">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

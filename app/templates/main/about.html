@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}
+  <span class="lang-tr">Hakkımda</span>
+  <span class="lang-en">About</span>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="hero-prompt">$ cat about.md</div>
+  <h1 class="page-title">Yiğit Gülyurt</h1>
+  <div class="page-subtitle">
+    <span class="lang-tr">Full-Stack Geliştirici</span>
+    <span class="lang-en">Full-Stack Developer</span>
+  </div>
+
+  <div class="about-section">
+    <h2>// bio</h2>
+    <p class="lang-tr">
+      Backend odaklı bir geliştirici olarak Flask, nginx ve Python ekosistemi ile production-grade sistemler inşa ediyorum.
+      Projelerimi sıfırdan tasarlıyor, sunucu konfigürasyonundan frontend arayüzüne kadar her katmanını yönetiyorum.
+    </p>
+    <p class="lang-en">
+      I'm a backend-focused developer building production-grade systems with Flask, nginx, and the Python ecosystem.
+      I design projects from scratch and own every layer — from server configuration to the frontend interface.
+    </p>
+  </div>
+
+  <div class="about-section">
+    <h2>// stack</h2>
+    <div class="skill-list">
+      <span class="skill-item">Python</span>
+      <span class="skill-item">Flask</span>
+      <span class="skill-item">SQLAlchemy</span>
+      <span class="skill-item">Alembic</span>
+      <span class="skill-item">Gunicorn</span>
+      <span class="skill-item">nginx</span>
+      <span class="skill-item">Linux (Ubuntu)</span>
+      <span class="skill-item">hls.js</span>
+      <span class="skill-item">MediaMTX</span>
+      <span class="skill-item">JavaScript</span>
+      <span class="skill-item">HTML / CSS</span>
+      <span class="skill-item">SQLite / PostgreSQL</span>
+    </div>
+  </div>
+
+  <div class="about-section">
+    <h2>// contact</h2>
+    <p>
+      <a href="mailto:yigit@yigitgulyurt.net.tr" style="color: var(--accent2)">yigit@yigitgulyurt.net.tr</a>
+    </p>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <a class="btn" href="{{ url_for('static', filename='cv.pdf') }}" download>
+      <span class="lang-tr">CV indir</span>
+      <span class="lang-en">Download CV</span>
+    </a>
+  </div>
+</div>
+{% endblock %}

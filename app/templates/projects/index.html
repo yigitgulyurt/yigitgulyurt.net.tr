@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}
+  <span class="lang-tr">Projeler</span>
+  <span class="lang-en">Projects</span>
+{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-tag">
+    <span class="lang-tr">tüm projeler</span>
+    <span class="lang-en">all projects</span>
+  </div>
+</div>
+<div class="projects" style="border-bottom:none">
+  {% if projects %}
+  <div class="proj-grid">
+    {% for project in projects %}
+    <a class="proj-card" href="{{ url_for('projects.detail', slug=project.slug) }}">
+      <div class="proj-head">
+        <div class="proj-name">{{ project.title }}</div>
+        <div class="proj-arrow">↗</div>
+      </div>
+      <div class="proj-desc">{{ project.description }}</div>
+      <div class="proj-tags">
+        {% for tech in project.tech_list %}
+        <span class="tag">{{ tech }}</span>
+        {% endfor %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-state lang-tr">Henüz proje eklenmedi.</p>
+  <p class="empty-state lang-en">No projects yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

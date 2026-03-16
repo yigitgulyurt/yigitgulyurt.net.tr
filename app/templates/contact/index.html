@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}
+  <span class="lang-tr">İletişim</span>
+  <span class="lang-en">Contact</span>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="hero-prompt">$ ./contact.sh</div>
+  <h1 class="page-title lang-tr">İletişim</h1>
+  <h1 class="page-title lang-en">Contact</h1>
+  <div class="page-subtitle">
+    <span class="lang-tr">Mesaj bırakabilirsin.</span>
+    <span class="lang-en">Drop me a message.</span>
+  </div>
+
+  <form class="contact-form" method="POST">
+    <div class="form-group">
+      <label>// <span class="lang-tr">adın</span><span class="lang-en">name</span> *</label>
+      <input type="text" name="name" required>
+    </div>
+    <div class="form-group">
+      <label>// e-mail *</label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="form-group">
+      <label>// <span class="lang-tr">konu</span><span class="lang-en">subject</span></label>
+      <input type="text" name="subject">
+    </div>
+    <div class="form-group">
+      <label>// <span class="lang-tr">mesaj</span><span class="lang-en">message</span> *</label>
+      <textarea name="message" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">
+      <span class="lang-tr">→ gönder</span>
+      <span class="lang-en">→ send</span>
+    </button>
+  </form>
+</div>
+{% endblock %}

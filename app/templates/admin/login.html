@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin — Giriş</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+<div style="max-width:360px;margin:80px auto;padding:0 24px">
+  <div class="hero-prompt" style="margin-bottom:24px">$ sudo su admin</div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for c,m in messages %}<div class="flash flash-{{ c }}">{{ m }}</div>{% endfor %}{% endif %}
+  {% endwith %}
+  <form method="POST" style="display:flex;flex-direction:column;gap:14px">
+    <div class="form-group">
+      <label>// kullanıcı adı</label>
+      <input type="text" name="username" autofocus required>
+    </div>
+    <div class="form-group">
+      <label>// şifre</label>
+      <input type="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">→ giriş</button>
+  </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="hero-prompt">$ cat projects/{{ project.slug }}.md</div>
+  <h1 class="page-title">{{ project.title }}</h1>
+  <div class="proj-tags" style="margin-bottom:24px">
+    {% for tech in project.tech_list %}
+    <span class="tag">{{ tech }}</span>
+    {% endfor %}
+  </div>
+  <div class="blog-content">{{ project.description }}</div>
+  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+    {% if project.live_url %}
+    <a class="btn btn-primary" href="{{ project.live_url }}" target="_blank" rel="noopener">→ live</a>
+    {% endif %}
+    {% if project.github_url %}
+    <a class="btn" href="{{ project.github_url }}" target="_blank" rel="noopener">GitHub</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

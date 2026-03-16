@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Düzenle' if project.id else 'Yeni Proje' }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ 'Projeyi Düzenle' if project.id else 'Yeni Proje' }}</h1>
+<form method="POST" style="max-width:600px;margin-top:24px">
+  <div class="form-group">
+    <label>// başlık *</label>
+    <input type="text" name="title" value="{{ project.title or '' }}" required>
+  </div>
+  <div class="form-group">
+    <label>// slug (boş bırakılırsa otomatik)</label>
+    <input type="text" name="slug" value="{{ project.slug or '' }}">
+  </div>
+  <div class="form-group">
+    <label>// açıklama</label>
+    <textarea name="description">{{ project.description or '' }}</textarea>
+  </div>
+  <div class="form-group">
+    <label>// teknolojiler (virgülle ayır)</label>
+    <input type="text" name="tech_stack" value="{{ project.tech_stack or '' }}" placeholder="Flask, nginx, Python">
+  </div>
+  <div class="form-group">
+    <label>// live url</label>
+    <input type="url" name="live_url" value="{{ project.live_url or '' }}">
+  </div>
+  <div class="form-group">
+    <label>// github url</label>
+    <input type="url" name="github_url" value="{{ project.github_url or '' }}">
+  </div>
+  <div class="form-group">
+    <label>// sıra (sayı)</label>
+    <input type="number" name="order" value="{{ project.order or 0 }}" style="width:100px">
+  </div>
+  <div class="form-group" style="display:flex;align-items:center;gap:10px">
+    <input type="checkbox" name="featured" id="featured" {{ 'checked' if project.featured }} style="width:auto">
+    <label for="featured" style="color:var(--text2);margin-bottom:0">öne çıkar</label>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">→ kaydet</button>
+    <a class="btn" href="{{ url_for('admin.projects') }}">iptal</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block title %}Blog{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+  <h1 class="page-title">Blog Yazıları</h1>
+  <a class="btn btn-primary" href="{{ url_for('admin.post_edit') }}">+ yeni yazı</a>
+</div>
+{% for p in posts %}
+<div class="post-item">
+  <span class="post-title">{{ p.title }} {% if not p.published %}<span class="tag">taslak</span>{% endif %}</span>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span class="post-meta">{{ p.created_at.strftime('%Y-%m-%d') }}</span>
+    <a class="section-link" href="{{ url_for('admin.post_edit', id=p.id) }}">düzenle</a>
+    <form method="POST" action="{{ url_for('admin.post_delete', id=p.id) }}" onsubmit="return confirm('Silmek istediğine emin misin?')">
+      <button type="submit" style="font-family:var(--mono);font-size:11px;background:none;border:none;color:#f87171;cursor:pointer">sil</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<p class="empty-state">Henüz yazı yok.</p>
+{% endfor %}
+{% endblock %}

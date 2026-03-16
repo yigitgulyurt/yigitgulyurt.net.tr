@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block title %}Mesaj{% endblock %}
+{% block content %}
+<a class="btn" href="{{ url_for('admin.messages') }}" style="margin-bottom:24px;display:inline-block">← geri</a>
+<div style="border:0.5px solid var(--border);border-radius:6px;padding:20px;max-width:600px">
+  <div style="margin-bottom:16px">
+    <span class="section-tag">{{ message.name }}</span>
+    <span class="post-meta" style="margin-left:12px">{{ message.email }}</span>
+  </div>
+  {% if message.subject %}
+  <div style="font-size:13px;font-weight:500;margin-bottom:16px">{{ message.subject }}</div>
+  {% endif %}
+  <div style="font-size:13px;line-height:1.8;color:var(--text2)">{{ message.message }}</div>
+  <div style="margin-top:16px;font-size:11px;color:var(--text2)">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+</div>
+{% endblock %}

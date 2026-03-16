@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Düzenle' if post.id else 'Yeni Yazı' }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ 'Yazıyı Düzenle' if post.id else 'Yeni Yazı' }}</h1>
+<form method="POST" style="max-width:700px;margin-top:24px">
+  <div class="form-group">
+    <label>// başlık *</label>
+    <input type="text" name="title" value="{{ post.title or '' }}" required>
+  </div>
+  <div class="form-group">
+    <label>// slug (boş bırakılırsa otomatik)</label>
+    <input type="text" name="slug" value="{{ post.slug or '' }}">
+  </div>
+  <div class="form-group">
+    <label>// özet</label>
+    <input type="text" name="summary" value="{{ post.summary or '' }}">
+  </div>
+  <div class="form-group">
+    <label>// içerik (Markdown)</label>
+    <textarea name="content" style="min-height:320px;font-size:12px">{{ post.content or '' }}</textarea>
+  </div>
+  <div class="form-group" style="display:flex;align-items:center;gap:10px">
+    <input type="checkbox" name="published" id="published" {{ 'checked' if post.published }} style="width:auto">
+    <label for="published" style="color:var(--text2);margin-bottom:0">yayınla</label>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button type="submit" class="btn btn-primary">→ kaydet</button>
+    <a class="btn" href="{{ url_for('admin.blog') }}">iptal</a>
+  </div>
+</form>
+{% endblock %}

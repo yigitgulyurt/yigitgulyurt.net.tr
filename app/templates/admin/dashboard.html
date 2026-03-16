@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="hero-prompt">$ systemctl status portfolio</div>
+<h1 class="page-title">Dashboard</h1>
+<div class="stats" style="margin-top:24px;border:0.5px solid var(--border);border-radius:6px;overflow:hidden">
+  <div class="stat">
+    <div class="stat-num">{{ stats.projects }}</div>
+    <div class="stat-label">proje</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">{{ stats.posts }}</div>
+    <div class="stat-label">yazı</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">{{ stats.messages }}</div>
+    <div class="stat-label">okunmamış mesaj</div>
+  </div>
+</div>
+<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+  <a class="btn" href="{{ url_for('admin.projects') }}">projeler →</a>
+  <a class="btn" href="{{ url_for('admin.blog') }}">blog →</a>
+  <a class="btn" href="{{ url_for('admin.messages') }}">mesajlar →</a>
+  <a class="btn" href="{{ url_for('main.index') }}" target="_blank">siteyi gör ↗</a>
+</div>
+{% endblock %}

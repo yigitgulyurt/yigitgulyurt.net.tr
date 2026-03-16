@@ -29,6 +29,16 @@ def create_app(config_class=Config):
     app.register_blueprint(contact_bp, url_prefix='/iletisim')
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
+    register_context_processors(app)
+
     return app
 
 from app import models  # noqa
+
+
+from datetime import datetime
+
+def register_context_processors(app):
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow()}

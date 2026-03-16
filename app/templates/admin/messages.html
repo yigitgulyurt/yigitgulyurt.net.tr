@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block title %}Mesajlar{% endblock %}
+{% block content %}
+<h1 class="page-title" style="margin-bottom:24px">Mesajlar</h1>
+{% for m in messages %}
+<div class="post-item" style="{{ '' if m.read else 'opacity:.6' }}">
+  <a class="post-title" href="{{ url_for('admin.message_detail', id=m.id) }}">
+    {% if not m.read %}<span style="color:var(--accent)">● </span>{% endif %}
+    {{ m.name }} — {{ m.subject or '(konu yok)' }}
+  </a>
+  <span class="post-meta">{{ m.created_at.strftime('%Y-%m-%d') }}</span>
+</div>
+{% else %}
+<p class="empty-state">Mesaj yok.</p>
+{% endfor %}
+{% endblock %}

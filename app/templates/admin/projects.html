@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% block title %}Projeler{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+  <h1 class="page-title">Projeler</h1>
+  <a class="btn btn-primary" href="{{ url_for('admin.project_edit') }}">+ yeni</a>
+</div>
+{% for p in projects %}
+<div class="post-item">
+  <span class="post-title">{{ p.title }} {% if p.featured %}<span class="tag" style="color:var(--accent)">featured</span>{% endif %}</span>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a class="section-link" href="{{ url_for('admin.project_edit', id=p.id) }}">düzenle</a>
+    <form method="POST" action="{{ url_for('admin.project_delete', id=p.id) }}" onsubmit="return confirm('Silmek istediğine emin misin?')">
+      <button type="submit" style="font-family:var(--mono);font-size:11px;background:none;border:none;color:#f87171;cursor:pointer">sil</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<p class="empty-state">Henüz proje yok.</p>
+{% endfor %}
+{% endblock %}

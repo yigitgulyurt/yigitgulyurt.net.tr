@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="{{ lang | default('tr') }}" data-lang="{{ lang | default('tr') }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Yiğit Gülyurt{% endblock %} — yigitgulyurt.net.tr</title>
+  <meta name="description" content="{% block description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="nav-logo" href="{{ url_for('main.index') }}">
+      yigitgulyurt<span class="cursor"></span>
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('projects.index') }}">
+        <span class="lang-tr">projeler</span>
+        <span class="lang-en">projects</span>
+      </a>
+      <a href="{{ url_for('blog.index') }}">blog</a>
+      <a href="{{ url_for('main.about') }}">
+        <span class="lang-tr">hakkımda</span>
+        <span class="lang-en">about</span>
+      </a>
+      <a href="{{ url_for('contact.index') }}">
+        <span class="lang-tr">iletişim</span>
+        <span class="lang-en">contact</span>
+      </a>
+      <button class="lang-btn" id="langbtn" onclick="toggleLang()">EN</button>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="footer-copy">© {{ now.year }} yigitgulyurt.net.tr</div>
+    <div class="footer-links">
+      <a href="https://github.com/yigitgulyurt" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://linkedin.com/in/yigitgulyurt" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="{{ url_for('contact.index') }}">
+        <span class="lang-tr">iletişim</span>
+        <span class="lang-en">contact</span>
+      </a>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
