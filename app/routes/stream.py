@@ -2,11 +2,7 @@ import os
 import requests as req_lib
 from flask import Blueprint, render_template, jsonify, request, abort, current_app
 
-# Sayfa blueprint'i — prefix yok, /<key> direkt
 bp = Blueprint('stream', __name__)
-
-# API blueprint'i — /stream/ altında
-api_bp = Blueprint('stream_api', __name__)
 
 try:
     import redis as redis_lib
@@ -21,18 +17,15 @@ def _get_redis():
     url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     return redis_lib.from_url(url, decode_responses=True)
 
-def _canli_page(key):
+@bp.route('/<key>')
+def canli(key):
     expected = current_app.config.get('STREAM_KEY', '')
     if not expected or key != expected:
         abort(404)
     stream_url = f'/canli-kaynak/canli/{key}/index.m3u8'
     return render_template('stream/canli.html', stream_url=stream_url)
 
-@bp.route('/<key>')
-def canli(key):
-    return _canli_page(key)
-
-@api_bp.route('/ping', methods=['POST'])
+@bp.route('/ping', methods=['POST'])
 def stream_ping():
     data = request.get_json(silent=True) or {}
     sid = data.get('sid', '')
@@ -46,7 +39,7 @@ def stream_ping():
             current_app.logger.warning(f'Redis ping error: {e}')
     return jsonify({'ok': True})
 
-@api_bp.route('/status')
+@bp.route('/status')
 def stream_status():
     key = current_app.config.get('STREAM_KEY', '')
     path_name = f'canli/{key}'
@@ -60,7 +53,7 @@ def stream_status():
         fallback = current_app.config.get('STREAM_LIVE_FALLBACK', 'false').lower() == 'true'
         return jsonify({'live': fallback})
 
-@api_bp.route('/viewers')
+@bp.route('/viewers')
 def stream_viewers():
     if not _REDIS_AVAILABLE:
         return jsonify({'viewers': 0})
