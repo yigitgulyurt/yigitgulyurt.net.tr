@@ -56,14 +56,7 @@
     text-transform: uppercase;
     margin-bottom: 16px;
   }
-  .atk-hero-name {
-    font-size: clamp(2.4rem, 7vw, 5rem);
-    font-weight: 500;
-    letter-spacing: -1px;
-    line-height: 1.1;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
+
   .atk-hero-name em {
     color: var(--red);
     font-style: normal;
@@ -79,10 +72,46 @@
   }
   .atk-hero-dates::before { content: '//'; color: rgba(197,160,89,0.5); }
 
+  /* ANİMASYONLU HERO TITLE */
+  .atk-hero-name {
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    font-weight: 500;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .atk-first-name {
+    font-size: 0.45em;
+    letter-spacing: 8px;
+    color: var(--text2);
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-12px) scale(0.96);
+    transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 0;
+    overflow: hidden;
+    margin-bottom: 0;
+    display: block;
+  }
+  .atk-first-name.visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+    max-height: 80px;
+    margin-bottom: 4px;
+  }
+  .atk-last-name {
+    display: block;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   /* LAYOUT */
   .atk-body {
     padding: 48px 32px;
-    max-width: 860px;
   }
 
   /* SECTION */
@@ -259,7 +288,10 @@
     <div class="atk-hero-overlay"></div>
     <div class="atk-hero-content">
       <div class="atk-eyebrow">✦ Milletin Kaderini Değiştiren Ebedi Lider ✦</div>
-      <div class="atk-hero-name">Mustafa Kemal <em>Atatürk</em></div>
+      <div class="atk-hero-name">
+        <span class="atk-first-name" id="atkFirstName">Mustafa Kemal</span>
+        <span class="atk-last-name"><em>Atatürk</em></span>
+      </div>
       <div class="atk-hero-dates">1881 — 1938</div>
     </div>
   </div>
@@ -392,6 +424,20 @@ Ey Türk istikbalinin evladı! İşte, bu ahval ve şerait içinde dahi vazifen,
 
 {% block scripts %}
 <script>
+(function() {
+  // Hero title scroll animasyonu
+  var firstName = document.getElementById('atkFirstName');
+  if (firstName) {
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 30) {
+        firstName.classList.add('visible');
+      } else {
+        firstName.classList.remove('visible');
+      }
+    }, { passive: true });
+  }
+})();
+
 (function() {
   var quotes = [
     "Hayatta en hakiki mürşit ilimdir, fendir.",
