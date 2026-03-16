@@ -126,6 +126,17 @@ def post_delete(id):
     flash('Yazı silindi.', 'success')
     return redirect(url_for('admin.blog'))
 
+# --- Markdown Preview ---
+
+@bp.route('/preview', methods=['POST'])
+@login_required
+def preview():
+    from flask import jsonify
+    import markdown as md
+    text = request.form.get('content', '')
+    html = md.markdown(text, extensions=['fenced_code', 'tables'])
+    return jsonify({'html': html})
+
 # --- Messages ---
 
 @bp.route('/mesajlar')

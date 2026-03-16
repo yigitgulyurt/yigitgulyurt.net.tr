@@ -9,7 +9,7 @@
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div class="form-group" style="margin-bottom:0">
       <label>// başlık *</label>
-      <input type="text" name="title" id="title-input" value="{{ post.title or '' }}" required>
+      <input type="text" name="title" value="{{ post.title or '' }}" required>
     </div>
     <div class="form-group" style="margin-bottom:0">
       <label>// slug (boş bırakılırsa otomatik)</label>
@@ -22,18 +22,17 @@
     <input type="text" name="summary" value="{{ post.summary or '' }}">
   </div>
 
-  <!-- SPLIT EDITOR -->
   <div class="form-group">
     <div class="editor-toolbar">
       <span style="font-size:11px;color:var(--accent)">// içerik (Markdown)</span>
-      <div style="display:flex;gap:8px">
-        <button type="button" class="editor-btn" onclick="insertMd('**', '**')" title="Kalın">B</button>
-        <button type="button" class="editor-btn" onclick="insertMd('*', '*')" title="İtalik"><em>I</em></button>
-        <button type="button" class="editor-btn" onclick="insertMd('`', '`')" title="Kod">&#96;</button>
-        <button type="button" class="editor-btn" onclick="insertMd('```\n', '\n```')" title="Kod bloğu">{ }</button>
-        <button type="button" class="editor-btn" onclick="insertMd('## ', '')" title="Başlık">H2</button>
-        <button type="button" class="editor-btn" onclick="insertMd('- ', '')" title="Liste">—</button>
-        <button type="button" class="editor-btn" onclick="insertMd('[', '](url)')" title="Link">↗</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="editor-btn" onclick="insertMd('**','**')" title="Kalın"><strong>B</strong></button>
+        <button type="button" class="editor-btn" onclick="insertMd('*','*')" title="İtalik"><em>I</em></button>
+        <button type="button" class="editor-btn" onclick="insertMd('\`','\`')" title="Kod">&#96;</button>
+        <button type="button" class="editor-btn" onclick="insertBlock('\`\`\`\n','\n\`\`\`')" title="Kod bloğu">{ }</button>
+        <button type="button" class="editor-btn" onclick="insertLine('## ')" title="Başlık">H2</button>
+        <button type="button" class="editor-btn" onclick="insertLine('- ')" title="Liste">—</button>
+        <button type="button" class="editor-btn" onclick="insertMd('[','](https://)')" title="Link">↗</button>
       </div>
     </div>
     <div class="editor-split">
@@ -62,38 +61,72 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script>
-  const editor  = document.getElementById('md-editor');
-  const preview = document.getElementById('md-preview');
+const editor  = document.getElementById('md-editor');
+const preview = document.getElementById('md-preview');
+const PREVIEW_URL = '{{ url_for("admin.preview") }}';
+let previewTimer = null;
 
-  function renderPreview() {
-    const md = editor.value.trim();
-    preview.innerHTML = md ? marked.parse(md) : '<span style="color:var(--text2);font-size:12px">önizleme burada görünür...</span>';
+function renderPreview() {
+  const content = editor.value.trim();
+  if (!content) {
+    preview.innerHTML = '<span style="color:var(--text2);font-size:12px">önizleme burada görünür...</span>';
+    return;
   }
+  const form = new FormData();
+  form.append('content', content);
+  fetch(PREVIEW_URL, { method: 'POST', body: form })
+    .then(r => r.json())
+    .then(data => { preview.innerHTML = data.html; })
+    .catch(() => {});
+}
 
-  editor.addEventListener('input', renderPreview);
-  renderPreview(); // sayfa açılınca mevcut içeriği render et
+editor.addEventListener('input', function() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(renderPreview, 300);
+});
 
-  // Toolbar yardımcısı
-  function insertMd(before, after) {
-    const start = editor.selectionStart;
-    const end   = editor.selectionEnd;
-    const sel   = editor.value.substring(start, end);
-    const insert = before + (sel || 'metin') + after;
-    editor.setRangeText(insert, start, end, 'select');
-    editor.focus();
-    renderPreview();
+// Toolbar — inline sarma
+function insertMd(before, after) {
+  const s = editor.selectionStart;
+  const e = editor.selectionEnd;
+  const sel = editor.value.substring(s, e) || 'metin';
+  editor.setRangeText(before + sel + after, s, e, 'end');
+  editor.focus();
+  renderPreview();
+}
+
+// Blok sarma (kod bloğu gibi)
+function insertBlock(before, after) {
+  const s = editor.selectionStart;
+  const e = editor.selectionEnd;
+  const sel = editor.value.substring(s, e) || 'kod buraya';
+  editor.setRangeText(before + sel + after, s, e, 'end');
+  editor.focus();
+  renderPreview();
+}
+
+// Satır başına ekle
+function insertLine(prefix) {
+  const s = editor.selectionStart;
+  const lineStart = editor.value.lastIndexOf('\n', s - 1) + 1;
+  editor.setRangeText(prefix, lineStart, lineStart, 'end');
+  editor.focus();
+  renderPreview();
+}
+
+// Tab — 2 boşluk
+editor.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = this.selectionStart;
+    this.setRangeText('  ', s, s, 'end');
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(renderPreview, 300);
   }
+});
 
-  // Tab tuşu — 2 boşluk ekle, formu gönderme
-  editor.addEventListener('keydown', function(e) {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const s = this.selectionStart;
-      this.setRangeText('  ', s, s, 'end');
-      renderPreview();
-    }
-  });
+// Sayfa yüklenince mevcut içeriği render et
+renderPreview();
 </script>
 {% endblock %}
