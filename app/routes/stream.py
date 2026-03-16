@@ -2,7 +2,7 @@ import os
 import requests as req_lib
 from flask import Blueprint, render_template, jsonify, request, abort, current_app
 
-bp = Blueprint('stream', __name__)
+bp = Blueprint('stream', __name__, subdomain='canli')
 
 try:
     import redis as redis_lib

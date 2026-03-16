@@ -29,7 +29,7 @@ def create_app(config_class=Config):
     app.register_blueprint(blog_bp, url_prefix='/blog')
     app.register_blueprint(contact_bp, url_prefix='/iletisim')
     app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(stream_bp)  # canli subdomain — prefix yok
+    app.register_blueprint(stream_bp)  # subdomain='canli' blueprint'te tanımlı
 
     register_context_processors(app)
 
