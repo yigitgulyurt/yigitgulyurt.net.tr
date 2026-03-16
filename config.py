@@ -15,5 +15,6 @@ class Config:
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
     SERVER_NAME = os.environ.get('SERVER_NAME') or 'yigitgulyurt.net.tr'
     STREAM_KEY = os.environ.get('STREAM_KEY') or ''
+    SHOW_STREAM_SECTION = os.environ.get('SHOW_STREAM_SECTION', 'false').lower() == 'true'
     STREAM_LIVE_FALLBACK = os.environ.get('STREAM_LIVE_FALLBACK', 'false')
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')

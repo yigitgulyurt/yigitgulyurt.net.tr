@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, Response, url_for
+from flask import Blueprint, render_template, Response, url_for, current_app
 from app.models import Project, BlogPost
 from datetime import datetime
 
@@ -12,10 +12,27 @@ def index():
         'projects': Project.query.count(),
         'posts': BlogPost.query.filter_by(published=True).count(),
     }
+
+    # Canlı yayın section kontrolü
+    show_stream = current_app.config.get('SHOW_STREAM_SECTION', False)
+    stream_live = False
+    if show_stream:
+        try:
+            import requests as req_lib
+            key = current_app.config.get('STREAM_KEY', '')
+            r = req_lib.get('http://localhost:9997/v3/paths/list', timeout=1)
+            items = r.json().get('items', [])
+            path = next((p for p in items if p.get('name') == f'canli/{key}'), None)
+            stream_live = bool(path and path.get('ready'))
+        except Exception:
+            stream_live = False
+
     return render_template('main/index.html',
                            featured_projects=featured_projects,
                            recent_posts=recent_posts,
-                           stats=stats)
+                           stats=stats,
+                           show_stream=show_stream,
+                           stream_live=stream_live)
 
 @bp.route('/hakkimda')
 def about():

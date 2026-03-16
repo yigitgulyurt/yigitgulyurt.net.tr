@@ -59,6 +59,44 @@
     </div>
   </div>
 
+  <!-- CANLI YAYIN -->
+  {% if show_stream and stream_live %}
+  <div class="section-header" id="canli-section">
+    <div class="section-tag" style="gap:10px">
+      <span class="live-dot-sm"></span>
+      <span class="lang-tr">canlı yayın</span>
+      <span class="lang-en">live stream</span>
+    </div>
+    <a class="section-link" href="https://canli.yigitgulyurt.net.tr" target="_blank">
+      <span class="lang-tr">izle →</span>
+      <span class="lang-en">watch →</span>
+    </a>
+  </div>
+  <div class="stream-promo">
+    <div class="stream-promo-inner">
+      <div class="stream-promo-left">
+        <div class="stream-promo-badge">
+          <span class="live-dot-sm"></span>
+          <span class="lang-tr">CANLI</span>
+          <span class="lang-en">LIVE</span>
+        </div>
+        <div class="stream-promo-title lang-tr">Şu an canlı yayın var</div>
+        <div class="stream-promo-title lang-en">Live stream is active</div>
+        <div class="stream-promo-desc lang-tr">
+          <span class="kw">canli.yigitgulyurt.net.tr</span> adresinden izleyebilirsin.
+        </div>
+        <div class="stream-promo-desc lang-en">
+          Watch at <span class="kw">canli.yigitgulyurt.net.tr</span>
+        </div>
+      </div>
+      <a class="btn btn-primary" href="https://canli.yigitgulyurt.net.tr" target="_blank" rel="noopener">
+        <span class="lang-tr">→ yayına git</span>
+        <span class="lang-en">→ watch live</span>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- FEATURED PROJECTS -->
   <div class="section-header">
     <div class="section-tag">
