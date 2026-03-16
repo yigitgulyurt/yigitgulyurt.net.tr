@@ -506,20 +506,19 @@ html[data-lang="en"] .lang-tr { display: none !important; }
   border-radius: 6px;
   overflow: hidden;
   border: 0.5px solid var(--border);
-  max-width: 560px;
+  display: inline-block;
+  max-width: 100%;
 }
 .proj-cover-img {
-  width: 100%;
+  max-width: 100%;
   max-height: 280px;
-  object-fit: cover;
   display: block;
 }
 
 /* ---- PROJECT CARD THUMBNAIL ---- */
 .proj-thumb {
-  width: 100%;
+  max-width: 100%;
   max-height: 160px;
-  object-fit: cover;
   border-radius: 4px;
   margin-bottom: 12px;
   border: 0.5px solid var(--border);
