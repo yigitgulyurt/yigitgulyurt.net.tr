@@ -397,9 +397,9 @@
 <script src="/static/js/hls.js"></script>
 <script>
   var STREAM_URL  = '{{ stream_url }}';
-  var STATUS_URL  = '/stream/status';
-  var PING_URL    = '/stream/ping';
-  var VIEWERS_URL = '/stream/viewers';
+  var STATUS_URL  = '/status';
+  var PING_URL    = '/ping';
+  var VIEWERS_URL = '/viewers';
   var hls = null, poller = null, viewerPoller = null;
   var retryCount = 0, MAX_RETRY = 3, playerActive = false;
   var SESSION_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
