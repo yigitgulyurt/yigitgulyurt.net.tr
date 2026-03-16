@@ -87,7 +87,7 @@ editor.addEventListener('input', function() {
 });
 
 // Toolbar — inline sarma
-function insertMd(before, after) {
+window.insertMd = function(before, after) {
   const s = editor.selectionStart;
   const e = editor.selectionEnd;
   const sel = editor.value.substring(s, e) || 'metin';
@@ -97,7 +97,7 @@ function insertMd(before, after) {
 }
 
 // Blok sarma (kod bloğu gibi)
-function insertBlock(before, after) {
+window.insertBlock = function(before, after) {
   const s = editor.selectionStart;
   const e = editor.selectionEnd;
   const sel = editor.value.substring(s, e) || 'kod buraya';
@@ -107,7 +107,7 @@ function insertBlock(before, after) {
 }
 
 // Satır başına ekle
-function insertLine(prefix) {
+window.insertLine = function(prefix) {
   const s = editor.selectionStart;
   const lineStart = editor.value.lastIndexOf('\n', s - 1) + 1;
   editor.setRangeText(prefix, lineStart, lineStart, 'end');
