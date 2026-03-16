@@ -1,4 +1,6 @@
 import os
+import time
+import json
 import requests as req_lib
 from flask import Blueprint, render_template, jsonify, request, abort, current_app
 
@@ -17,9 +19,16 @@ def _get_redis():
     url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     return redis_lib.from_url(url, decode_responses=True)
 
+def _get_ip():
+    # nginx proxy arkasındayız, X-Real-IP veya X-Forwarded-For'a bak
+    return (request.headers.get('X-Real-IP') or
+            request.headers.get('X-Forwarded-For', '').split(',')[0].strip() or
+            request.remote_addr or
+            'bilinmiyor')
+
 @bp.route('/')
 def canli_root():
-    from flask import redirect, url_for
+    from flask import redirect
     key = current_app.config.get('STREAM_KEY', '')
     return redirect(f'/{key}')
 
@@ -40,7 +49,12 @@ def stream_ping():
     if _REDIS_AVAILABLE:
         try:
             r = _get_redis()
-            r.setex(f'{_VIEWER_KEY_PREFIX}{sid}', _VIEWER_TIMEOUT, '1')
+            payload = json.dumps({
+                'ip': _get_ip(),
+                'last_seen': int(time.time()),
+                'sid': sid,
+            })
+            r.setex(f'{_VIEWER_KEY_PREFIX}{sid}', _VIEWER_TIMEOUT, payload)
         except Exception as e:
             current_app.logger.warning(f'Redis ping error: {e}')
     return jsonify({'ok': True})

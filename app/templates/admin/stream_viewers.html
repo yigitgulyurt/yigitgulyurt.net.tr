@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+{% block title %}Canlı İzleyiciler{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+  <div>
+    <div class="hero-prompt" style="margin-bottom:6px">$ redis-cli keys "yg_viewer:*"</div>
+    <h1 class="page-title">Canlı İzleyiciler</h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:22px;font-weight:500;color:var(--accent)">{{ viewers|length }}</span>
+    <span style="font-size:11px;color:var(--text2)">aktif izleyici</span>
+    <button class="btn" onclick="location.reload()" style="font-size:11px">⟳ yenile</button>
+  </div>
+</div>
+
+{% if viewers %}
+<div style="border:0.5px solid var(--border);border-radius:6px;overflow:hidden">
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:10px;color:var(--accent);letter-spacing:0.5px">
+    <span>// ip adresi</span>
+    <span>// session id</span>
+    <span>// son ping</span>
+    <span>// süresi dolacak</span>
+  </div>
+  {% for v in viewers %}
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:12px 16px;border-bottom:0.5px solid var(--border);font-size:12px;align-items:center{% if loop.last %};border-bottom:none{% endif %}">
+    <span style="color:var(--accent2);font-family:var(--mono)">{{ v.ip }}</span>
+    <span style="color:var(--text2);font-size:10px">{{ v.sid[:12] }}...</span>
+    <span style="color:var(--text2)">
+      {% if v.since < 10 %}
+        <span style="color:var(--accent)">şimdi</span>
+      {% elif v.since < 60 %}
+        {{ v.since }}s önce
+      {% else %}
+        {{ (v.since // 60) }}dk önce
+      {% endif %}
+    </span>
+    <span style="color:var(--text2)">
+      {% if v.ttl > 0 %}
+        <span style="display:inline-block;width:{{ (v.ttl / 45 * 60)|int }}px;max-width:60px;height:2px;background:var(--accent);border-radius:1px;vertical-align:middle;margin-right:6px"></span>
+        {{ v.ttl }}s
+      {% else %}
+        süresi doldu
+      {% endif %}
+    </span>
+  </div>
+  {% endfor %}
+</div>
+
+<div style="margin-top:12px;font-size:11px;color:var(--text2)">
+  // Her izleyici 30 saniyede bir ping gönderir. 45 saniye ping gelmezse listeden düşer.
+</div>
+
+{% else %}
+<div style="border:0.5px solid var(--border);border-radius:6px;padding:32px;text-align:center">
+  <div style="font-size:11px;color:var(--text2)">// şu an aktif izleyici yok</div>
+  {% if not viewers %}
+  <div style="font-size:10px;color:var(--text2);margin-top:8px">yayın aktif değil veya henüz kimse bağlanmadı</div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div style="margin-top:24px;display:flex;gap:10px">
+  <a class="btn" href="{{ url_for('admin.dashboard') }}">← dashboard</a>
+  <a class="btn btn-primary" href="https://canli.yigitgulyurt.net.tr" target="_blank">yayın sayfası ↗</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Otomatik yenile — 15 saniyede bir
+  setTimeout(function() { location.reload(); }, 15000);
+</script>
+{% endblock %}

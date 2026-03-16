@@ -137,6 +137,36 @@ def preview():
     html = md.markdown(text, extensions=['fenced_code', 'tables'])
     return jsonify({'html': html})
 
+# --- Stream Viewers ---
+
+@bp.route('/izleyiciler')
+@login_required
+def stream_viewers():
+    import json, time
+    viewers = []
+    try:
+        import redis as redis_lib
+        import os
+        r = redis_lib.from_url(os.environ.get('REDIS_URL', 'redis://localhost:6379/0'), decode_responses=True)
+        keys = r.keys('yg_viewer:*')
+        now = int(time.time())
+        for key in keys:
+            raw = r.get(key)
+            if not raw:
+                continue
+            try:
+                data = json.loads(raw)
+                ttl = r.ttl(key)
+                data['since'] = now - data.get('last_seen', now)
+                data['ttl'] = ttl
+                viewers.append(data)
+            except Exception:
+                pass
+        viewers.sort(key=lambda x: x.get('last_seen', 0), reverse=True)
+    except Exception as e:
+        viewers = []
+    return render_template('admin/stream_viewers.html', viewers=viewers)
+
 # --- Messages ---
 
 @bp.route('/mesajlar')
