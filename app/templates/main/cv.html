@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}CV — Yiğit Gülyurt{% endblock %}
+
+{% block content %}
+<div class="cv-wrap">
+
+  <div class="cv-header">
+    <div>
+      <h1 class="cv-name">Yiğit Gülyurt</h1>
+      <div class="cv-role lang-tr">Self-taught Geliştirici · Lise Öğrencisi</div>
+      <div class="cv-role lang-en">Self-taught Developer · High School Student</div>
+    </div>
+    <div class="cv-contact">
+      <a href="mailto:{{ config.CONTACT_EMAIL }}">{{ config.CONTACT_EMAIL }}</a>
+      <a href="https://yigitgulyurt.net.tr" target="_blank">yigitgulyurt.net.tr</a>
+      <a href="https://github.com/yigitgulyurt" target="_blank">github.com/yigitgulyurt</a>
+    </div>
+  </div>
+
+  <div class="cv-section">
+    <div class="cv-section-title lang-tr">Hakkımda</div>
+    <div class="cv-section-title lang-en">About</div>
+    <p class="cv-text lang-tr">
+      Yazılımı kendi kendime öğrenen bir lise öğrencisiyim. Backend sistemler, Linux sunucu yönetimi
+      ve web uygulamaları geliştiriyorum. Öğrendiklerimi doğrudan production ortamındaki kendi projelerime uyguluyorum.
+    </p>
+    <p class="cv-text lang-en">
+      A self-taught high school student building backend systems, managing Linux servers,
+      and developing web applications. I apply everything I learn directly to my own production projects.
+    </p>
+  </div>
+
+  <div class="cv-section">
+    <div class="cv-section-title lang-tr">Projeler</div>
+    <div class="cv-section-title lang-en">Projects</div>
+    {% for project in projects %}
+    <div class="cv-entry">
+      <div class="cv-entry-head">
+        <span class="cv-entry-title">{{ project.title }}</span>
+        <span class="cv-entry-meta">
+          {% if project.live_url %}<a href="{{ project.live_url }}" target="_blank">{{ project.live_url }}</a>{% endif %}
+        </span>
+      </div>
+      {% if project.description %}
+      <div class="cv-text">{{ project.description }}</div>
+      {% endif %}
+      {% if project.tech_list %}
+      <div class="cv-tags">
+        {% for tech in project.tech_list %}<span class="cv-tag">{{ tech }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="cv-section">
+    <div class="cv-section-title lang-tr">Teknik Beceriler</div>
+    <div class="cv-section-title lang-en">Technical Skills</div>
+    <div class="cv-skills-grid">
+      <div class="cv-skill-row">
+        <span class="cv-skill-cat lang-tr">Backend</span>
+        <span class="cv-skill-cat lang-en">Backend</span>
+        <span class="cv-skill-val">Python, Flask, SQLAlchemy, Alembic, Gunicorn</span>
+      </div>
+      <div class="cv-skill-row">
+        <span class="cv-skill-cat lang-tr">Sunucu / DevOps</span>
+        <span class="cv-skill-cat lang-en">Server / DevOps</span>
+        <span class="cv-skill-val">nginx, Linux (Ubuntu), systemd, certbot</span>
+      </div>
+      <div class="cv-skill-row">
+        <span class="cv-skill-cat lang-tr">Frontend</span>
+        <span class="cv-skill-cat lang-en">Frontend</span>
+        <span class="cv-skill-val">JavaScript, HTML, CSS, hls.js, Service Worker</span>
+      </div>
+      <div class="cv-skill-row">
+        <span class="cv-skill-cat lang-tr">Medya / Yayın</span>
+        <span class="cv-skill-cat lang-en">Streaming</span>
+        <span class="cv-skill-val">MediaMTX, HLS, RTMP</span>
+      </div>
+      <div class="cv-skill-row">
+        <span class="cv-skill-cat">Veritabanı</span>
+        <span class="cv-skill-val">SQLite, PostgreSQL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cv-section">
+    <div class="cv-section-title lang-tr">Eğitim</div>
+    <div class="cv-section-title lang-en">Education</div>
+    <div class="cv-entry">
+      <div class="cv-entry-head">
+        <span class="cv-entry-title lang-tr">Lise (devam ediyor)</span>
+        <span class="cv-entry-title lang-en">High School (ongoing)</span>
+        <span class="cv-entry-meta">Ankara, Türkiye</span>
+      </div>
+      <div class="cv-text lang-tr">Yazılım öğrenimini okul dışında, kendi projeleri üzerinde sürdürmektedir.</div>
+      <div class="cv-text lang-en">Pursuing software development independently through self-directed projects outside of school.</div>
+    </div>
+  </div>
+
+  <div class="cv-actions no-print">
+    <a class="btn" href="{{ url_for('main.about') }}">← hakkımda</a>
+    <button class="btn btn-primary" onclick="window.print()">
+      <span class="lang-tr">→ PDF olarak kaydet</span>
+      <span class="lang-en">→ Save as PDF</span>
+    </button>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+@media print {
+  .nav, .footer, .no-print { display: none !important; }
+  body { background: white; color: black; }
+  .cv-wrap { padding: 20px; }
+  .cv-header { border-bottom-color: #ccc; }
+  .cv-section { border-bottom-color: #eee; }
+  .cv-section-title { color: #333; }
+  .cv-tag { border-color: #ccc; color: #555; }
+  a { color: black; text-decoration: none; }
+}
+</style>
+{% endblock %}

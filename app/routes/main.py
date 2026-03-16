@@ -19,17 +19,23 @@ def index():
 
 @bp.route('/hakkimda')
 def about():
-    return render_template('main/about.html')
+    projects = Project.query.order_by(Project.order, Project.created_at.desc()).all()
+    return render_template('main/about.html', projects=projects)
+
+@bp.route('/cv')
+def cv():
+    projects = Project.query.order_by(Project.order, Project.created_at.desc()).all()
+    return render_template('main/cv.html', projects=projects)
 
 @bp.route('/sitemap.xml')
 def sitemap():
     pages = []
     base = 'https://yigitgulyurt.net.tr'
 
-    # Statik sayfalar
     static_pages = [
         ('main.index',    '1.0',  'weekly'),
         ('main.about',    '0.8',  'monthly'),
+        ('main.cv',       '0.7',  'monthly'),
         ('projects.index','0.9',  'weekly'),
         ('blog.index',    '0.9',  'weekly'),
         ('contact.index', '0.5',  'monthly'),
@@ -42,7 +48,6 @@ def sitemap():
             'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
         })
 
-    # Projeler
     for p in Project.query.all():
         pages.append({
             'loc': base + url_for('projects.detail', slug=p.slug),
@@ -51,7 +56,6 @@ def sitemap():
             'lastmod': p.created_at.strftime('%Y-%m-%d'),
         })
 
-    # Blog yazıları
     for post in BlogPost.query.filter_by(published=True).all():
         pages.append({
             'loc': base + url_for('blog.detail', slug=post.slug),

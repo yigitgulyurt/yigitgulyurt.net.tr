@@ -1,30 +1,33 @@
 {% extends "base.html" %}
-{% block title %}
-  <span class="lang-tr">Hakkımda</span>
-  <span class="lang-en">About</span>
-{% endblock %}
+{% block title %}Hakkımda{% endblock %}
+{% block og_title %}Yiğit Gülyurt — Hakkımda{% endblock %}
+{% block og_description %}Lise öğrencisi, self-taught geliştirici. Flask, nginx, Python.{% endblock %}
 
 {% block content %}
 <div class="page">
   <div class="hero-prompt">$ cat about.md</div>
   <h1 class="page-title">Yiğit Gülyurt</h1>
   <div class="page-subtitle">
-    <span class="lang-tr">Full-Stack Geliştirici</span>
-    <span class="lang-en">Full-Stack Developer</span>
+    <span class="lang-tr">Self-taught geliştirici · Lise öğrencisi</span>
+    <span class="lang-en">Self-taught developer · High school student</span>
   </div>
 
+  <!-- BIO -->
   <div class="about-section">
     <h2>// bio</h2>
     <p class="lang-tr">
-      Backend odaklı bir geliştirici olarak Flask, nginx ve Python ekosistemi ile production-grade sistemler inşa ediyorum.
-      Projelerimi sıfırdan tasarlıyor, sunucu konfigürasyonundan frontend arayüzüne kadar her katmanını yönetiyorum.
+      Lise öğrencisiyim ve yazılımı kendi kendime öğrendim. Backend sistemler, sunucu yönetimi ve
+      küçük ölçekli web uygulamaları geliştiriyorum. Öğrendiğim her şeyi gerçek projelere dökerek ilerliyorum —
+      bu site de dahil.
     </p>
     <p class="lang-en">
-      I'm a backend-focused developer building production-grade systems with Flask, nginx, and the Python ecosystem.
-      I design projects from scratch and own every layer — from server configuration to the frontend interface.
+      I'm a high school student who taught himself programming. I build backend systems,
+      manage servers, and develop small-scale web applications. Everything I learn goes
+      straight into real projects — including this site.
     </p>
   </div>
 
+  <!-- STACK -->
   <div class="about-section">
     <h2>// stack</h2>
     <div class="skill-list">
@@ -39,22 +42,71 @@
       <span class="skill-item">MediaMTX</span>
       <span class="skill-item">JavaScript</span>
       <span class="skill-item">HTML / CSS</span>
-      <span class="skill-item">SQLite / PostgreSQL</span>
+      <span class="skill-item">SQLite</span>
     </div>
   </div>
 
+  <!-- PROJELER -->
   <div class="about-section">
-    <h2>// contact</h2>
-    <p>
-      <a href="mailto:{{ config.CONTACT_EMAIL }}" style="color: var(--accent2)">{{ config.CONTACT_EMAIL }}</a>
+    <h2>// projeler</h2>
+    <p class="lang-tr" style="font-size:12px;color:var(--text2);margin-bottom:12px">
+      Deneyimimin tamamı kendi projelerimden oluşuyor.
     </p>
+    <p class="lang-en" style="font-size:12px;color:var(--text2);margin-bottom:12px">
+      All my experience comes from personal projects.
+    </p>
+    {% for project in projects %}
+    <div class="about-proj-item">
+      <div class="about-proj-name">
+        <a href="{{ url_for('projects.detail', slug=project.slug) }}" style="color:var(--accent2);text-decoration:none">
+          {{ project.title }}
+        </a>
+        {% if project.live_url %}
+        <a href="{{ project.live_url }}" target="_blank" rel="noopener"
+           style="font-size:10px;color:var(--text2);margin-left:8px;text-decoration:none">↗ live</a>
+        {% endif %}
+      </div>
+      {% if project.description %}
+      <div class="about-proj-desc">{{ project.description }}</div>
+      {% endif %}
+      {% if project.tech_list %}
+      <div class="proj-tags" style="margin-top:6px">
+        {% for tech in project.tech_list %}
+        <span class="tag">{{ tech }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
   </div>
 
-  <div style="margin-top: 24px;">
-    <a class="btn" href="{{ url_for('static', filename='cv.pdf') }}" download>
-      <span class="lang-tr">CV indir</span>
-      <span class="lang-en">Download CV</span>
+  <!-- SOSYAL MEDYA -->
+  <div class="about-section">
+    <h2>// linkler</h2>
+    <div class="social-links">
+      <a class="social-link" href="https://github.com/yigitgulyurt" target="_blank" rel="noopener">
+        <span class="social-icon">⌥</span> GitHub
+      </a>
+      <a class="social-link" href="https://linkedin.com/in/yigitgulyurt" target="_blank" rel="noopener">
+        <span class="social-icon">⌥</span> LinkedIn
+      </a>
+      <a class="social-link" href="mailto:{{ config.CONTACT_EMAIL }}">
+        <span class="social-icon">⌥</span> {{ config.CONTACT_EMAIL }}
+      </a>
+    </div>
+  </div>
+
+  <!-- CV BUTON -->
+  <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn btn-primary" href="{{ url_for('main.cv') }}">
+      <span class="lang-tr">→ CV'yi görüntüle</span>
+      <span class="lang-en">→ View CV</span>
+    </a>
+    <a class="btn" href="{{ url_for('main.cv') }}?pdf=1" target="_blank">
+      <span class="lang-tr">PDF indir</span>
+      <span class="lang-en">Download PDF</span>
     </a>
   </div>
+
 </div>
 {% endblock %}
