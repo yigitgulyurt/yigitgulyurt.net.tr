@@ -38,7 +38,10 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: var(--font-size-base); }
+html {
+  font-size: var(--font-size-base);
+  overflow-x: hidden;
+}
 
 body {
   font-family: var(--mono);
@@ -48,6 +51,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 main { flex: 1; }
@@ -461,11 +465,39 @@ html[data-lang="en"] .lang-tr { display: none !important; }
 
 /* ---- RESPONSIVE ---- */
 @media (max-width: 600px) {
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  .stat:nth-child(2) { border-right: none; }
-  .proj-grid { grid-template-columns: 1fr; }
+  .nav { padding: 10px 16px; }
   .nav-links a { display: none; }
-  .hero-name { font-size: 24px; }
+
+  .hero { padding: 32px 16px 28px; }
+  .hero-name { font-size: 22px; }
+  .hero-bio { font-size: 12px; }
+
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat { padding: 12px 16px; }
+  .stat:nth-child(2) { border-right: none; }
+  .stat-num { font-size: 18px; }
+
+  .section-header { padding: 12px 16px; }
+  .projects { padding: 14px 16px; }
+  .proj-grid { grid-template-columns: 1fr; }
+  .proj-card { padding: 14px; }
+
+  .posts { padding: 0 16px 4px; }
+  .post-item { flex-direction: column; gap: 4px; }
+  .post-meta { align-self: flex-start; }
+
+  .footer { padding: 12px 16px; flex-direction: column; gap: 10px; align-items: flex-start; }
+
+  .page { padding: 28px 16px; }
+  .page-title { font-size: 18px; }
+  .blog-content { font-size: 13px; }
+
+  .proj-cover { max-width: 100%; }
+  .proj-cover-img { max-height: 200px; }
+
+  .contact-form { max-width: 100%; }
+
+  .skill-list { gap: 6px; }
 }
 
 /* ---- PROJECT COVER IMAGE ---- */
@@ -474,10 +506,11 @@ html[data-lang="en"] .lang-tr { display: none !important; }
   border-radius: 6px;
   overflow: hidden;
   border: 0.5px solid var(--border);
+  max-width: 560px;
 }
 .proj-cover-img {
   width: 100%;
-  max-height: 400px;
+  max-height: 280px;
   object-fit: cover;
   display: block;
 }
