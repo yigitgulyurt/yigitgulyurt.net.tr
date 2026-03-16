@@ -5,3 +5,4 @@ nginx_yigitgulyurt.conf
 nginx_canli.conf
 yigitgulyurt.service
 deploy.sh
+.env.example
