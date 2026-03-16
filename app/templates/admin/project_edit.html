@@ -1,28 +1,59 @@
 {% extends "admin/base.html" %}
 {% block title %}{{ 'Düzenle' if project.id else 'Yeni Proje' }}{% endblock %}
+
 {% block content %}
 <h1 class="page-title">{{ 'Projeyi Düzenle' if project.id else 'Yeni Proje' }}</h1>
-<form method="POST" enctype="multipart/form-data" style="max-width:600px;margin-top:24px">
-  <div class="form-group">
-    <label>// başlık *</label>
-    <input type="text" name="title" value="{{ project.title or '' }}" required>
+<form method="POST" enctype="multipart/form-data" style="margin-top:24px">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="form-group" style="margin-bottom:0">
+      <label>// başlık *</label>
+      <input type="text" name="title" value="{{ project.title or '' }}" required>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>// slug (boş bırakılırsa otomatik)</label>
+      <input type="text" name="slug" value="{{ project.slug or '' }}">
+    </div>
   </div>
+
   <div class="form-group">
-    <label>// slug (boş bırakılırsa otomatik)</label>
-    <input type="text" name="slug" value="{{ project.slug or '' }}">
+    <label>// açıklama (ana sayfada görünür)</label>
+    <textarea name="description" style="min-height:72px">{{ project.description or '' }}</textarea>
   </div>
-  <div class="form-group">
-    <label>// açıklama</label>
-    <textarea name="description">{{ project.description or '' }}</textarea>
-  </div>
+
   <div class="form-group">
     <label>// teknolojiler (virgülle ayır)</label>
     <input type="text" name="tech_stack" value="{{ project.tech_stack or '' }}" placeholder="Flask, nginx, Python">
   </div>
+
+  <!-- MARKDOWN EDITOR -->
   <div class="form-group">
-    <label>// içerik (Markdown) — proje detay sayfasında görünür</label>
-    <textarea name="content" style="min-height:280px;font-size:12px">{{ project.content or '' }}</textarea>
+    <div class="editor-toolbar">
+      <span style="font-size:11px;color:var(--accent)">// içerik (Markdown) — proje detay sayfasında görünür</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="editor-btn" onclick="insertMd('**','**')" title="Kalın"><strong>B</strong></button>
+        <button type="button" class="editor-btn" onclick="insertMd('*','*')" title="İtalik"><em>I</em></button>
+        <button type="button" class="editor-btn" onclick="insertMd('\`','\`')" title="Kod">&#96;</button>
+        <button type="button" class="editor-btn" onclick="insertBlock('\`\`\`\n','\n\`\`\`')" title="Kod bloğu">{ }</button>
+        <button type="button" class="editor-btn" onclick="insertLine('## ')" title="Başlık">H2</button>
+        <button type="button" class="editor-btn" onclick="insertLine('- ')" title="Liste">—</button>
+        <button type="button" class="editor-btn" onclick="insertMd('[','](https://)')" title="Link">↗</button>
+        <span style="width:0.5px;background:var(--border);align-self:stretch;margin:0 4px"></span>
+        <button type="button" class="editor-btn" onclick="renderPreview()" style="color:var(--accent);border-color:var(--accent)">⟳ önizle</button>
+      </div>
+    </div>
+    <div class="editor-split">
+      <textarea
+        name="content"
+        id="md-editor"
+        class="editor-textarea"
+        placeholder="Markdown yaz...">{{ project.content or '' }}</textarea>
+      <div id="md-preview" class="editor-preview blog-content">
+        <span style="color:var(--text2);font-size:12px">önizleme burada görünür...</span>
+      </div>
+    </div>
   </div>
+
   <div class="form-group">
     <label>// kapak görseli</label>
     {% if project.image %}
@@ -36,25 +67,116 @@
     <input type="file" name="image" accept="image/*" style="font-family:var(--mono);font-size:12px;color:var(--text2)">
     <div style="font-size:11px;color:var(--text2);margin-top:4px">PNG, JPG, WebP — max 5MB. Boş bırakılırsa mevcut görsel korunur.</div>
   </div>
-  <div class="form-group">
-    <label>// live url</label>
-    <input type="url" name="live_url" value="{{ project.live_url or '' }}">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="form-group">
+      <label>// live url</label>
+      <input type="url" name="live_url" value="{{ project.live_url or '' }}">
+    </div>
+    <div class="form-group">
+      <label>// github url</label>
+      <input type="url" name="github_url" value="{{ project.github_url or '' }}">
+    </div>
   </div>
-  <div class="form-group">
-    <label>// github url</label>
-    <input type="url" name="github_url" value="{{ project.github_url or '' }}">
+
+  <div style="display:flex;gap:16px;align-items:flex-end">
+    <div class="form-group" style="margin-bottom:0">
+      <label>// sıra</label>
+      <input type="number" name="order" value="{{ project.order or 0 }}" style="width:80px">
+    </div>
+    <div class="form-group" style="margin-bottom:0;display:flex;align-items:center;gap:8px">
+      <input type="checkbox" name="featured" id="featured" {{ 'checked' if project.featured }} style="width:auto">
+      <label for="featured" style="color:var(--text2);margin-bottom:0">öne çıkar</label>
+    </div>
   </div>
-  <div class="form-group">
-    <label>// sıra (sayı)</label>
-    <input type="number" name="order" value="{{ project.order or 0 }}" style="width:100px">
-  </div>
-  <div class="form-group" style="display:flex;align-items:center;gap:10px">
-    <input type="checkbox" name="featured" id="featured" {{ 'checked' if project.featured }} style="width:auto">
-    <label for="featured" style="color:var(--text2);margin-bottom:0">öne çıkar</label>
-  </div>
-  <div style="display:flex;gap:10px;margin-top:8px">
+
+  <div style="display:flex;gap:10px;margin-top:20px">
     <button type="submit" class="btn btn-primary">→ kaydet</button>
     <a class="btn" href="{{ url_for('admin.projects') }}">iptal</a>
   </div>
+
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const editor  = document.getElementById('md-editor');
+const preview = document.getElementById('md-preview');
+const PREVIEW_URL = '{{ url_for("admin.preview") }}';
+
+let undoStack = [editor.value];
+let undoIndex = 0;
+
+function saveUndo() {
+  undoStack = undoStack.slice(0, undoIndex + 1);
+  undoStack.push(editor.value);
+  if (undoStack.length > 100) undoStack.shift();
+  undoIndex = undoStack.length - 1;
+}
+
+window.renderPreview = function() {
+  const text = editor.value.trim();
+  if (!text) {
+    preview.innerHTML = '<span style="color:var(--text2);font-size:12px">önizleme burada görünür...</span>';
+    return;
+  }
+  preview.innerHTML = '<span style="color:var(--text2);font-size:12px">yükleniyor...</span>';
+  const form = new FormData();
+  form.append('content', text);
+  fetch(PREVIEW_URL, { method: 'POST', body: form })
+    .then(r => r.json())
+    .then(data => { preview.innerHTML = data.html; })
+    .catch(() => { preview.innerHTML = '<span style="color:#f87171;font-size:12px">hata oluştu</span>'; });
+}
+
+window.insertMd = function(before, after) {
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const sel = editor.value.substring(s, e) || 'metin';
+  editor.value = editor.value.substring(0, s) + before + sel + after + editor.value.substring(e);
+  editor.setSelectionRange(s + before.length, s + before.length + sel.length);
+  editor.focus(); saveUndo();
+}
+
+window.insertBlock = function(before, after) {
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const sel = editor.value.substring(s, e) || 'kod buraya';
+  editor.value = editor.value.substring(0, s) + before + sel + after + editor.value.substring(e);
+  editor.setSelectionRange(s + before.length, s + before.length + sel.length);
+  editor.focus(); saveUndo();
+}
+
+window.insertLine = function(prefix) {
+  const s = editor.selectionStart;
+  const lineStart = editor.value.lastIndexOf('\n', s - 1) + 1;
+  editor.value = editor.value.substring(0, lineStart) + prefix + editor.value.substring(lineStart);
+  editor.setSelectionRange(s + prefix.length, s + prefix.length);
+  editor.focus(); saveUndo();
+}
+
+editor.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = this.selectionStart;
+    this.value = this.value.substring(0, s) + '  ' + this.value.substring(s);
+    this.setSelectionRange(s + 2, s + 2);
+    saveUndo();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault();
+    if (undoIndex > 0) { undoIndex--; editor.value = undoStack[undoIndex]; }
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+    e.preventDefault();
+    if (undoIndex < undoStack.length - 1) { undoIndex++; editor.value = undoStack[undoIndex]; }
+  }
+});
+
+let saveTimer = null;
+editor.addEventListener('input', function() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveUndo, 500);
+});
+
+if (editor.value.trim()) renderPreview();
+</script>
 {% endblock %}
