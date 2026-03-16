@@ -162,7 +162,7 @@ a { color: inherit; }
   font-size: 13px;
   color: var(--text);
   line-height: 1.75;
-  max-width: 560px;
+  max-width: 680px;
 }
 .hero-bio .kw { color: var(--accent2); }
 .hero-bio .str { color: var(--accent); }
@@ -339,8 +339,7 @@ a { color: inherit; }
 
 /* ---- PAGE CONTENT ---- */
 .page {
-  padding: 40px 24px;
-  max-width: 720px;
+  padding: 40px 32px;
 }
 .page-title {
   font-size: 22px;
@@ -452,7 +451,7 @@ a { color: inherit; }
 }
 
 /* ---- CONTACT ---- */
-.contact-form { max-width: 520px; }
+.contact-form { max-width: 680px; }
 .form-group { margin-bottom: 16px; }
 .form-group label {
   display: block;
@@ -485,7 +484,7 @@ a { color: inherit; }
   font-size: 14px;
   line-height: 1.85;
   color: var(--text);
-  max-width: 640px;
+  max-width: 720px;
 }
 .blog-content h1,.blog-content h2,.blog-content h3 {
   font-weight: 500;
@@ -622,6 +621,7 @@ html[data-lang="en"] .lang-tr { display: none !important; }
 
   /* PAGE (hakkımda, iletişim, blog detay) */
   .page { padding: 24px 20px 32px; }
+  .cv-wrap { padding: 24px 20px 32px; }
   .hero-prompt { font-size: 10px; }
   .page-title { font-size: 20px; }
   .page-subtitle { font-size: 12px; }
@@ -715,8 +715,7 @@ html[data-lang="en"] .lang-tr { display: none !important; }
 
 /* ---- CV PAGE ---- */
 .cv-wrap {
-  max-width: 760px;
-  padding: 40px 24px 48px;
+  padding: 40px 32px 48px;
 }
 .cv-header {
   display: flex;
