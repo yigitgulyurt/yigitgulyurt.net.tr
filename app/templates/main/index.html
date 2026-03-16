@@ -80,13 +80,12 @@
           <span class="lang-tr">CANLI</span>
           <span class="lang-en">LIVE</span>
         </div>
-        <div class="stream-promo-title lang-tr">Şu an canlı yayın var</div>
-        <div class="stream-promo-title lang-en">Live stream is active</div>
-        <div class="stream-promo-desc lang-tr">
-          <span class="kw">canli.yigitgulyurt.net.tr</span> adresinden izleyebilirsin.
-        </div>
-        <div class="stream-promo-desc lang-en">
-          Watch at <span class="kw">canli.yigitgulyurt.net.tr</span>
+        <div class="stream-promo-title">{{ stream_config.title if stream_config else 'Canlı Yayın' }}</div>
+        {% if stream_config and stream_config.subtitle %}
+        <div class="stream-promo-desc">{{ stream_config.subtitle }}</div>
+        {% endif %}
+        <div class="stream-promo-desc" style="margin-top:2px">
+          <span class="kw">canli.yigitgulyurt.net.tr</span>
         </div>
       </div>
       <a class="btn btn-primary" href="https://canli.yigitgulyurt.net.tr" target="_blank" rel="noopener">

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, Response, url_for, current_app
-from app.models import Project, BlogPost
+from app.models import Project, BlogPost, StreamConfig
 from datetime import datetime
 
 bp = Blueprint('main', __name__)
@@ -27,12 +27,15 @@ def index():
         except Exception:
             stream_live = False
 
+    stream_config = StreamConfig.get() if show_stream else None
+
     return render_template('main/index.html',
                            featured_projects=featured_projects,
                            recent_posts=recent_posts,
                            stats=stats,
                            show_stream=show_stream,
-                           stream_live=stream_live)
+                           stream_live=stream_live,
+                           stream_config=stream_config)
 
 @bp.route('/hakkimda')
 def about():

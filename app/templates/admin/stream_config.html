@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% block title %}Yayın Ayarları{% endblock %}
+
+{% block content %}
+<div class="hero-prompt" style="margin-bottom:6px">$ nano stream_config</div>
+<h1 class="page-title" style="margin-bottom:24px">Yayın Ayarları</h1>
+
+<form method="POST" style="max-width:520px">
+  <div class="form-group">
+    <label>// başlık</label>
+    <input type="text" name="title" value="{{ cfg.title }}" placeholder="Canlı Yayın">
+    <div style="font-size:10px;color:var(--text2);margin-top:4px">Ana sayfada ve yayın sayfasında görünür</div>
+  </div>
+  <div class="form-group">
+    <label>// alt başlık</label>
+    <input type="text" name="subtitle" value="{{ cfg.subtitle }}" placeholder="ör: 18 Mart Töreni">
+    <div style="font-size:10px;color:var(--text2);margin-top:4px">İsteğe bağlı — yayın sayfasında görünür</div>
+  </div>
+
+  <div style="border:0.5px solid var(--border);border-radius:4px;padding:12px 16px;margin-bottom:16px;font-size:12px">
+    <div style="font-size:10px;color:var(--accent);margin-bottom:8px">// önizleme</div>
+    <div style="font-weight:500;color:var(--text)" id="prev-title">{{ cfg.title or 'Canlı Yayın' }}</div>
+    <div style="font-size:11px;color:var(--text2);margin-top:4px" id="prev-subtitle">{{ cfg.subtitle }}</div>
+  </div>
+
+  <div style="display:flex;gap:10px">
+    <button type="submit" class="btn btn-primary">→ kaydet</button>
+    <a class="btn" href="{{ url_for('admin.dashboard') }}">iptal</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelector('[name="title"]').addEventListener('input', function() {
+    document.getElementById('prev-title').textContent = this.value || 'Canlı Yayın';
+  });
+  document.querySelector('[name="subtitle"]').addEventListener('input', function() {
+    document.getElementById('prev-subtitle').textContent = this.value;
+  });
+</script>
+{% endblock %}

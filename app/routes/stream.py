@@ -38,7 +38,9 @@ def canli(key):
     if not expected or key != expected:
         abort(404)
     stream_url = f'/canli-kaynak/canli/{key}/index.m3u8'
-    return render_template('stream/canli.html', stream_url=stream_url)
+    from app.models import StreamConfig
+    cfg = StreamConfig.get()
+    return render_template('stream/canli.html', stream_url=stream_url, stream_config=cfg)
 
 @bp.route('/ping', methods=['POST'])
 def stream_ping():

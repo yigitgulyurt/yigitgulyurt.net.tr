@@ -355,8 +355,8 @@
 
   <div class="hero-banner">
     <div class="hero-prompt">$ ffmpeg -re -i input | rtmp://...</div>
-    <h1 class="hero-title"><em>Canlı</em> Yayın</h1>
-    <div class="hero-subtitle">yigitgulyurt.net.tr</div>
+    <h1 class="hero-title">{% if stream_config and stream_config.title %}<em>{{ stream_config.title.split()[0] }}</em> {{ stream_config.title.split()[1:] | join(" ") }}{% else %}<em>Canlı</em> Yayın{% endif %}</h1>
+    <div class="hero-subtitle">{% if stream_config and stream_config.subtitle %}{{ stream_config.subtitle }}{% else %}yigitgulyurt.net.tr{% endif %}</div>
     <div class="live-badge" id="liveBadge" style="display:none">
       <div class="live-dot"></div>CANLI
     </div>

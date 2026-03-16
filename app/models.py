@@ -79,5 +79,23 @@ class ContactMessage(db.Model):
 
     def __repr__(self):
         return f'<ContactMessage from {self.email}>'
-# NOTE: Project.content alanı migration ile eklenecek
-# Mevcut modele content alanı eklendi (aşağıdaki patch ile)
+
+
+
+# --- Stream Config ---
+
+class StreamConfig(db.Model):
+    __tablename__ = 'stream_config'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(256), default='Canlı Yayın')
+    subtitle = db.Column(db.String(256), default='')
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @staticmethod
+    def get():
+        cfg = StreamConfig.query.first()
+        if not cfg:
+            cfg = StreamConfig()
+            db.session.add(cfg)
+            db.session.commit()
+        return cfg
