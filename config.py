@@ -13,3 +13,6 @@ class Config:
     CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL') or 'yigit@yigitgulyurt.net.tr'
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'app', 'static', 'img')
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
+    STREAM_KEY = os.environ.get('STREAM_KEY') or ''
+    STREAM_LIVE_FALLBACK = os.environ.get('STREAM_LIVE_FALLBACK', 'false')
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
