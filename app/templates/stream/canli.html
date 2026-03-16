@@ -658,10 +658,47 @@
   function toggleFullscreen() {
     var el = document.getElementById('playerContainer');
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+      var fsPromise = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+      // Tam ekrana girince yatay kilitle
+      if (fsPromise && fsPromise.then) {
+        fsPromise.then(function() {
+          lockLandscape();
+        }).catch(function(){});
+      } else {
+        lockLandscape();
+      }
     } else {
+      unlockOrientation();
       (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     }
+  }
+
+  function lockLandscape() {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(function(){});
+      } else if (screen.lockOrientation) {
+        screen.lockOrientation('landscape');
+      } else if (screen.mozLockOrientation) {
+        screen.mozLockOrientation('landscape');
+      } else if (screen.msLockOrientation) {
+        screen.msLockOrientation('landscape');
+      }
+    } catch(e) {}
+  }
+
+  function unlockOrientation() {
+    try {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      } else if (screen.unlockOrientation) {
+        screen.unlockOrientation();
+      } else if (screen.mozUnlockOrientation) {
+        screen.mozUnlockOrientation();
+      } else if (screen.msUnlockOrientation) {
+        screen.msUnlockOrientation();
+      }
+    } catch(e) {}
   }
   document.addEventListener('fullscreenchange', syncFsIcon);
   document.addEventListener('webkitfullscreenchange', syncFsIcon);
@@ -669,6 +706,8 @@
     var inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
     document.getElementById('iconFs').style.display     = inFs ? 'none'  : 'block';
     document.getElementById('iconFsExit').style.display = inFs ? 'block' : 'none';
+    // Tam ekrandan ESC ile çıkılırsa kilidi kaldır
+    if (!inFs) unlockOrientation();
   }
   (function() {
     var pc = document.getElementById('playerContainer');
