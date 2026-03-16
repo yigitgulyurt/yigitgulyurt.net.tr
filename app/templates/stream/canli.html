@@ -306,6 +306,22 @@
       text-transform: uppercase; margin-top: 10px;
     }
 
+    .unmute-btn {
+      position: absolute; inset: 0; z-index: 15;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 10px; cursor: pointer;
+      background: rgba(0,0,0,0.5);
+    }
+    .unmute-btn:hover { background: rgba(0,0,0,0.4); }
+    .unmute-inner {
+      display: flex; align-items: center; gap: 10px;
+      border: 0.5px solid var(--accent);
+      border-radius: 4px; padding: 10px 20px;
+      font-size: 12px; color: var(--accent);
+      letter-spacing: 1px;
+    }
+    .unmute-inner svg { width: 18px; height: 18px; fill: var(--accent); }
     .hidden { display: none !important; }
 
     /* ── RESPONSIVE ── */
@@ -373,6 +389,13 @@
 
         <!-- Video -->
         <video id="canli-video" playsinline></video>
+        <!-- Unmute overlay -->
+        <div class="unmute-btn hidden" id="unmuteOverlay" onclick="unmute()">
+          <div class="unmute-inner">
+            <svg viewBox="0 0 24 24"><path d="M16.5 12A4.5 4.5 0 0 0 14 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            sesi açmak için tıkla
+          </div>
+        </div>
 
         <!-- Kontroller -->
         <div class="custom-controls" id="customControls">
@@ -505,12 +528,25 @@
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         showOverlay(null); setStatus('yayın aktif'); retryCount = 0;
-        video.muted = true;
-        video.play().catch(function(e){ console.warn('play failed:', e); });
-        updatePlayIcon(false);
-        document.getElementById('iconVolume').style.display = 'none';
-        document.getElementById('iconMuted').style.display = 'block';
-        document.getElementById('volumeSlider').value = 0;
+        video.muted = false;
+        video.volume = 1;
+        video.play().then(function() {
+          // Sesli oynatma başarılı
+          updatePlayIcon(false);
+          document.getElementById('iconVolume').style.display = 'block';
+          document.getElementById('iconMuted').style.display = 'none';
+          document.getElementById('volumeSlider').value = 1;
+          document.getElementById('volumeSlider').style.backgroundSize = '100% 100%';
+        }).catch(function() {
+          // Tarayıcı sesli autoplay'e izin vermedi — sessiz başlat, overlay göster
+          video.muted = true;
+          video.play().catch(function(e){ console.warn('play failed:', e); });
+          updatePlayIcon(false);
+          document.getElementById('iconVolume').style.display = 'none';
+          document.getElementById('iconMuted').style.display = 'block';
+          document.getElementById('volumeSlider').value = 0;
+          document.getElementById('unmuteOverlay').classList.remove('hidden');
+        });
       });
       hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) { handleStreamError(); return; }
@@ -586,12 +622,25 @@
     if (video.paused) { video.play(); updatePlayIcon(false); }
     else { video.pause(); updatePlayIcon(true); }
   }
+  function unmute() {
+    var video = document.getElementById('canli-video');
+    video.muted = false;
+    video.volume = 1;
+    document.getElementById('unmuteOverlay').classList.add('hidden');
+    document.getElementById('iconVolume').style.display = 'block';
+    document.getElementById('iconMuted').style.display = 'none';
+    document.getElementById('volumeSlider').value = 1;
+    document.getElementById('volumeSlider').style.backgroundSize = '100% 100%';
+  }
   function toggleMute() {
     var video = document.getElementById('canli-video');
     video.muted = !video.muted;
+    if (!video.muted && video.volume === 0) video.volume = 1;
     document.getElementById('iconVolume').style.display = video.muted ? 'none'  : 'block';
     document.getElementById('iconMuted').style.display  = video.muted ? 'block' : 'none';
     document.getElementById('volumeSlider').value = video.muted ? 0 : video.volume;
+    document.getElementById('volumeSlider').style.backgroundSize = (video.muted ? 0 : video.volume * 100) + '% 100%';
+    document.getElementById('unmuteOverlay').classList.add('hidden');
   }
   function changeVolume(val) {
     var video = document.getElementById('canli-video');
