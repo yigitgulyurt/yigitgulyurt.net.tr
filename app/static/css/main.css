@@ -518,7 +518,7 @@ html[data-lang="en"] .lang-tr { display: none !important; }
 /* ---- PROJECT CARD THUMBNAIL ---- */
 .proj-thumb {
   width: 100%;
-  aspect-ratio: 16/9;
+  max-height: 160px;
   object-fit: cover;
   border-radius: 4px;
   margin-bottom: 12px;
