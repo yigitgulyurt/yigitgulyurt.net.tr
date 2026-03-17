@@ -530,6 +530,9 @@ html[data-lang="en"] .lang-tr { display: none !important; }
 /* ---- RESPONSIVE ---- */
 @media (max-width: 600px) {
 
+  /* Genel font kalınlığı */
+  body { font-weight: 500; }
+
   /* NAV — hamburger yerine scroll eden link satırı */
   .nav {
     padding: 0;
