@@ -28,7 +28,9 @@
   <meta name="twitter:image"       content="{% block tw_image %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/og-default.png') }}{% endblock %}">
 
   {# ---- Favicon ---- #}
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 
   {# ---- Styles ---- #}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
