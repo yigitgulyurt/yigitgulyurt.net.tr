@@ -189,6 +189,17 @@ def make_og(title, subtitle, theme, prompt, domain):
 # FLASK ROUTE
 # ─────────────────────────────────────────────
 
+# Bellek içi cache — aynı parametrelerle tekrar istek gelirse yeniden üretmez
+# max 200 farklı görsel tutar, LRU mantığıyla eskiyi atar
+from functools import lru_cache
+
+@lru_cache(maxsize=200)
+def _cached_og(title, subtitle, theme, prompt, domain):
+    img = make_og(title, subtitle, theme, prompt, domain)
+    buf = io.BytesIO()
+    img.save(buf, 'PNG', optimize=True)
+    return buf.getvalue()
+
 @bp.route('/og-image')
 def og_image():
     title    = request.args.get('title',    'Yiğit Gülyurt')[:80]
@@ -197,11 +208,9 @@ def og_image():
     prompt   = request.args.get('prompt',   '$ whoami')[:60]
     domain   = request.args.get('domain',   'yigitgulyurt.net.tr')[:50]
 
-    img = make_og(title, subtitle, theme, prompt, domain)
-    buf = io.BytesIO()
-    img.save(buf, 'PNG', optimize=True)
-    buf.seek(0)
+    data = _cached_og(title, subtitle, theme, prompt, domain)
 
-    resp = send_file(buf, mimetype='image/png')
+    resp = send_file(io.BytesIO(data), mimetype='image/png')
+    # Tarayıcı/CDN 1 saat cache'lesin
     resp.headers['Cache-Control'] = 'public, max-age=3600'
     return resp
