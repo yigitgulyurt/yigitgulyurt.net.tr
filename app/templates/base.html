@@ -56,13 +56,11 @@
         <span class="lang-tr">iletişim</span>
         <span class="lang-en">contact</span>
       </a>
-      {% if show_stream and stream_live %}
       <a href="https://canli.yigitgulyurt.net.tr" target="_blank" class="nav-live-link" id="navLiveLink">
-        <span class="nav-live-dot"></span>
+        {% if show_stream and stream_live %}<span class="nav-live-dot"></span>{% endif %}
         <span class="lang-tr">canlı</span>
         <span class="lang-en">live</span>
       </a>
-      {% endif %}
       <button class="lang-btn" id="langbtn" onclick="toggleLang()">EN</button>
     </div>
   </nav>
