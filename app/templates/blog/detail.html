@@ -6,8 +6,10 @@
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ post.title }} — yigitgulyurt.net.tr{% endblock %}
 {% block og_description %}{{ post.summary or post.title }}{% endblock %}
+{% block og_image %}https://yigitgulyurt.net.tr/og-image?title={{ post.title | urlencode }}&subtitle={{ (post.created_at.strftime('%Y-%m-%d')) | urlencode }}&theme=blog&prompt=$+cat+blog/{{ post.slug | urlencode }}.md&domain=yigitgulyurt.net.tr{% endblock %}
 {% block tw_title %}{{ post.title }} — yigitgulyurt.net.tr{% endblock %}
 {% block tw_description %}{{ post.summary or post.title }}{% endblock %}
+{% block tw_image %}https://yigitgulyurt.net.tr/og-image?title={{ post.title | urlencode }}&subtitle={{ (post.created_at.strftime('%Y-%m-%d')) | urlencode }}&theme=blog&prompt=$+cat+blog/{{ post.slug | urlencode }}.md&domain=yigitgulyurt.net.tr{% endblock %}
 
 {% block content %}
 <div class="page">

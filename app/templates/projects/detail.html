@@ -5,10 +5,10 @@
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ project.title }} — yigitgulyurt.net.tr{% endblock %}
 {% block og_description %}{{ project.description or project.title }}{% endblock %}
-{% block og_image %}{% if project.image %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/projects/' + project.image) }}{% else %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/og-default.png') }}{% endif %}{% endblock %}
+{% block og_image %}https://yigitgulyurt.net.tr/og-image?title={{ project.title | urlencode }}&subtitle={{ (project.tech_stack or 'proje') | urlencode }}&theme=project&prompt=$+cat+projects/{{ project.slug | urlencode }}.md&domain=yigitgulyurt.net.tr{% endblock %}
 {% block tw_title %}{{ project.title }} — yigitgulyurt.net.tr{% endblock %}
 {% block tw_description %}{{ project.description or project.title }}{% endblock %}
-{% block tw_image %}{% if project.image %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/projects/' + project.image) }}{% else %}https://yigitgulyurt.net.tr{{ url_for('static', filename='img/og-default.png') }}{% endif %}{% endblock %}
+{% block tw_image %}https://yigitgulyurt.net.tr/og-image?title={{ project.title | urlencode }}&subtitle={{ (project.tech_stack or 'proje') | urlencode }}&theme=project&prompt=$+cat+projects/{{ project.slug | urlencode }}.md&domain=yigitgulyurt.net.tr{% endblock %}
 
 {% block content %}
 <div class="proj-detail-header">

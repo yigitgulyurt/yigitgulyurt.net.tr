@@ -18,6 +18,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
 
     from app.routes.main import bp as main_bp
+    from app.routes.og import bp as og_bp
     from app.routes.stream import bp as stream_bp
     from app.routes.projects import bp as projects_bp
     from app.routes.blog import bp as blog_bp
@@ -29,6 +30,7 @@ def create_app(config_class=Config):
     app.register_blueprint(blog_bp, url_prefix='/blog')
     app.register_blueprint(contact_bp, url_prefix='/iletisim')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(og_bp)
     app.register_blueprint(stream_bp)  # subdomain='canli' blueprint'te tanımlı
 
     register_context_processors(app)
