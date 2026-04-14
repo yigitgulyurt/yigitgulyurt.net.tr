@@ -9,3 +9,4 @@ deploy.sh
 migrate_stream_config.sh
 folderico-LopZVw.ico
 desktop.ini
+*.pyc

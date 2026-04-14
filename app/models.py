@@ -105,3 +105,14 @@ class StreamConfig(db.Model):
             db.session.add(cfg)
             db.session.commit()
         return cfg
+
+
+# --- QR Redirect ---
+
+class QrRedirect(db.Model):
+    __tablename__ = 'qr_redirect'
+    id = db.Column(db.String(8), primary_key=True)
+    url = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    hit_count = db.Column(db.Integer, default=0)
+

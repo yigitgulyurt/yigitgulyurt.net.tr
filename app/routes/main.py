@@ -1,8 +1,14 @@
-from flask import Blueprint, render_template, Response, url_for, current_app
-from app.models import Project, BlogPost, StreamConfig
+from flask import Blueprint, render_template, Response, url_for, current_app, request, jsonify, redirect
+from app.models import Project, BlogPost, StreamConfig, QrRedirect
+from app import db
 from datetime import datetime
+import random
+import string
 
 bp = Blueprint('main', __name__)
+
+def generate_id(length=7):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 @bp.route('/')
 def index():
@@ -89,6 +95,42 @@ def sitemap():
 
     xml = render_template('main/sitemap.xml', pages=pages)
     return Response(xml, mimetype='application/xml')
+
+@bp.route('/api/shorten', methods=['POST'])
+def shorten():
+    data = request.get_json(silent=True, force=True)
+    if not data:
+        return jsonify({'error': 'JSON parse edilemedi'}), 400
+    
+    url = data.get('url', '').strip()
+    
+    if not url:
+        return jsonify({'error': 'URL gerekli'}), 400
+    
+    existing = QrRedirect.query.filter_by(url=url).first()
+    if existing:
+        return jsonify({'short_id': existing.id})
+    
+    short_id = generate_id()
+    while QrRedirect.query.get(short_id):
+        short_id = generate_id()
+    
+    redirect_obj = QrRedirect(id=short_id, url=url)
+    db.session.add(redirect_obj)
+    db.session.commit()
+    
+    return jsonify({'short_id': short_id})
+
+@bp.route('/r/<short_id>')
+def redirect_url(short_id):
+    obj = QrRedirect.query.get_or_404(short_id)
+    obj.hit_count += 1
+    db.session.commit()
+    return redirect(obj.url)
+
+@bp.route('/qr-okuyucu')
+def qr_okuyucu():
+    return render_template('main/qr-reader.html')
 
 @bp.route('/robots.txt')
 def robots():
