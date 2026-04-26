@@ -277,6 +277,7 @@
       </div>
     </div>
     <div class="mini-danger">
+      <button class="delete-btn" onclick="renameFile()" style="margin-bottom:8px;color:var(--text2);border-color:var(--border)">yeniden adlandır</button>
       <button class="delete-btn" onclick="deleteFile()">sil</button>
     </div>
   </aside>
@@ -320,7 +321,26 @@ let saveTimer  = null;
 let mode       = 'split';
 
 // Marked config
-marked.setOptions({ breaks: true, gfm: true });
+marked.setOptions({ 
+  breaks: true, 
+  gfm: true,
+  headerIds: true
+});
+
+// Resim yollarını /media/ route'una yönlendir
+const renderer = new marked.Renderer();
+const originalImage = renderer.image.bind(renderer);
+renderer.image = (href, title, text) => {
+  if (!href.startsWith('http') && !href.startsWith('/')) {
+    // Göreceli yolları /obsidian/media/ altına yönlendir
+    // Mevcut dosyanın klasörünü bul
+    const currentDir = FILE_ID.split('/').slice(0, -1).join('/');
+    const fullHref = currentDir ? `${currentDir}/${href}` : href;
+    href = `{{ url_for('obsidian.serve_media', filename='') }}${fullHref}`;
+  }
+  return originalImage(href, title, text);
+};
+marked.use({ renderer });
 
 // İlk render
 renderPreview();
@@ -387,6 +407,30 @@ async function deleteFile() {
   if (!confirm('Bu notu silmek istediğine emin misin?')) return;
   await fetch(`/api/file/${FILE_ID}`, { method: 'DELETE' });
   window.location.href = '{{ url_for("obsidian.index") }}';
+}
+
+// Yeniden Adlandırma
+async function renameFile() {
+  const currentName = FILE_ID.split('/').pop().replace('.md', '');
+  const newName = prompt('Yeni dosya adını girin:', currentName);
+  
+  if (!newName || newName === currentName) return;
+  
+  try {
+    const res = await fetch('/api/rename', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ old_path: FILE_ID, new_name: newName })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = `{{ url_for('obsidian.edit', file_id='') }}${data.new_path}`;
+    } else {
+      alert('Hata: ' + data.error);
+    }
+  } catch (e) {
+    alert('Bir bağlantı hatası oluştu.');
+  }
 }
 
 // Format yardımcıları

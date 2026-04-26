@@ -10,7 +10,7 @@ from functools import wraps
 from datetime import datetime
 from flask import (
     Blueprint, render_template, request, jsonify,
-    redirect, url_for, session, current_app, abort
+    redirect, url_for, session, current_app, abort, send_from_directory
 )
 
 bp = Blueprint('obsidian', __name__, subdomain='obsidian')
@@ -103,8 +103,10 @@ def logout():
 def index():
     vault_path = get_vault_path()
     if not vault_path:
+        actual_path = current_app.config.get('OBSIDIAN_VAULT_PATH', '/mnt/obsidian')
+        error_msg = f'Vault yolu ({actual_path}) sunucuda bulunamadı veya erişilemiyor. Rclone mount ve izinleri kontrol edin.'
         return render_template('obsidian/obsidian_index.html', 
-                               tree=[], error='Vault yolu sunucuda bulunamadı. Rclone mount edildiğinden emin olun.')
+                               tree=[], error=error_msg)
     
     tree = build_tree(vault_path)
     return render_template('obsidian/obsidian_index.html', tree=tree, error=None)
@@ -222,6 +224,40 @@ def api_delete_file(file_id):
         return jsonify({'ok': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/rename', methods=['POST'])
+@obsidian_auth
+def api_rename():
+    vault_path = get_vault_path()
+    data = request.get_json()
+    old_rel_path = data.get('old_path')
+    new_name = data.get('new_name')
+    
+    if not old_rel_path or not new_name:
+        return jsonify({'error': 'Geçersiz parametre'}), 400
+        
+    old_full_path = os.path.join(vault_path, old_rel_path)
+    parent_dir = os.path.dirname(old_full_path)
+    
+    # Eğer dosya ise uzantıyı koru
+    if os.path.isfile(old_full_path) and not new_name.endswith('.md'):
+        new_name += '.md'
+        
+    new_full_path = os.path.join(parent_dir, new_name)
+    
+    try:
+        os.rename(old_full_path, new_full_path)
+        new_rel_path = os.path.relpath(new_full_path, vault_path).replace('\\', '/')
+        return jsonify({'ok': True, 'new_path': new_rel_path})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/media/<path:filename>')
+@obsidian_auth
+def serve_media(filename):
+    """Vault içindeki resim ve diğer medya dosyalarını sunar."""
+    vault_path = get_vault_path()
+    return send_from_directory(vault_path, filename)
 
 @bp.route('/api/tree')
 @obsidian_auth
