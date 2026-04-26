@@ -130,14 +130,37 @@
   overflow: hidden;
 }
 .vault-main-header {
-  padding: 12px 20px;
+  padding: 0;
   border-bottom: 0.5px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 10px;
+  background: var(--bg2);
+  height: 36px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.vault-main-header::-webkit-scrollbar { display: none; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 100%;
+  border-right: 0.5px solid var(--border);
   font-size: 11px;
   color: var(--text2);
+  cursor: pointer;
+  background: var(--bg);
+  user-select: none;
+  white-space: nowrap;
+  transition: all 0.1s;
 }
+.tab:hover { background: var(--bg2); color: var(--text); }
+.tab.active { background: var(--bg); color: var(--accent); border-top: 1px solid var(--accent); height: calc(100% + 1px); margin-top: -1px; }
+.tab-close { font-size: 14px; opacity: 0.5; padding: 2px; }
+.tab-close:hover { opacity: 1; color: #f87171; }
+
 .vault-main-body {
   flex: 1;
   display: flex;
@@ -162,6 +185,18 @@
   height: 100%;
   color: var(--text2);
   gap: 12px;
+}
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 .preview-header {
   padding: 20px 40px;
@@ -341,10 +376,8 @@
 
   {# ── MAIN ── #}
   <div class="vault-main">
-    <div class="vault-main-header">
-      <span style="color:var(--accent)">~/obsidian/yigitgulyurt</span>
-      <span>—</span>
-      <span>{{ tree | length }} öğe</span>
+    <div class="vault-main-header" id="tabBar">
+      <!-- Tabs will be injected here -->
     </div>
     <div class="vault-main-body" id="mainBody">
       <div class="preview-empty">
@@ -382,6 +415,25 @@
 </div>
 
 <script>
+// State Management
+let openTabs = [];
+let activeTabId = null;
+let fileMap = {}; // name -> path mapping for wiki-links
+const fileCache = new Map();
+
+// Build file map from the tree data passed from Flask
+function buildFileMap(nodes) {
+  nodes.forEach(node => {
+    if (node.is_folder) {
+      buildFileMap(node.children);
+    } else if (node.name.endsWith('.md')) {
+      const cleanName = node.name.slice(0, -3).toLowerCase();
+      fileMap[cleanName] = node.id;
+    }
+  });
+}
+buildFileMap({{ tree | tojson }});
+
 // Marked config
 marked.setOptions({ 
   breaks: true, 
@@ -394,77 +446,164 @@ marked.setOptions({
   langPrefix: 'hljs language-'
 });
 
-// Wiki-links [[Link]] desteği ve Resim yolları
+// Wiki-links and Image Renderer
 const renderer = new marked.Renderer();
-const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
   const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   return text.replace(wikiLinkRegex, (match, target, alias) => {
     const label = alias || target;
-    const url = `javascript:previewFile('${target}.md', '${target}')`;
-    return `<a href="${url}" class="wiki-link">${label}</a>`;
+    const cleanTarget = target.toLowerCase().trim();
+    const resolvedPath = fileMap[cleanTarget];
+    
+    if (resolvedPath) {
+      return `<a href="javascript:previewFile('${resolvedPath}', '${target}')" class="wiki-link">${label}</a>`;
+    } else {
+      return `<span class="wiki-link broken" title="Dosya bulunamadı">${label}</span>`;
+    }
   });
 };
 
-const originalImage = renderer.image.bind(renderer);
 renderer.image = (href, title, text) => {
   if (!href.startsWith('http') && !href.startsWith('/')) {
-    href = `{{ url_for('obsidian.serve_media', filename='') }}${href}`;
+    // Current active file path to resolve relative images
+    const currentDir = activeTabId ? activeTabId.split('/').slice(0, -1).join('/') : '';
+    const fullHref = currentDir ? `${currentDir}/${href}` : href;
+    href = `{{ url_for('obsidian.serve_media', filename='') }}${fullHref}`;
   }
-  return originalImage(href, title, text);
+  return `<img src="${href}" title="${title || ''}" alt="${text || ''}" style="max-width:100%; border-radius:4px; margin:10px 0;">`;
 };
 marked.use({ renderer });
 
-// Önizleme fonksiyonu
-async function previewFile(fileId, fileName) {
-  const mainBody = document.getElementById('mainBody');
-  mainBody.innerHTML = '<div class="preview-empty">Yükleniyor...</div>';
+// Tab UI Management
+function renderTabs() {
+  const tabBar = document.getElementById('tabBar');
+  if (openTabs.length === 0) {
+    tabBar.innerHTML = '<div style="padding:0 16px; color:var(--text2); font-size:10px; display:flex; align-items:center; height:100%;">açık not yok</div>';
+    showEmptyState();
+    return;
+  }
+
+  tabBar.innerHTML = openTabs.map(tab => `
+    <div class="tab ${tab.id === activeTabId ? 'active' : ''}" onclick="previewFile('${tab.id}', '${tab.name}', false)">
+      <span>${tab.name.endsWith('.md') ? tab.name.slice(0, -3) : tab.name}</span>
+      <span class="tab-close" onclick="event.stopPropagation(); closeTab('${tab.id}')">×</span>
+    </div>
+  `).join('');
+}
+
+function showEmptyState() {
+  document.getElementById('mainBody').innerHTML = `
+    <div class="preview-empty">
+      <div class="vault-empty-icon">◈</div>
+      <div>Düzenlemek için bir not seç</div>
+      <a href="{{ url_for('obsidian.new') }}" class="btn">Yeni not oluştur</a>
+    </div>
+  `;
+}
+
+function closeTab(id) {
+  openTabs = openTabs.filter(t => t.id !== id);
+  if (activeTabId === id) {
+    activeTabId = openTabs.length > 0 ? openTabs[openTabs.length - 1].id : null;
+    if (activeTabId) {
+      const tab = openTabs.find(t => t.id === activeTabId);
+      previewFile(tab.id, tab.name, false);
+    }
+  }
+  renderTabs();
+}
+
+// Preview Logic with Caching, Tabs and History
+async function previewFile(fileId, fileName, pushHistory = true) {
+  activeTabId = fileId;
   
-  // Aktif sınıfını güncelle
+  // Tab management
+  if (!openTabs.find(t => t.id === fileId)) {
+    openTabs.push({ id: fileId, name: fileName });
+  }
+  renderTabs();
+
+  // Highlight in tree
   document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
   const activeEl = document.querySelector(`.tree-item[data-id="${fileId}"]`);
   if (activeEl) activeEl.classList.add('active');
 
-  try {
-    const res = await fetch(`/api/file/${fileId}`);
-    const data = await res.json();
-    
-    if (data.content !== undefined) {
-      const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
-      const htmlContent = marked.parse(data.content);
-      
-      mainBody.innerHTML = `
-        <div class="preview-header">
-          <div class="preview-title">${cleanName}</div>
-          <a href="/edit/${fileId}" class="btn btn-primary">Düzenle</a>
-        </div>
-        <div class="preview-content">${htmlContent}</div>
-      `;
-      // Kod bloklarını renklendir
-      mainBody.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
+  const mainBody = document.getElementById('mainBody');
+  
+  // Check Cache
+  if (fileCache.has(fileId)) {
+    renderContent(fileId, fileName, fileCache.get(fileId));
+  } else {
+    mainBody.innerHTML = '<div class="preview-empty"><div class="loading-spinner"></div>Yükleniyor...</div>';
+    try {
+      const res = await fetch(`/api/file/${fileId}`);
+      const data = await res.json();
+      if (data.content !== undefined) {
+        fileCache.set(fileId, data.content);
+        renderContent(fileId, fileName, data.content);
+      }
+    } catch (e) {
+      mainBody.innerHTML = '<div class="preview-empty">Not yüklenirken hata oluştu.</div>';
     }
-  } catch (e) {
-    mainBody.innerHTML = '<div class="preview-empty">Not yüklenirken hata oluştu.</div>';
+  }
+
+  if (pushHistory) {
+    history.pushState({ fileId, fileName }, '', `?file=${encodeURIComponent(fileId)}`);
   }
 }
 
-// Aktif dosyayı işaretle
-const currentPath = window.location.pathname;
-document.querySelectorAll('.tree-item[data-id]').forEach(el => {
-  if (currentPath.includes(el.dataset.id)) el.classList.add('active');
-});
-
-// Klasör aç/kapat
-function toggleFolder(el) {
-  const folder = el.closest('.tree-folder');
-  folder.classList.toggle('open');
-  el.querySelector('.tree-item-icon').textContent = folder.classList.contains('open') ? '▼' : '▶';
+function renderContent(fileId, fileName, content) {
+  const mainBody = document.getElementById('mainBody');
+  const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
+  const htmlContent = marked.parse(content);
+  
+  mainBody.innerHTML = `
+    <div class="preview-header">
+      <div class="preview-title">${cleanName}</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px;">kopyala</button>
+        <a href="/edit/${fileId}" class="btn btn-primary" style="font-size:11px; padding:5px 12px;">düzenle</a>
+      </div>
+    </div>
+    <div class="preview-content">${htmlContent}</div>
+  `;
+  
+  mainBody.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
 }
 
-let searchTimer = null;
+function copyContent() {
+  const content = fileCache.get(activeTabId);
+  if (content) {
+    navigator.clipboard.writeText(content);
+    alert('Not kopyalandı!');
+  }
+}
 
+// Browser Navigation
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.fileId) {
+    previewFile(e.state.fileId, e.state.fileName, false);
+  } else {
+    activeTabId = null;
+    renderTabs();
+  }
+});
+
+// Handle initial file from URL
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const fileId = params.get('file');
+  if (fileId) {
+    // Try to find filename in tree (simplified)
+    const name = fileId.split('/').pop();
+    previewFile(fileId, name, false);
+  }
+});
+
+// Search Logic
+let searchTimer = null;
 async function handleSearch(q) {
   const resultsEl = document.getElementById('searchResults');
   if (!q || q.length < 2) {
@@ -503,14 +642,12 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Arama
 function filterTree(q) {
   q = q.toLowerCase().trim();
   document.querySelectorAll('.tree-item[data-name]').forEach(el => {
     const match = !q || el.dataset.name.includes(q);
     el.style.display = match ? '' : 'none';
     if (match && q) {
-      // Üst klasörleri aç
       let parent = el.closest('.tree-folder');
       while (parent) {
         parent.classList.add('open');
@@ -522,7 +659,7 @@ function filterTree(q) {
   });
 }
 
-// Modal
+// Modal and CRUD Logic
 function openNewFile(folderId = '') {
   document.getElementById('newFileFolderId').value = folderId;
   document.getElementById('newFileName').value = '';
@@ -537,7 +674,6 @@ function openNewFolder() {
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Dosya oluştur
 async function createFile() {
   const name     = document.getElementById('newFileName').value.trim();
   const folderId = document.getElementById('newFileFolderId').value;
@@ -548,10 +684,13 @@ async function createFile() {
     body: JSON.stringify({ name, folder_id: folderId, content: `# ${name.replace('.md','')}\n\n` })
   });
   const data = await res.json();
-  if (data.ok) window.location.href = `/edit/${data.file.id}`;
+  if (data.ok) {
+    closeModal('modalNewFile');
+    // Refresh tree and open new file
+    window.location.reload(); 
+  }
 }
 
-// Klasör oluştur
 async function createFolder() {
   const name = document.getElementById('newFolderName').value.trim();
   if (!name) return;
@@ -563,9 +702,15 @@ async function createFolder() {
   window.location.reload();
 }
 
-// Enter ile modal submit
 document.getElementById('newFileName').addEventListener('keydown', e => { if (e.key === 'Enter') createFile(); });
 document.getElementById('newFolderName').addEventListener('keydown', e => { if (e.key === 'Enter') createFolder(); });
+
+// Folder Toggle
+function toggleFolder(el) {
+  const folder = el.closest('.tree-folder');
+  folder.classList.toggle('open');
+  el.querySelector('.tree-item-icon').textContent = folder.classList.contains('open') ? '▼' : '▶';
+}
 </script>
 {% endif %}
 {% endblock %}
