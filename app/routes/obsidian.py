@@ -4,6 +4,7 @@ Obsidian vault — Rclone / Local Filesystem entegrasyonu
 Subdomain: obsidian.yigitgulyurt.net.tr
 """
 
+import re
 import os
 import time
 import shutil
@@ -13,6 +14,7 @@ from flask import (
     Blueprint, render_template, request, jsonify,
     redirect, url_for, session, current_app, abort, send_from_directory
 )
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('obsidian', __name__, subdomain='obsidian')
 
@@ -286,6 +288,129 @@ _search_cache = {
     'last_scan': 0,
     'files': {} # {rel_path: {'content': '...', 'mtime': ...}}
 }
+
+@bp.route('/api/daily-note')
+@obsidian_auth
+def api_daily_note():
+    """Bugünün tarihli notunu bulur veya oluşturur."""
+    vault_path = get_vault_path()
+    today = datetime.now().strftime("%Y-%m-%d")
+    filename = f"{today}.md"
+    
+    # "Daily" klasörü varsa oraya, yoksa root'a
+    daily_dir = os.path.join(vault_path, "Daily")
+    if os.path.isdir(daily_dir):
+        rel_path = f"Daily/{filename}"
+    else:
+        rel_path = filename
+        
+    full_path = os.path.join(vault_path, rel_path)
+    if not os.path.exists(full_path):
+        with open(full_path, 'w', encoding='utf-8') as f:
+            f.write(f"# {today}\n\n")
+            
+    return jsonify({'ok': True, 'path': rel_path})
+
+@bp.route('/api/upload', methods=['POST'])
+@obsidian_auth
+def api_upload():
+    """Vault'a dosya yükler."""
+    if 'file' not in request.files:
+        return jsonify({'ok': False, 'error': 'Dosya seçilmedi'})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'ok': False, 'error': 'Dosya adı boş'})
+        
+    vault_path = get_vault_path()
+    filename = secure_filename(file.filename)
+    
+    # Root'a kaydet (User isteğine göre değişebilir)
+    target_path = os.path.join(vault_path, filename)
+    file.save(target_path)
+    
+    return jsonify({'ok': True, 'filename': filename})
+
+@bp.route('/api/backlinks/<path:file_id>')
+@obsidian_auth
+def api_backlinks(file_id):
+    """Belirli bir nota link veren diğer notları bulur."""
+    vault_path = get_vault_path()
+    note_name = os.path.basename(file_id).replace('.md', '')
+    
+    backlinks = []
+    # Arama motorunu kullan (Cache'den faydalan)
+    # Cache yoksa veya eskiyse doldur (api_search içindeki mantığı burada da kullanabiliriz)
+    # Basitlik için api_search benzeri bir tarama yapalım
+    
+    search_pattern = f"[[{note_name}]]"
+    
+    for root, dirs, files in os.walk(vault_path):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for file in files:
+            if not file.endswith('.md'): continue
+            
+            full_path = os.path.join(root, file)
+            rel_path = os.path.relpath(full_path, vault_path).replace('\\', '/')
+            if rel_path == file_id: continue # Kendisini atla
+            
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if search_pattern in content:
+                        backlinks.append({
+                            'id': rel_path,
+                            'name': file.replace('.md', '')
+                        })
+            except:
+                continue
+                
+    return jsonify(backlinks)
+
+@bp.route('/api/graph-data')
+@obsidian_auth
+def api_graph_data():
+    """Graph view için tüm notları ve aralarındaki linkleri döndürür."""
+    vault_path = get_vault_path()
+    nodes = []
+    links = []
+    
+    # Wiki-link yakalamak için regex
+    wiki_regex = re.compile(r'\[\[([^\]|]+)(?:\|[^\]]+)?\]\]')
+    
+    # Dosya listesi (id -> name mapping için)
+    file_map = {} # {note_name: rel_path}
+    
+    # 1. Tüm notları tara
+    for root, dirs, files in os.walk(vault_path):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for file in files:
+            if not file.endswith('.md'): continue
+            
+            rel_path = os.path.relpath(os.path.join(root, file), vault_path).replace('\\', '/')
+            name = file.replace('.md', '')
+            file_map[name] = rel_path
+            nodes.append({'id': rel_path, 'name': name})
+
+    # 2. Linkleri tara
+    for node in nodes:
+        full_path = os.path.join(vault_path, node['id'])
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                matches = wiki_regex.findall(content)
+                for target_name in matches:
+                    # Target'ın vault'da var olup olmadığını kontrol et
+                    target_name = target_name.strip()
+                    if target_name in file_map:
+                        links.append({
+                            'source': node['id'],
+                            'target': file_map[target_name]
+                        })
+        except:
+            continue
+            
+    return jsonify({'nodes': nodes, 'links': links})
 
 @bp.route('/api/search')
 @obsidian_auth

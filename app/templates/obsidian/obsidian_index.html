@@ -9,6 +9,7 @@
 <!-- Highlight.js for syntax highlighting -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="//unpkg.com/force-graph"></script>
 <style>
 /* ── VAULT LAYOUT ── */
 .vault-wrap {
@@ -363,8 +364,11 @@
     <div class="vault-sidebar-header">
       <span class="vault-title">// vault</span>
       <div class="vault-actions">
-        <button class="vault-icon-btn" onclick="openNewFile()" title="Yeni not">+md</button>
-        <button class="vault-icon-btn" onclick="openNewFolder()" title="Yeni klasör">+dir</button>
+        <button class="vault-icon-btn" onclick="openNewFile()" title="Yeni not">+</button>
+        <button class="vault-icon-btn" onclick="openDailyNote()" title="Günlük not">📅</button>
+        <button class="vault-icon-btn" onclick="showGraph()" title="Graph View">🕸</button>
+        <button class="vault-icon-btn" onclick="document.getElementById('fileUpload').click()" title="Dosya yükle">↑</button>
+        <input type="file" id="fileUpload" style="display:none" onchange="uploadFile(this)">
       </div>
     </div>
     <div class="sidebar-header">
@@ -428,6 +432,14 @@
 
   <div id="lightbox" onclick="this.style.display='none'">
     <img src="" alt="Enlarged view">
+  </div>
+
+  <div id="graphOverlay" class="graph-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000; flex-direction:column;">
+    <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-weight:400; color:var(--accent);">Graph View</h3>
+      <button class="btn" onclick="hideGraph()">Kapat</button>
+    </div>
+    <div id="graph-container" style="flex:1;"></div>
   </div>
 </div>
 
@@ -626,7 +638,7 @@ async function previewFile(fileId, fileName, pushHistory = true) {
   }
 }
 
-function renderContent(fileId, fileName, content) {
+async function renderContent(fileId, fileName, content) {
   const mainBody = document.getElementById('mainBody');
   const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
   const htmlContent = marked.parse(content);
@@ -639,12 +651,122 @@ function renderContent(fileId, fileName, content) {
         <a href="/edit/${fileId}" class="btn btn-primary" style="font-size:11px; padding:5px 12px;">düzenle</a>
       </div>
     </div>
-    <div class="preview-content">${htmlContent}</div>
+    <div class="preview-content">
+      ${htmlContent}
+      <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
+        <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500;">BACKLINKS</div>
+        <div id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:11px; color:var(--text2);">Yükleniyor...</div>
+        </div>
+      </div>
+    </div>
   `;
   
   mainBody.querySelectorAll('pre code').forEach((el) => {
     hljs.highlightElement(el);
   });
+
+  loadBacklinks(fileId);
+}
+
+async function loadBacklinks(fileId) {
+  try {
+    const res = await fetch(`/api/backlinks/${fileId}`);
+    const links = await res.json();
+    const list = document.getElementById('backlinksList');
+    
+    if (links.length === 0) {
+      list.innerHTML = '<div style="font-size:11px; color:var(--text2); opacity:0.6;">Bu nota henüz link verilmemiş.</div>';
+      return;
+    }
+    
+    list.innerHTML = links.map(link => `
+      <a href="javascript:previewFile('${link.id}', '${link.name}.md')" 
+         style="padding:10px 15px; background:var(--bg2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:13px; display:flex; justify-content:space-between; align-items:center; transition:0.2s;">
+         <span>${link.name}</span>
+         <span style="font-size:10px; opacity:0.5;">→</span>
+      </a>
+    `).join('');
+  } catch (e) {
+    document.getElementById('backlinksList').innerHTML = 'Hata oluştu.';
+  }
+}
+
+// Graph View
+let graphInstance = null;
+async function showGraph() {
+  document.getElementById('graphOverlay').style.display = 'flex';
+  const res = await fetch('/api/graph-data');
+  const data = await res.json();
+  
+  const container = document.getElementById('graph-container');
+  graphInstance = ForceGraph()(container)
+    .graphData(data)
+    .nodeId('id')
+    .nodeLabel('name')
+    .nodeAutoColorBy('id')
+    .linkColor(() => 'rgba(255,255,255,0.2)')
+    .linkDirectionalParticles(2)
+    .linkDirectionalParticleSpeed(0.005)
+    .nodeCanvasObject((node, ctx, globalScale) => {
+      const label = node.name;
+      const fontSize = 12/globalScale;
+      ctx.font = `${fontSize}px Inter, sans-serif`;
+      const textWidth = ctx.measureText(label).width;
+      const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = node.color;
+      ctx.fillText(label, node.x, node.y);
+    })
+    .onNodeClick(node => {
+      hideGraph();
+      previewFile(node.id, node.name + '.md');
+    });
+}
+
+function hideGraph() {
+  document.getElementById('graphOverlay').style.display = 'none';
+  if (graphInstance) graphInstance._destructor();
+}
+
+// Daily Note
+async function openDailyNote() {
+  const res = await fetch('/api/daily-note');
+  const data = await res.json();
+  if (data.ok) {
+    // Sayfayı yenile ki tree'de görünsün (Basit çözüm)
+    // Veya direkt preview et
+    previewFile(data.path, data.path.split('/').pop());
+  }
+}
+
+// Upload
+async function uploadFile(input) {
+  if (!input.files || input.files.length === 0) return;
+  
+  const formData = new FormData();
+  formData.append('file', input.files[0]);
+  
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.ok) {
+      alert('Dosya yüklendi: ' + data.filename);
+      location.reload(); // Tree'yi güncellemek için
+    } else {
+      alert('Hata: ' + data.error);
+    }
+  } catch (e) {
+    alert('Yükleme sırasında hata oluştu.');
+  }
 }
 
 function copyContent() {
