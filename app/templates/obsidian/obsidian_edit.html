@@ -162,17 +162,37 @@
 .ed-textarea {
   width: 100%;
   height: 100%;
-  font-family: var(--mono);
-  font-size: 13px;
-  background: var(--bg2);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+  background: var(--bg);
   border: none;
   border-right: 0.5px solid var(--border);
-  padding: 20px;
+  padding: 30px;
   color: var(--text);
   resize: none;
   outline: none;
-  line-height: 1.75;
+  line-height: 1.8;
   tab-size: 2;
+  transition: background 0.2s ease;
+}
+.ed-textarea:focus {
+  background: var(--bg2);
+}
+.editor-btn {
+  background: transparent;
+  border: 0.5px solid var(--border);
+  border-radius: 3px;
+  color: var(--text2);
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  min-width: 28px;
+  transition: all 0.15s;
+}
+.editor-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
 }
 .ed-preview {
   padding: 20px 24px;
@@ -342,46 +362,46 @@ marked.setOptions({
 // Wiki-links [[Link]] desteği ve Resim yolları
 const renderer = new marked.Renderer();
 
-// Custom text parser for Wiki-links
+// Custom text parser for Wiki-links and Embeds
 const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
-  // [[Not Adı]] veya [[Not Adı|Görünecek İsim]]
+  // 1. Obsidian Embeds ![[image.png]]
+  const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  text = text.replace(embedRegex, (match, target, size) => {
+    const cleanTarget = target.trim();
+    const encodedTarget = encodeURIComponent(cleanTarget);
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodedTarget}`;
+    let style = '';
+    if (size && !isNaN(size)) style = `width:${size}px;`;
+    return `<img src="${url}" alt="${cleanTarget}" style="${style}" style="max-width:100%; border-radius:6px;">`;
+  });
+
+  // 2. Wiki-links [[Link]]
   const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-  return text.replace(wikiLinkRegex, (match, target, alias) => {
+  text = text.replace(wikiLinkRegex, (match, target, alias) => {
     const label = alias || target;
     // Obsidian'da linkler genellikle dosya uzantısızdır, .md ekleyelim
     const url = `{{ url_for('obsidian.edit', file_id='') }}${target}.md`;
     return `<a href="${url}" class="wiki-link">${label}</a>`;
   });
+
+  return text;
 };
 
-const originalImage = renderer.image.bind(renderer);
 renderer.image = (href, title, text) => {
   if (!href.startsWith('http') && !href.startsWith('/')) {
-    // Göreceli yolları /obsidian/media/ altına yönlendir
-    // Mevcut dosyanın klasörünü bul
-    const currentDir = FILE_ID.split('/').slice(0, -1).join('/');
-    const fullHref = currentDir ? `${currentDir}/${href}` : href;
-    href = `{{ url_for('obsidian.serve_media', filename='') }}${fullHref}`;
+    const encodedHref = encodeURIComponent(href);
+    href = `{{ url_for('obsidian.serve_media', filename='') }}${encodedHref}`;
   }
-  return originalImage(href, title, text);
+  return `<img src="${href}" title="${title || ''}" alt="${text || ''}" style="max-width:100%; border-radius:6px;">`;
 };
 marked.use({ renderer });
 
 // İlk render
-renderPreview();
-
-// Live preview
-textarea.addEventListener('input', () => {
-  renderPreview();
-  setStatus('', '');
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveFile, 3000); // 3sn sonra otomatik kaydet
-});
-
 function renderPreview() {
   preview.innerHTML = marked.parse(textarea.value);
 }
+renderPreview();
 
 // Mod
 function setMode(m) {
@@ -405,8 +425,112 @@ function setMode(m) {
   }
 }
 
+let hasUnsavedChanges = false;
+
+// Live preview
+textarea.addEventListener('input', () => {
+  renderPreview();
+  hasUnsavedChanges = true;
+  setStatus('değişiklikler var...', '');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveFile, 3000); // 3sn sonra otomatik kaydet
+});
+
+// Unsaved changes warning
+window.onbeforeunload = () => {
+  if (hasUnsavedChanges) return "Kaydedilmemiş değişiklikleriniz var!";
+};
+
+// Smart Editor Features
+textarea.addEventListener('keydown', (e) => {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const value = textarea.value;
+
+  // 1. Auto-pairing
+  const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '*': '*' };
+  if (pairs[e.key]) {
+    e.preventDefault();
+    const pair = pairs[e.key];
+    const selection = value.substring(start, end);
+    textarea.value = value.substring(0, start) + e.key + selection + pair + value.substring(end);
+    textarea.selectionStart = start + 1;
+    textarea.selectionEnd = end + 1;
+    return;
+  }
+
+  // 2. Tab handling (Indent)
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    textarea.value = value.substring(0, start) + "\t" + value.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + 1;
+    return;
+  }
+
+  // 3. Shortcuts (Ctrl+S, Ctrl+B, etc.)
+  if (e.ctrlKey || e.metaKey) {
+    switch (e.key.toLowerCase()) {
+      case 's':
+        e.preventDefault();
+        saveFile();
+        break;
+      case 'b':
+        e.preventDefault();
+        wrapSelection('**', '**');
+        break;
+      case 'i':
+        e.preventDefault();
+        wrapSelection('*', '*');
+        break;
+      case 'p':
+        e.preventDefault();
+        setMode(mode === 'preview' ? 'split' : 'preview');
+        break;
+    }
+  }
+});
+
+function wrapSelection(before, after) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  const selection = text.substring(start, end);
+  
+  textarea.value = text.substring(0, start) + before + selection + after + text.substring(end);
+  textarea.focus();
+  textarea.selectionStart = start + before.length;
+  textarea.selectionEnd = end + before.length;
+  renderPreview();
+  hasUnsavedChanges = true;
+}
+
+function insertHeading() {
+  const start = textarea.selectionStart;
+  const value = textarea.value;
+  const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+  textarea.value = value.substring(0, lineStart) + '### ' + value.substring(lineStart);
+  textarea.focus();
+  renderPreview();
+  hasUnsavedChanges = true;
+}
+
+function insertLink() {
+  wrapSelection('[', '](url)');
+}
+
+function insertHr() {
+  const start = textarea.selectionStart;
+  const value = textarea.value;
+  textarea.value = value.substring(0, start) + '\n---\n' + value.substring(start);
+  textarea.focus();
+  renderPreview();
+  hasUnsavedChanges = true;
+}
+
 // Kaydet
 async function saveFile() {
+  if (!hasUnsavedChanges && document.getElementById('saveStatus').textContent === 'kaydedildi ✓') return;
+  
   setStatus('kaydediliyor...', 'saving');
   try {
     const res = await fetch(`/api/file/${FILE_ID}`, {
@@ -415,8 +539,12 @@ async function saveFile() {
       body: JSON.stringify({ content: textarea.value })
     });
     const data = await res.json();
-    if (data.ok) setStatus('kaydedildi ✓', 'saved');
-    else         setStatus('hata', 'error');
+    if (data.ok) {
+      setStatus('kaydedildi ✓', 'saved');
+      hasUnsavedChanges = false;
+    } else {
+      setStatus('hata', 'error');
+    }
   } catch {
     setStatus('bağlantı hatası', 'error');
   }
@@ -458,58 +586,5 @@ async function renameFile() {
     alert('Bir bağlantı hatası oluştu.');
   }
 }
-
-// Format yardımcıları
-function wrapSelection(before, after) {
-  const start = textarea.selectionStart;
-  const end   = textarea.selectionEnd;
-  const sel   = textarea.value.slice(start, end);
-  const repl  = before + (sel || 'metin') + after;
-  textarea.setRangeText(repl, start, end, 'select');
-  textarea.focus();
-  renderPreview();
-}
-
-function insertHeading() {
-  const start = textarea.selectionStart;
-  const lineStart = textarea.value.lastIndexOf('\n', start - 1) + 1;
-  textarea.setRangeText('## ', lineStart, lineStart, 'end');
-  textarea.focus();
-  renderPreview();
-}
-
-function insertLink() {
-  const start = textarea.selectionStart;
-  const end   = textarea.selectionEnd;
-  const sel   = textarea.value.slice(start, end);
-  textarea.setRangeText(`[${sel || 'metin'}](url)`, start, end, 'end');
-  textarea.focus();
-  renderPreview();
-}
-
-function insertHr() {
-  const start = textarea.selectionStart;
-  textarea.setRangeText('\n\n---\n\n', start, start, 'end');
-  textarea.focus();
-  renderPreview();
-}
-
-// Klavye kısayolları
-textarea.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey)) {
-    if (e.key === 's') { e.preventDefault(); saveFile(); }
-    if (e.key === 'b') { e.preventDefault(); wrapSelection('**','**'); }
-    if (e.key === 'i') { e.preventDefault(); wrapSelection('*','*'); }
-    if (e.key === '`') { e.preventDefault(); wrapSelection('`','`'); }
-    if (e.key === 'k') { e.preventDefault(); insertLink(); }
-    if (e.key === 'p') { e.preventDefault(); setMode(mode === 'preview' ? 'split' : 'preview'); }
-  }
-  // Tab → 2 boşluk
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const s = textarea.selectionStart;
-    textarea.setRangeText('  ', s, s, 'end');
-  }
-});
 </script>
 {% endblock %}
