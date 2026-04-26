@@ -404,7 +404,7 @@
       {% macro render_tree(nodes, depth=0) %}
         {% for node in nodes %}
           {% if node.is_folder %}
-            <div class="tree-folder" data-name="{{ node.name | lower }}">
+            <div class="tree-folder fade-in" data-name="{{ node.name | lower }}">
               <div class="tree-item tree-folder-item"
                    style="padding-left: {{ 16 + depth * 12 }}px"
                    onclick="toggleFolder(this)">
@@ -416,7 +416,7 @@
                         onclick="event.stopPropagation(); openNewFile('{{ node.id }}')"
                         title="Bu klasöre not ekle"><svg class="icon" style="width:10px; height:10px;"><use href="#icon-plus"></use></svg></button>
               </div>
-              <div class="tree-children">
+              <div class="tree-children fade-in">
                 {{ render_tree(node.children, depth + 1) }}
               </div>
             </div>
