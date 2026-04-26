@@ -444,7 +444,7 @@
     <div class="vault-main-header" id="tabBar">
       <!-- Tabs will be injected here -->
     </div>
-    <div class="vault-main-body fade-in" id="mainBody">
+    <div class="vault-main-body" id="mainBody">
       <div class="preview-empty">
         <div class="vault-empty-icon"><svg class="icon" style="width:48px; height:48px; opacity:0.5;"><use href="#icon-book"></use></svg></div>
         <div style="margin-top:10px;">Düzenlemek için bir not seç</div>
@@ -667,7 +667,7 @@ async function renderContent(fileId, fileName, content) {
   const htmlContent = marked.parse(content);
   
   mainBody.innerHTML = `
-    <div class="preview-header">
+    <div class="preview-header fade-in">
       <div class="preview-title">${cleanName}</div>
       <div style="display:flex; gap:8px;">
         <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
@@ -680,7 +680,7 @@ async function renderContent(fileId, fileName, content) {
         </a>
       </div>
     </div>
-    <div class="preview-content">
+    <div class="preview-content fade-in">
       ${htmlContent}
       <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
         <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500;">BACKLINKS</div>
