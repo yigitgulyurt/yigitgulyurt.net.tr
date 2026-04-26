@@ -4,12 +4,12 @@ Obsidian vault — Google Drive entegrasyonu
 Subdomain: obsidian.yigitgulyurt.net.tr
 """
 
-import os, json, re
+import os, json
+from functools import wraps
 from flask import (
     Blueprint, render_template, request, jsonify,
     redirect, url_for, session, current_app
 )
-from flask_login import login_required
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -17,6 +17,15 @@ from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 import io
 
 bp = Blueprint('obsidian', __name__, subdomain='obsidian')
+
+def obsidian_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        pw = current_app.config.get('OBSIDIAN_PASSWORD', '')
+        if not pw or session.get('obsidian_ok') != pw:
+            return redirect(url_for('obsidian.login'))
+        return f(*args, **kwargs)
+    return decorated
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
@@ -209,6 +218,17 @@ def auth():
     session['oauth_state'] = state
     return redirect(auth_url)
 
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    error = False
+    if request.method == 'POST':
+        pw = current_app.config.get('OBSIDIAN_PASSWORD', '')
+        if request.form.get('password') == pw:
+            session['obsidian_ok'] = pw
+            session.permanent = True
+            return redirect(url_for('obsidian.auth'))
+        error = True
+    return render_template('obsidian/login.html', error=error)
 
 # ── MAIN ROUTES ───────────────────────────────────────────────
 
