@@ -286,9 +286,12 @@ def api_search():
     query = request.args.get('q', '').lower()
     if not query:
         return jsonify([])
-        
+    
     vault_path = get_vault_path()
     results = []
+    
+    # Maksimum sonuç sayısı
+    MAX_RESULTS = 30
     
     for root, dirs, files in os.walk(vault_path):
         # .obsidian gibi gizli klasörleri atla
@@ -301,29 +304,39 @@ def api_search():
             full_path = os.path.join(root, file)
             rel_path = os.path.relpath(full_path, vault_path).replace('\\', '/')
             
+            # Dosya adında eşleşme (Yüksek öncelik)
+            name_match = query in file.lower()
+            
             try:
+                # Sadece .md dosyalarını oku
                 with open(full_path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                    if query in content.lower() or query in file.lower():
-                        # İçerikten kısa bir kesit al
-                        idx = content.lower().find(query)
-                        start = max(0, idx - 40)
-                        end = min(len(content), idx + 60)
-                        snippet = content[start:end].replace('\n', ' ')
+                    content_lower = content.lower()
+                    
+                    if name_match or query in content_lower:
+                        idx = content_lower.find(query)
+                        snippet = ""
+                        if idx != -1:
+                            start = max(0, idx - 40)
+                            end = min(len(content), idx + 60)
+                            snippet = content[start:end].replace('\n', ' ')
                         
                         results.append({
                             'id': rel_path,
                             'name': file,
-                            'snippet': f"...{snippet}..." if idx != -1 else ""
+                            'snippet': f"...{snippet}..." if snippet else "",
+                            'score': 100 if name_match else 1 # Dosya adı eşleşmesine yüksek puan
                         })
-            except:
+            except Exception as e:
                 continue
                 
-            if len(results) > 20: # Performans için sınırı koru
+            if len(results) >= MAX_RESULTS:
                 break
-        if len(results) > 20:
+        if len(results) >= MAX_RESULTS:
             break
             
+    # Sonuçları puanına göre sırala
+    results.sort(key=lambda x: x['score'], reverse=True)
     return jsonify(results)
 
 @bp.route('/api/tree')

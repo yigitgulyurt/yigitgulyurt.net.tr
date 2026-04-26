@@ -671,6 +671,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Search Logic
 let searchTimer = null;
+let selectedIndex = -1;
+
 async function handleSearch(q) {
   const resultsEl = document.getElementById('searchResults');
   if (!q || q.length < 2) {
@@ -685,13 +687,21 @@ async function handleSearch(q) {
       const data = await res.json();
       
       if (data.length > 0) {
-        resultsEl.innerHTML = data.map(item => `
-          <div onclick="previewFile('${item.id}', '${item.name}'); document.getElementById('searchResults').style.display='none';" class="search-result-item">
-            <div class="name">${item.name}</div>
-            <div class="snippet">${item.snippet}</div>
-          </div>
-        `).join('');
+        resultsEl.innerHTML = data.map((item, index) => {
+          // Highlight search term in snippet
+          let snippet = item.snippet;
+          const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\\\]]/g, '\\$&')})`, 'gi');
+          snippet = snippet.replace(regex, '<mark style="background: var(--accent); color: white; padding: 0 2px; border-radius: 2px;">$1</mark>');
+          
+          return `
+            <div onclick="previewFile('${item.id}', '${item.name}'); document.getElementById('searchResults').style.display='none';" class="search-result-item" data-index="${index}">
+              <div class="name">${item.name}</div>
+              <div class="snippet">${snippet}</div>
+            </div>
+          `;
+        }).join('');
         resultsEl.style.display = 'block';
+        selectedIndex = -1;
       } else {
         resultsEl.innerHTML = '<div style="padding:10px;font-size:10px;color:var(--text2)">Sonuç bulunamadı.</div>';
         resultsEl.style.display = 'block';
@@ -700,6 +710,39 @@ async function handleSearch(q) {
       console.error('Arama hatası:', e);
     }
   }, 300);
+}
+
+document.getElementById('vaultSearch').onkeydown = (e) => {
+  const results = document.querySelectorAll('.search-result-item');
+  if (results.length === 0) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+    updateSelection(results);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex = Math.max(selectedIndex - 1, 0);
+    updateSelection(results);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (selectedIndex >= 0) {
+      results[selectedIndex].click();
+    }
+  } else if (e.key === 'Escape') {
+    document.getElementById('searchResults').style.display = 'none';
+  }
+};
+
+function updateSelection(results) {
+  results.forEach((el, idx) => {
+    if (idx === selectedIndex) {
+      el.style.background = 'var(--bg2)';
+      el.scrollIntoView({ block: 'nearest' });
+    } else {
+      el.style.background = 'transparent';
+    }
+  });
 }
 
 // Click outside to close search
