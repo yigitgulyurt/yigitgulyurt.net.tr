@@ -178,9 +178,30 @@ def api_create_file():
     vault_path = get_vault_path()
     data = request.get_json()
     folder_rel_path = data.get('folder_id', '')
-    name = data.get('name', 'Yeni Not')
+    raw_name = data.get('name', 'Yeni Not').strip()
     content = data.get('content', '')
     
+    # "folder/note" veya "folder/" mantığı
+    if '/' in raw_name:
+        parts = raw_name.split('/')
+        # Son parça boşsa bu bir klasör oluşturma isteğidir
+        is_only_folder = raw_name.endswith('/')
+        
+        if is_only_folder:
+            # Sadece klasör oluştur
+            new_folder_rel = os.path.join(folder_rel_path, raw_name.rstrip('/'))
+            full_folder_path = os.path.join(vault_path, new_folder_rel)
+            os.makedirs(full_folder_path, exist_ok=True)
+            return jsonify({'ok': True, 'type': 'folder'})
+        else:
+            # Klasör(leri) ve dosyayı oluştur
+            file_name = parts[-1]
+            sub_folders = '/'.join(parts[:-1])
+            folder_rel_path = os.path.join(folder_rel_path, sub_folders)
+            name = file_name
+    else:
+        name = raw_name
+
     if not name.endswith('.md'):
         name += '.md'
         
@@ -193,7 +214,7 @@ def api_create_file():
     try:
         with open(full_file_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        return jsonify({'ok': True, 'file': {'id': rel_file_path}})
+        return jsonify({'ok': True, 'file': {'id': rel_file_path}, 'type': 'file'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

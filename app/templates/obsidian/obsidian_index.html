@@ -365,9 +365,9 @@
       <span class="vault-title">// vault</span>
       <div class="vault-actions">
         <button class="vault-icon-btn" onclick="openNewFile()" title="Yeni not">+</button>
-        <button class="vault-icon-btn" onclick="openDailyNote()" title="Günlük not">📅</button>
-        <button class="vault-icon-btn" onclick="showGraph()" title="Graph View">🕸</button>
-        <button class="vault-icon-btn" onclick="document.getElementById('fileUpload').click()" title="Dosya yükle">↑</button>
+        <button class="vault-icon-btn" onclick="openDailyNote()" title="Günlük not"><i class="fas fa-calendar-day"></i></button>
+        <button class="vault-icon-btn" onclick="showGraph()" title="Graph View"><i class="fas fa-project-diagram"></i></button>
+        <button class="vault-icon-btn" onclick="document.getElementById('fileUpload').click()" title="Dosya yükle"><i class="fas fa-file-upload"></i></button>
         <input type="file" id="fileUpload" style="display:none" onchange="uploadFile(this)">
       </div>
     </div>
@@ -917,16 +917,25 @@ async function createFile() {
   const name     = document.getElementById('newFileName').value.trim();
   const folderId = document.getElementById('newFileFolderId').value;
   if (!name) return;
+  
   const res = await fetch('/api/file', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ name, folder_id: folderId, content: `# ${name.replace('.md','')}\n\n` })
+    body: JSON.stringify({ name, folder_id: folderId, content: `# ${name.split('/').pop().replace('.md','')}\n\n` })
   });
   const data = await res.json();
   if (data.ok) {
     closeModal('modalNewFile');
-    // Refresh tree and open new file
-    window.location.reload(); 
+    if (data.type === 'folder') {
+      // Sadece klasör oluşturuldu, ağacı yenile
+      window.location.reload();
+    } else {
+      // Dosya oluşturuldu, ağacı yenile ve dosyayı aç
+      // Basitlik için reload yapıp URL'ye file ekleyelim
+      window.location.href = `?file=${encodeURIComponent(data.file.id)}`;
+    }
+  } else {
+    alert('Hata: ' + data.error);
   }
 }
 
