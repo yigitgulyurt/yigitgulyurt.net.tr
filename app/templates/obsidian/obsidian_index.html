@@ -505,8 +505,9 @@ renderer.text = (text) => {
   const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(embedRegex, (match, target, size) => {
     const cleanTarget = target.trim();
-    // Görseller rootta olduğu için direkt target kullanıyoruz
-    const url = `{{ url_for('obsidian.serve_media', filename='') }}${cleanTarget}`;
+    // URL safe encoding for filenames
+    const encodedTarget = encodeURIComponent(cleanTarget);
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodedTarget}`;
     
     let style = '';
     if (size && !isNaN(size)) style = `width:${size}px;`;
@@ -519,8 +520,8 @@ renderer.text = (text) => {
 
 renderer.image = (href, title, text) => {
   if (!href.startsWith('http') && !href.startsWith('/')) {
-    // Görseller rootta olduğu için direkt href kullanıyoruz
-    href = `{{ url_for('obsidian.serve_media', filename='') }}${href}`;
+    const encodedHref = encodeURIComponent(href);
+    href = `{{ url_for('obsidian.serve_media', filename='') }}${encodedHref}`;
   }
   return `<img src="${href}" title="${title || ''}" alt="${text || ''}" onclick="openLightbox(this.src)">`;
 };

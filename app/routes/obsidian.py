@@ -257,7 +257,28 @@ def api_rename():
 def serve_media(filename):
     """Vault içindeki resim ve diğer medya dosyalarını sunar."""
     vault_path = get_vault_path()
-    return send_from_directory(vault_path, filename)
+    if not vault_path:
+        abort(404)
+    
+    # Güvenlik kontrolü: vault dışına çıkılmasını engelle
+    full_path = os.path.normpath(os.path.join(vault_path, filename))
+    if not full_path.startswith(os.path.normpath(vault_path)):
+        abort(403)
+        
+    if not os.path.exists(full_path):
+        # Eğer dosya tam yolda bulunamazsa, vault içinde ismen ara (Obsidian tarzı)
+        file_only = os.path.basename(filename).lower()
+        for root, dirs, files in os.walk(vault_path):
+            # .obsidian klasörünü atla
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for f in files:
+                if f.lower() == file_only:
+                    return send_from_directory(root, f)
+        
+        current_app.logger.error(f"Medya dosyası bulunamadı: {filename} (Yol: {full_path})")
+        abort(404)
+        
+    return send_from_directory(os.path.dirname(full_path), os.path.basename(full_path))
 
 @bp.route('/api/search')
 @obsidian_auth
