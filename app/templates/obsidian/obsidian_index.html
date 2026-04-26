@@ -58,6 +58,10 @@
 .sidebar-header {
   padding: 12px;
   border-bottom: 0.5px solid var(--border);
+  position: relative; /* Sonuçların buna göre konumlanması için */
+}
+.search-box {
+  position: relative;
 }
 .search-box input {
   width: 100%;
@@ -73,16 +77,16 @@
 
 .search-results {
   position: absolute;
-  top: 100px;
-  left: 12px;
-  right: 12px;
+  top: calc(100% + 5px); /* Input'un hemen altına */
+  left: 0;
+  right: 0;
   background: var(--bg);
   border: 0.5px solid var(--border);
   border-radius: 4px;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 .search-result-item {
   padding: 10px;

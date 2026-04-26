@@ -5,6 +5,7 @@ Subdomain: obsidian.yigitgulyurt.net.tr
 """
 
 import os
+import time
 import shutil
 from functools import wraps
 from datetime import datetime
@@ -280,23 +281,36 @@ def serve_media(filename):
         
     return send_from_directory(os.path.dirname(full_path), os.path.basename(full_path))
 
+# Arama sonuçları için basit bir bellek içi önbellek
+_search_cache = {
+    'last_scan': 0,
+    'files': {} # {rel_path: {'content': '...', 'mtime': ...}}
+}
+
 @bp.route('/api/search')
 @obsidian_auth
 def api_search():
-    query = request.args.get('q', '').lower()
-    if not query:
+    query = request.args.get('q', '').lower().strip()
+    if not query or len(query) < 2:
         return jsonify([])
     
     vault_path = get_vault_path()
+    if not vault_path:
+        return jsonify([])
+
     results = []
-    
-    # Maksimum sonuç sayısı
     MAX_RESULTS = 30
+    now = time.time()
     
+    # Her 5 dakikada bir dosya listesini tazele (veya ilk çalışmada)
+    refresh_cache = (now - _search_cache['last_scan']) > 300
+    
+    if refresh_cache:
+        _search_cache['last_scan'] = now
+        # Cache'deki artık dosyaları temizle (isteğe bağlı, şimdilik basit tutalım)
+
     for root, dirs, files in os.walk(vault_path):
-        # .obsidian gibi gizli klasörleri atla
         dirs[:] = [d for d in dirs if not d.startswith('.')]
-        
         for file in files:
             if not file.endswith('.md'):
                 continue
@@ -304,38 +318,52 @@ def api_search():
             full_path = os.path.join(root, file)
             rel_path = os.path.relpath(full_path, vault_path).replace('\\', '/')
             
-            # Dosya adında eşleşme (Yüksek öncelik)
+            # Dosya adında eşleşme (Çok hızlı, disk okuması gerektirmez)
             name_match = query in file.lower()
             
+            # İçerik araması
+            content_lower = ""
             try:
-                # Sadece .md dosyalarını oku
-                with open(full_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    content_lower = content.lower()
-                    
-                    if name_match or query in content_lower:
-                        idx = content_lower.find(query)
-                        snippet = ""
-                        if idx != -1:
-                            start = max(0, idx - 40)
-                            end = min(len(content), idx + 60)
-                            snippet = content[start:end].replace('\n', ' ')
-                        
-                        results.append({
-                            'id': rel_path,
-                            'name': file,
-                            'snippet': f"...{snippet}..." if snippet else "",
-                            'score': 100 if name_match else 1 # Dosya adı eşleşmesine yüksek puan
-                        })
+                stats = os.stat(full_path)
+                mtime = stats.st_mtime
+                
+                # Cache kontrolü
+                cached = _search_cache['files'].get(rel_path)
+                if cached and cached['mtime'] == mtime:
+                    content = cached['content']
+                else:
+                    # Rclone üzerinden okuma maliyetli olduğu için sadece gerektiğinde oku
+                    with open(full_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        _search_cache['files'][rel_path] = {
+                            'content': content,
+                            'mtime': mtime
+                        }
+                content_lower = content.lower()
             except Exception as e:
+                current_app.logger.error(f"Arama hatası ({file}): {str(e)}")
                 continue
+
+            if name_match or query in content_lower:
+                snippet = ""
+                idx = content_lower.find(query)
+                if idx != -1:
+                    start = max(0, idx - 40)
+                    end = min(len(content_lower), idx + 60)
+                    snippet = _search_cache['files'][rel_path]['content'][start:end].replace('\n', ' ')
+                
+                results.append({
+                    'id': rel_path,
+                    'name': file,
+                    'snippet': f"...{snippet}..." if snippet else "",
+                    'score': 100 if name_match else 1
+                })
                 
             if len(results) >= MAX_RESULTS:
                 break
         if len(results) >= MAX_RESULTS:
             break
             
-    # Sonuçları puanına göre sırala
     results.sort(key=lambda x: x['score'], reverse=True)
     return jsonify(results)
 
