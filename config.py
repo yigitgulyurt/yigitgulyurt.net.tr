@@ -25,3 +25,4 @@ class Config:
                          'https://obsidian.yigitgulyurt.net.tr/oauth2callback')
     GOOGLE_TOKEN_PATH    = os.path.join(os.path.dirname(__file__), 'google_token.json')
 
+    OBSIDIAN_PASSWORD = os.environ.get('OBSIDIAN_PASSWORD', '')

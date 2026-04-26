@@ -207,7 +207,7 @@ def oauth2callback():
 
 
 @bp.route('/auth')
-@login_required
+@obsidian_auth
 def auth():
     flow = get_flow()
     auth_url, state = flow.authorization_url(
@@ -233,7 +233,7 @@ def login():
 # ── MAIN ROUTES ───────────────────────────────────────────────
 
 @bp.route('/')
-@login_required
+@obsidian_auth
 def index():
     service = get_drive_service()
     if not service:
@@ -247,7 +247,7 @@ def index():
 
 
 @bp.route('/edit/<file_id>')
-@login_required
+@obsidian_auth
 def edit(file_id):
     service = get_drive_service()
     if not service:
@@ -259,7 +259,7 @@ def edit(file_id):
 
 
 @bp.route('/new')
-@login_required
+@obsidian_auth
 def new():
     service = get_drive_service()
     if not service:
@@ -275,7 +275,7 @@ def new():
 # ── API ROUTES ────────────────────────────────────────────────
 
 @bp.route('/api/file/<file_id>', methods=['GET'])
-@login_required
+@obsidian_auth
 def api_get_file(file_id):
     service = get_drive_service()
     content = get_file_content(service, file_id)
@@ -283,7 +283,7 @@ def api_get_file(file_id):
 
 
 @bp.route('/api/file/<file_id>', methods=['PUT'])
-@login_required
+@obsidian_auth
 def api_update_file(file_id):
     data = request.get_json()
     content = data.get('content', '')
@@ -293,7 +293,7 @@ def api_update_file(file_id):
 
 
 @bp.route('/api/file', methods=['POST'])
-@login_required
+@obsidian_auth
 def api_create_file():
     data = request.get_json()
     folder_id = data.get('folder_id')
@@ -307,7 +307,7 @@ def api_create_file():
 
 
 @bp.route('/api/folder', methods=['POST'])
-@login_required
+@obsidian_auth
 def api_create_folder():
     data      = request.get_json()
     parent_id = data.get('parent_id')
@@ -320,7 +320,7 @@ def api_create_folder():
 
 
 @bp.route('/api/file/<file_id>', methods=['DELETE'])
-@login_required
+@obsidian_auth
 def api_delete_file(file_id):
     service = get_drive_service()
     delete_item(service, file_id)
@@ -328,7 +328,7 @@ def api_delete_file(file_id):
 
 
 @bp.route('/api/tree')
-@login_required
+@obsidian_auth
 def api_tree():
     service  = get_drive_service()
     vault_id = find_vault_folder(service)
