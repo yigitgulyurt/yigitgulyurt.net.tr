@@ -285,12 +285,15 @@
 {% endblock %}
 
 {% block content %}
+<div style="display: none;">
+  {% include 'obsidian/icons.svg' %}
+</div>
 <div class="vault-editor-wrap">
 
   {# ── MINI SIDEBAR ── #}
   <aside class="vault-mini-sidebar">
     <a class="mini-back" href="{{ url_for('obsidian.index') }}">
-      <svg class="icon" style="transform: rotate(180deg); width: 10px;"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-chevron-right"></use></svg>
+      <svg class="icon" style="transform: rotate(180deg); width: 10px;"><use href="#icon-chevron-right"></use></svg>
       vault
     </a>
     <div class="mini-file-info">
@@ -325,11 +328,11 @@
     </div>
     <div class="mini-danger">
       <button class="delete-btn" onclick="renameFile()" style="margin-bottom:8px;color:var(--text2);border-color:var(--border); display: flex; align-items: center; justify-content: center; gap: 6px;">
-        <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-edit"></use></svg>
+        <svg class="icon"><use href="#icon-edit"></use></svg>
         yeniden adlandır
       </button>
       <button class="delete-btn" onclick="deleteFile()" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-        <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-trash"></use></svg>
+        <svg class="icon"><use href="#icon-trash"></use></svg>
         sil
       </button>
     </div>
@@ -340,15 +343,15 @@
     <div class="editor-topbar">
       <div class="editor-tabs">
         <button class="editor-tab active" id="tabSplit" onclick="setMode('split')" title="Split View">
-          <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-graph"></use></svg>
+          <svg class="icon"><use href="#icon-graph"></use></svg>
           split
         </button>
         <button class="editor-tab" id="tabWrite" onclick="setMode('write')" title="Yazma Modu">
-          <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-edit"></use></svg>
+          <svg class="icon"><use href="#icon-edit"></use></svg>
           yaz
         </button>
         <button class="editor-tab" id="tabPreview" onclick="setMode('preview')" title="Önizleme Modu">
-          <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-book"></use></svg>
+          <svg class="icon"><use href="#icon-book"></use></svg>
           önizle
         </button>
       </div>
@@ -358,13 +361,13 @@
         <button class="editor-btn" onclick="wrapSelection('`','`')" title="Kod">`</button>
         <button class="editor-btn" onclick="insertHeading()" title="Başlık">H</button>
         <button class="editor-btn" onclick="insertLink()" title="Link">
-          <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-link"></use></svg>
+          <svg class="icon"><use href="#icon-link"></use></svg>
         </button>
         <button class="editor-btn" onclick="insertHr()" title="Çizgi">—</button>
       </div>
       <div class="save-status" id="saveStatus">—</div>
       <button class="btn btn-primary" onclick="saveFile()" style="font-size:11px;padding:5px 12px; display: flex; align-items: center; gap: 6px;">
-        <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-upload"></use></svg>
+        <svg class="icon"><use href="#icon-upload"></use></svg>
         kaydet
       </button>
     </div>
