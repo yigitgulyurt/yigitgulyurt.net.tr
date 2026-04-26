@@ -978,3 +978,31 @@ html[data-lang="en"] .lang-tr { display: none !important; }
   .stream-promo-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
   .stream-promo-inner .btn { width: 100%; text-align: center; }
 }
+
+.fade-in {
+    animation: fadeInOpacity 0.5s ease-in;
+}
+
+@keyframes fadeInOpacity {
+from {
+    opacity: 0;
+}
+to {
+    opacity: 1;
+}
+}
+
+@media (max-width: 768px) {
+    .fade-in {
+    animation: fadeInOpacity 0.5s ease-in;
+    }
+
+    @keyframes fadeInOpacity {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+    }
