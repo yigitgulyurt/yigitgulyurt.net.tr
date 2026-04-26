@@ -4,6 +4,11 @@
 {% block description %}Kişisel not defteri — Obsidian vault{% endblock %}
 
 {% block head %}
+<!-- Marked.js markdown parser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<!-- Highlight.js for syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
 /* ── VAULT LAYOUT ── */
 .vault-wrap {
@@ -136,14 +141,70 @@
 .vault-main-body {
   flex: 1;
   display: flex;
+  flex-direction: column;
+  color: var(--text);
+  font-size: 13px;
+  padding: 0;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.preview-content {
+  padding: 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.preview-empty {
+  display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 12px;
+  height: 100%;
   color: var(--text2);
-  font-size: 12px;
-  padding: 40px;
+  gap: 12px;
 }
+.preview-header {
+  padding: 20px 40px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.preview-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Markdown preview stilleri — obsidian_edit'ten kopyalandı */
+.preview-content h1 { font-size: 24px; font-weight: 500; margin: 0 0 16px; color: var(--text); }
+.preview-content h2 { font-size: 20px; font-weight: 500; margin: 24px 0 10px; color: var(--text); }
+.preview-content h3 { font-size: 16px; font-weight: 500; margin: 20px 0 8px; color: var(--accent2); }
+.preview-content p  { font-size: 14px; line-height: 1.8; margin-bottom: 14px; color: var(--text); }
+.preview-content code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg3);
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.preview-content pre {
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 14px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.preview-content a { color: var(--accent); text-decoration: none; }
+.preview-content a:hover { text-decoration: underline; }
+.wiki-link { border-bottom: 1px dashed var(--accent2); color: var(--accent2) !important; }
+
 .vault-empty-icon {
   font-size: 32px;
   opacity: .3;
@@ -260,14 +321,14 @@
               </div>
             </div>
           {% else %}
-            <a class="tree-item"
-               href="{{ url_for('obsidian.edit', file_id=node.id) }}"
+            <div class="tree-item"
+               onclick="previewFile('{{ node.id }}', '{{ node.name }}')"
                style="padding-left: {{ 16 + depth * 12 }}px"
                data-name="{{ node.name | lower }}"
                data-id="{{ node.id }}">
               <span class="tree-item-icon" style="color:var(--accent2)">◈</span>
               <span class="tree-item-name">{{ node.name[:-3] if node.name.endswith('.md') else node.name }}</span>
-            </a>
+            </div>
           {% endif %}
         {% endfor %}
       {% endmacro %}
@@ -285,10 +346,12 @@
       <span>—</span>
       <span>{{ tree | length }} öğe</span>
     </div>
-    <div class="vault-main-body">
-      <div class="vault-empty-icon">◈</div>
-      <div>Düzenlemek için bir not seç</div>
-      <a href="{{ url_for('obsidian.new') }}" class="btn">Yeni not oluştur</a>
+    <div class="vault-main-body" id="mainBody">
+      <div class="preview-empty">
+        <div class="vault-empty-icon">◈</div>
+        <div>Düzenlemek için bir not seç</div>
+        <a href="{{ url_for('obsidian.new') }}" class="btn">Yeni not oluştur</a>
+      </div>
     </div>
   </div>
 </div>
@@ -319,6 +382,74 @@
 </div>
 
 <script>
+// Marked config
+marked.setOptions({ 
+  breaks: true, 
+  gfm: true,
+  headerIds: true,
+  highlight: function(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    return hljs.highlight(code, { language }).value;
+  },
+  langPrefix: 'hljs language-'
+});
+
+// Wiki-links [[Link]] desteği ve Resim yolları
+const renderer = new marked.Renderer();
+const originalText = renderer.text.bind(renderer);
+renderer.text = (text) => {
+  const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  return text.replace(wikiLinkRegex, (match, target, alias) => {
+    const label = alias || target;
+    const url = `javascript:previewFile('${target}.md', '${target}')`;
+    return `<a href="${url}" class="wiki-link">${label}</a>`;
+  });
+};
+
+const originalImage = renderer.image.bind(renderer);
+renderer.image = (href, title, text) => {
+  if (!href.startsWith('http') && !href.startsWith('/')) {
+    href = `{{ url_for('obsidian.serve_media', filename='') }}${href}`;
+  }
+  return originalImage(href, title, text);
+};
+marked.use({ renderer });
+
+// Önizleme fonksiyonu
+async function previewFile(fileId, fileName) {
+  const mainBody = document.getElementById('mainBody');
+  mainBody.innerHTML = '<div class="preview-empty">Yükleniyor...</div>';
+  
+  // Aktif sınıfını güncelle
+  document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+  const activeEl = document.querySelector(`.tree-item[data-id="${fileId}"]`);
+  if (activeEl) activeEl.classList.add('active');
+
+  try {
+    const res = await fetch(`/api/file/${fileId}`);
+    const data = await res.json();
+    
+    if (data.content !== undefined) {
+      const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
+      const htmlContent = marked.parse(data.content);
+      
+      mainBody.innerHTML = `
+        <div class="preview-header">
+          <div class="preview-title">${cleanName}</div>
+          <a href="/edit/${fileId}" class="btn btn-primary">Düzenle</a>
+        </div>
+        <div class="preview-content">${htmlContent}</div>
+      `;
+      // Kod bloklarını renklendir
+      mainBody.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+    }
+  } catch (e) {
+    mainBody.innerHTML = '<div class="preview-empty">Not yüklenirken hata oluştu.</div>';
+  }
+}
+
 // Aktif dosyayı işaretle
 const currentPath = window.location.pathname;
 document.querySelectorAll('.tree-item[data-id]').forEach(el => {
@@ -349,10 +480,10 @@ async function handleSearch(q) {
       
       if (data.length > 0) {
         resultsEl.innerHTML = data.map(item => `
-          <a href="/edit/${item.id}" class="search-result-item">
+          <div onclick="previewFile('${item.id}', '${item.name}'); document.getElementById('searchResults').style.display='none';" class="search-result-item">
             <div class="name">${item.name}</div>
             <div class="snippet">${item.snippet}</div>
-          </a>
+          </div>
         `).join('');
         resultsEl.style.display = 'block';
       } else {
