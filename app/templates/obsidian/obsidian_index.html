@@ -36,6 +36,7 @@
   font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.5px;
+  user-select: none;
 }
 .vault-actions {
   display: flex;
@@ -683,7 +684,7 @@ async function renderContent(fileId, fileName, content) {
     <div class="preview-content fade-in">
       ${htmlContent}
       <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
-        <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500;">BACKLINKS</div>
+        <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500; user-select:none;">BACKLINKS</div>
         <div class="fade-in" id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">
           <div style="font-size:11px; color:var(--text2);">Yükleniyor...</div>
         </div>
@@ -705,7 +706,7 @@ async function loadBacklinks(fileId) {
     const list = document.getElementById('backlinksList');
     
     if (links.length === 0) {
-      list.innerHTML = '<div style="font-size:11px; color:var(--text2); opacity:0.6;">Bu nota henüz link verilmemiş.</div>';
+      list.innerHTML = '<div style="font-size:11px; color:var(--text2); opacity:0.6; user-select:none;">Bu nota henüz link verilmemiş.</div>';
       return;
     }
     

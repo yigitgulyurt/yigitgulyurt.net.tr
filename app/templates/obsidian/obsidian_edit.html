@@ -34,6 +34,7 @@
   align-items: center;
   gap: 6px;
   transition: color .15s;
+  user-select: none;
 }
 .mini-back:hover { color: var(--text); }
 .mini-file-info {
@@ -58,6 +59,7 @@
   padding: 12px 14px;
   flex: 1;
   overflow-y: auto;
+  user-select: none;
 }
 .mini-shortcut-title {
   font-size: 10px;
@@ -146,6 +148,7 @@
   color: var(--text2);
   min-width: 80px;
   text-align: right;
+  user-select: none;
 }
 .save-status.saved  { color: var(--accent); }
 .save-status.saving { color: var(--accent2); }
@@ -200,6 +203,7 @@
   background: var(--bg);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+  user-select: all;
 }
 
 .ed-preview img {
