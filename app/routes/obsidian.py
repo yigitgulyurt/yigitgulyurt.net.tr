@@ -18,7 +18,7 @@ import io
 
 # OAuthlib'in HTTPS zorunluluğunu Nginx arkasında esnetmek gerekebilir
 # Ancak Google production'da HTTPS zorunlu tutar.
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' 
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' 
 
 bp = Blueprint('obsidian', __name__, subdomain='obsidian')
 
@@ -227,22 +227,29 @@ def delete_item(service, file_id):
 
 @bp.route('/oauth2callback')
 def oauth2callback():
-    # Nginx arkasında request.url 'http' gelebilir, Google 'https' bekler
+    # ProxyFix sayesinde request.url zaten https gelmeli.
     auth_response = request.url
-    if 'http://' in auth_response and not current_app.debug:
-        auth_response = auth_response.replace('http://', 'https://')
+    
+    current_app.logger.info(f"OAuth Callback Tetiklendi. URL: {auth_response}")
     
     flow = get_flow()
     try:
-        # State doğrulaması ekleyelim
         state = session.get('oauth_state')
+        if not state:
+            current_app.logger.error("Session'da oauth_state bulunamadı!")
+        
         flow.fetch_token(authorization_response=auth_response, state=state)
         
         save_credentials(flow.credentials)
+        current_app.logger.info("Google Drive bağlantısı başarıyla kuruldu.")
         return redirect(url_for('obsidian.index'))
     except Exception as e:
-        current_app.logger.error(f"OAuth Hatası: {str(e)}")
-        return f"Kimlik doğrulama sırasında bir hata oluştu: {str(e)}", 400
+        current_app.logger.error(f"OAuth Hatası Detaylı: {str(e)}")
+        # Hata mesajını daha açıklayıcı yapalım
+        error_msg = str(e)
+        if "missing_code" in error_msg:
+            return "Hata: Google'dan 'code' parametresi gelmedi. Lütfen tekrar giriş yapın ve izinleri onaylayın.", 400
+        return f"Kimlik doğrulama hatası: {error_msg}", 400
 
 
 @bp.route('/auth')
