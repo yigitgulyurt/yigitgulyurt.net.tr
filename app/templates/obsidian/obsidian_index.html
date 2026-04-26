@@ -416,7 +416,7 @@
                         onclick="event.stopPropagation(); openNewFile('{{ node.id }}')"
                         title="Bu klasöre not ekle"><svg class="icon" style="width:10px; height:10px;"><use href="#icon-plus"></use></svg></button>
               </div>
-              <div class="tree-children fade-in" style="animation: fadeInOpacity 0.1s ease-in !important">
+              <div class="tree-children">
                 {{ render_tree(node.children, depth + 1) }}
               </div>
             </div>
@@ -468,7 +468,7 @@
 
 {# ── MODAL: Yeni dosya ── #}
 <div class="modal-overlay" id="modalNewFile">
-  <div class="modal-box">
+  <div class="modal-box fade-in">
     <div class="modal-title">// yeni not</div>
     <input class="modal-input" id="newFileName" type="text" placeholder="not-adi.md" />
     <input type="hidden" id="newFileFolderId" value="" />
@@ -481,7 +481,7 @@
 
 {# ── MODAL: Yeni klasör ── #}
 <div class="modal-overlay" id="modalNewFolder">
-  <div class="modal-box">
+  <div class="modal-box fade-in">
     <div class="modal-title">// yeni klasör</div>
     <input class="modal-input" id="newFolderName" type="text" placeholder="klasor-adi" />
     <div class="modal-actions">
@@ -818,10 +818,15 @@ window.addEventListener('popstate', (e) => {
 
 // Handle initial file from URL
 window.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#vaultTree .fade-in').forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.animationDelay = `${i * 0.045}s`;
+    el.style.animationFillMode = 'forwards';
+  });
+
   const params = new URLSearchParams(window.location.search);
   const fileId = params.get('file');
   if (fileId) {
-    // Try to find filename in tree (simplified)
     const name = fileId.split('/').pop();
     previewFile(fileId, name, false);
   }
