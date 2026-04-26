@@ -48,9 +48,11 @@ def get_flow():
             "client_secret": current_app.config['GOOGLE_CLIENT_SECRET'],
             "auth_uri":      "https://accounts.google.com/o/oauth2/auth",
             "token_uri":     "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
             "redirect_uris": [current_app.config['GOOGLE_REDIRECT_URI']],
         }
     }
+    # flow nesnesini oluştururken açıkça redirect_uri belirtiyoruz
     flow = Flow.from_client_config(
         client_config,
         scopes=SCOPES,
