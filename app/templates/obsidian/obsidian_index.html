@@ -487,7 +487,20 @@ const renderer = new marked.Renderer();
 // Custom Image Parser for Obsidian ![[image.png]] style
 const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
-  // 1. Wiki-links [[Link]]
+  // 1. Obsidian Embeds ![[image.png]] - ÖNCE BUNU YAPMALIYIZ (Regex'i daha spesifik yapıyoruz)
+  const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  text = text.replace(embedRegex, (match, target, size) => {
+    const cleanTarget = target.trim();
+    const encodedTarget = encodeURIComponent(cleanTarget);
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodedTarget}`;
+    
+    let style = '';
+    if (size && !isNaN(size)) style = `width:${size}px;`;
+    
+    return `<img src="${url}" alt="${cleanTarget}" style="${style}" onclick="openLightbox(this.src)">`;
+  });
+
+  // 2. Wiki-links [[Link]] - SONRA BUNU YAPMALIYIZ
   const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(wikiLinkRegex, (match, target, alias) => {
     const label = alias || target;
@@ -499,20 +512,6 @@ renderer.text = (text) => {
     } else {
       return `<span class="wiki-link broken" title="Dosya bulunamadı">${label}</span>`;
     }
-  });
-
-  // 2. Obsidian Embeds ![[image.png]]
-  const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-  text = text.replace(embedRegex, (match, target, size) => {
-    const cleanTarget = target.trim();
-    // URL safe encoding for filenames
-    const encodedTarget = encodeURIComponent(cleanTarget);
-    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodedTarget}`;
-    
-    let style = '';
-    if (size && !isNaN(size)) style = `width:${size}px;`;
-    
-    return `<img src="${url}" alt="${cleanTarget}" style="${style}" onclick="openLightbox(this.src)">`;
   });
 
   return text;
