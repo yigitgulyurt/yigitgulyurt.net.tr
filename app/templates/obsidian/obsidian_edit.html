@@ -202,6 +202,15 @@
   scrollbar-color: var(--border) transparent;
 }
 
+.ed-preview img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
+  margin: 12px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 .ed-preview a { color: var(--accent); text-decoration: none; }
 .ed-preview a:hover { text-decoration: underline; }
 .wiki-link { border-bottom: 1px dashed var(--accent2); color: var(--accent2) !important; }
@@ -372,8 +381,8 @@ renderer.text = (text) => {
     const encodedTarget = encodeURIComponent(cleanTarget);
     const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodedTarget}`;
     let style = '';
-    if (size && !isNaN(size)) style = `width:${size}px;`;
-    return `<img src="${url}" alt="${cleanTarget}" style="${style}" style="max-width:100%; border-radius:6px;">`;
+    if (size && !isNaN(size)) style = `width:${size}px; max-height:none;`;
+    return `<img src="${url}" alt="${cleanTarget}" style="${style}">`;
   });
 
   // 2. Wiki-links [[Link]]
@@ -393,7 +402,7 @@ renderer.image = (href, title, text) => {
     const encodedHref = encodeURIComponent(href);
     href = `{{ url_for('obsidian.serve_media', filename='') }}${encodedHref}`;
   }
-  return `<img src="${href}" title="${title || ''}" alt="${text || ''}" style="max-width:100%; border-radius:6px;">`;
+  return `<img src="${href}" title="${title || ''}" alt="${text || ''}">`;
 };
 marked.use({ renderer });
 
