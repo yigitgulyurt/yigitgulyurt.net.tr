@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Obsidian Vault{% endblock %}
+{% block description %}Kişisel not defteri — Obsidian vault{% endblock %}
+
+{% block head %}
+<style>
+/* ── VAULT LAYOUT ── */
+.vault-wrap {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 49px);
+}
+
+/* ── SIDEBAR ── */
+.vault-sidebar {
+  border-right: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.vault-sidebar-header {
+  padding: 12px 16px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.vault-title {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+.vault-actions {
+  display: flex;
+  gap: 6px;
+}
+.vault-icon-btn {
+  background: transparent;
+  border: 0.5px solid var(--border);
+  border-radius: 3px;
+  color: var(--text2);
+  font-size: 11px;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: all .15s;
+}
+.vault-icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── FILE TREE ── */
+.vault-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 16px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+  transition: color .1s, background .1s;
+  text-decoration: none;
+}
+.tree-item:hover { color: var(--text); background: var(--bg2); }
+.tree-item.active { color: var(--accent2); background: var(--bg3); }
+.tree-item-icon { font-size: 10px; flex-shrink: 0; }
+.tree-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-folder { color: var(--text2); }
+.tree-folder.open > .tree-item { color: var(--text); }
+.tree-children { display: none; padding-left: 14px; }
+.tree-folder.open > .tree-children { display: block; }
+
+/* ── MAIN PANEL ── */
+.vault-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.vault-main-header {
+  padding: 12px 20px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text2);
+}
+.vault-main-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text2);
+  font-size: 12px;
+  padding: 40px;
+}
+.vault-empty-icon {
+  font-size: 32px;
+  opacity: .3;
+}
+
+/* ── SEARCH ── */
+.vault-search {
+  padding: 8px 16px;
+  border-bottom: 0.5px solid var(--border);
+}
+.vault-search input {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: 3px;
+  padding: 5px 10px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+.vault-search input:focus { border-color: var(--accent2); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: 6px;
+  padding: 20px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-title { font-size: 12px; color: var(--accent); letter-spacing: 0.3px; }
+.modal-input {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 3px;
+  padding: 7px 10px;
+  color: var(--text);
+  outline: none;
+  width: 100%;
+}
+.modal-input:focus { border-color: var(--accent2); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .vault-wrap { grid-template-columns: 1fr; }
+  .vault-sidebar {
+    border-right: none;
+    border-bottom: 0.5px solid var(--border);
+    max-height: 240px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="page">
+  <div class="page-title">Vault</div>
+  <div class="page-subtitle">{{ error }}</div>
+  <a href="{{ url_for('obsidian.auth') }}" class="btn btn-primary" style="margin-top:16px">Google ile Bağlan</a>
+</div>
+{% else %}
+<div class="vault-wrap">
+
+  {# ── SIDEBAR ── #}
+  <aside class="vault-sidebar">
+    <div class="vault-sidebar-header">
+      <span class="vault-title">// vault</span>
+      <div class="vault-actions">
+        <button class="vault-icon-btn" onclick="openNewFile()" title="Yeni not">+md</button>
+        <button class="vault-icon-btn" onclick="openNewFolder()" title="Yeni klasör">+dir</button>
+      </div>
+    </div>
+    <div class="vault-search">
+      <input type="text" id="treeSearch" placeholder="ara..." oninput="filterTree(this.value)">
+    </div>
+    <div class="vault-tree" id="vaultTree">
+      {% macro render_tree(nodes, depth=0) %}
+        {% for node in nodes %}
+          {% if node.is_folder %}
+            <div class="tree-folder" data-name="{{ node.name | lower }}">
+              <div class="tree-item tree-folder-item"
+                   style="padding-left: {{ 16 + depth * 12 }}px"
+                   onclick="toggleFolder(this)">
+                <span class="tree-item-icon">▶</span>
+                <span class="tree-item-name">{{ node.name }}</span>
+                <button class="vault-icon-btn"
+                        style="padding:1px 5px;font-size:10px;margin-left:auto"
+                        onclick="event.stopPropagation(); openNewFile('{{ node.id }}')"
+                        title="Bu klasöre not ekle">+</button>
+              </div>
+              <div class="tree-children">
+                {{ render_tree(node.children, depth + 1) }}
+              </div>
+            </div>
+          {% else %}
+            <a class="tree-item"
+               href="{{ url_for('obsidian.edit', file_id=node.id) }}"
+               style="padding-left: {{ 16 + depth * 12 }}px"
+               data-name="{{ node.name | lower }}"
+               data-id="{{ node.id }}">
+              <span class="tree-item-icon" style="color:var(--accent2)">◈</span>
+              <span class="tree-item-name">{{ node.name[:-3] if node.name.endswith('.md') else node.name }}</span>
+            </a>
+          {% endif %}
+        {% endfor %}
+      {% endmacro %}
+      {{ render_tree(tree) }}
+      {% if not tree %}
+        <div style="padding:16px;font-size:11px;color:var(--text2)">Vault boş.</div>
+      {% endif %}
+    </div>
+  </aside>
+
+  {# ── MAIN ── #}
+  <div class="vault-main">
+    <div class="vault-main-header">
+      <span style="color:var(--accent)">~/obsidian/yigitgulyurt</span>
+      <span>—</span>
+      <span>{{ tree | length }} öğe</span>
+    </div>
+    <div class="vault-main-body">
+      <div class="vault-empty-icon">◈</div>
+      <div>Düzenlemek için bir not seç</div>
+      <a href="{{ url_for('obsidian.new') }}" class="btn">Yeni not oluştur</a>
+    </div>
+  </div>
+</div>
+
+{# ── MODAL: Yeni dosya ── #}
+<div class="modal-overlay" id="modalNewFile">
+  <div class="modal-box">
+    <div class="modal-title">// yeni not</div>
+    <input class="modal-input" id="newFileName" type="text" placeholder="not-adi.md" />
+    <input type="hidden" id="newFileFolderId" value="" />
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modalNewFile')">iptal</button>
+      <button class="btn btn-primary" onclick="createFile()">oluştur</button>
+    </div>
+  </div>
+</div>
+
+{# ── MODAL: Yeni klasör ── #}
+<div class="modal-overlay" id="modalNewFolder">
+  <div class="modal-box">
+    <div class="modal-title">// yeni klasör</div>
+    <input class="modal-input" id="newFolderName" type="text" placeholder="klasor-adi" />
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modalNewFolder')">iptal</button>
+      <button class="btn btn-primary" onclick="createFolder()">oluştur</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Aktif dosyayı işaretle
+const currentPath = window.location.pathname;
+document.querySelectorAll('.tree-item[data-id]').forEach(el => {
+  if (currentPath.includes(el.dataset.id)) el.classList.add('active');
+});
+
+// Klasör aç/kapat
+function toggleFolder(el) {
+  const folder = el.closest('.tree-folder');
+  folder.classList.toggle('open');
+  el.querySelector('.tree-item-icon').textContent = folder.classList.contains('open') ? '▼' : '▶';
+}
+
+// Arama
+function filterTree(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.tree-item[data-name]').forEach(el => {
+    const match = !q || el.dataset.name.includes(q);
+    el.style.display = match ? '' : 'none';
+    if (match && q) {
+      // Üst klasörleri aç
+      let parent = el.closest('.tree-folder');
+      while (parent) {
+        parent.classList.add('open');
+        const icon = parent.querySelector('.tree-folder-item .tree-item-icon');
+        if (icon) icon.textContent = '▼';
+        parent = parent.parentElement?.closest('.tree-folder');
+      }
+    }
+  });
+}
+
+// Modal
+function openNewFile(folderId = '') {
+  document.getElementById('newFileFolderId').value = folderId;
+  document.getElementById('newFileName').value = '';
+  openModal('modalNewFile');
+  setTimeout(() => document.getElementById('newFileName').focus(), 100);
+}
+function openNewFolder() {
+  document.getElementById('newFolderName').value = '';
+  openModal('modalNewFolder');
+  setTimeout(() => document.getElementById('newFolderName').focus(), 100);
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Dosya oluştur
+async function createFile() {
+  const name     = document.getElementById('newFileName').value.trim();
+  const folderId = document.getElementById('newFileFolderId').value;
+  if (!name) return;
+  const res = await fetch('/api/file', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ name, folder_id: folderId, content: `# ${name.replace('.md','')}\n\n` })
+  });
+  const data = await res.json();
+  if (data.ok) window.location.href = `/edit/${data.file.id}`;
+}
+
+// Klasör oluştur
+async function createFolder() {
+  const name = document.getElementById('newFolderName').value.trim();
+  if (!name) return;
+  await fetch('/api/folder', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ name })
+  });
+  window.location.reload();
+}
+
+// Enter ile modal submit
+document.getElementById('newFileName').addEventListener('keydown', e => { if (e.key === 'Enter') createFile(); });
+document.getElementById('newFolderName').addEventListener('keydown', e => { if (e.key === 'Enter') createFolder(); });
+</script>
+{% endif %}
+{% endblock %}

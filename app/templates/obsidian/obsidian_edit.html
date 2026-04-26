@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file.name[:-3] if file.name.endswith('.md') else file.name }} — Vault{% endblock %}
+
+{% block head %}
+<!-- Marked.js markdown parser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+/* ── EDITOR LAYOUT ── */
+.vault-editor-wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  height: calc(100vh - 49px);
+  overflow: hidden;
+}
+
+/* ── MINI SIDEBAR ── */
+.vault-mini-sidebar {
+  border-right: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 11px;
+}
+.mini-back {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border);
+  color: var(--text2);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color .15s;
+}
+.mini-back:hover { color: var(--text); }
+.mini-file-info {
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border);
+}
+.mini-file-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+.mini-file-meta {
+  font-size: 10px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.mini-file-meta span { color: var(--accent2); }
+
+.mini-shortcuts {
+  padding: 12px 14px;
+  flex: 1;
+  overflow-y: auto;
+}
+.mini-shortcut-title {
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  color: var(--text2);
+  font-size: 10px;
+}
+.shortcut-key {
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 2px;
+  padding: 1px 5px;
+  color: var(--text);
+  font-size: 10px;
+}
+
+.mini-danger {
+  padding: 12px 14px;
+  border-top: 0.5px solid var(--border);
+}
+.delete-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: transparent;
+  border: 0.5px solid rgba(248,113,113,.3);
+  border-radius: 3px;
+  color: #f87171;
+  cursor: pointer;
+  padding: 5px 10px;
+  width: 100%;
+  transition: all .15s;
+}
+.delete-btn:hover {
+  background: rgba(248,113,113,.08);
+  border-color: #f87171;
+}
+
+/* ── EDITOR PANEL ── */
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.editor-topbar {
+  padding: 8px 16px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.editor-tabs {
+  display: flex;
+  gap: 0;
+}
+.editor-tab {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: transparent;
+  border: 0.5px solid var(--border);
+  padding: 4px 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.editor-tab:first-child { border-radius: 3px 0 0 3px; }
+.editor-tab:last-child  { border-radius: 0 3px 3px 0; border-left: none; }
+.editor-tab.active { background: var(--bg3); color: var(--text); }
+
+.editor-format-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.save-status {
+  font-size: 10px;
+  color: var(--text2);
+  min-width: 80px;
+  text-align: right;
+}
+.save-status.saved  { color: var(--accent); }
+.save-status.saving { color: var(--accent2); }
+.save-status.error  { color: #f87171; }
+
+.editor-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+.editor-body.single { grid-template-columns: 1fr; }
+
+.ed-textarea {
+  width: 100%;
+  height: 100%;
+  font-family: var(--mono);
+  font-size: 13px;
+  background: var(--bg2);
+  border: none;
+  border-right: 0.5px solid var(--border);
+  padding: 20px;
+  color: var(--text);
+  resize: none;
+  outline: none;
+  line-height: 1.75;
+  tab-size: 2;
+}
+.ed-preview {
+  padding: 20px 24px;
+  overflow-y: auto;
+  background: var(--bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Markdown preview stilleri — blog-content'ten miras */
+.ed-preview h1 { font-size: 20px; font-weight: 500; margin: 0 0 16px; color: var(--text); }
+.ed-preview h2 { font-size: 16px; font-weight: 500; margin: 24px 0 10px; color: var(--text); }
+.ed-preview h3 { font-size: 14px; font-weight: 500; margin: 20px 0 8px; color: var(--accent2); }
+.ed-preview p  { font-size: 13px; line-height: 1.8; margin-bottom: 14px; color: var(--text); }
+.ed-preview code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg3);
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.ed-preview pre {
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 14px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.ed-preview pre code { background: none; padding: 0; }
+.ed-preview a { color: var(--accent2); }
+.ed-preview ul, .ed-preview ol { padding-left: 20px; margin-bottom: 14px; }
+.ed-preview li { margin-bottom: 4px; font-size: 13px; line-height: 1.7; color: var(--text); }
+.ed-preview blockquote {
+  border-left: 2px solid var(--accent2);
+  padding-left: 14px;
+  color: var(--text2);
+  margin: 0 0 14px;
+  font-style: italic;
+}
+.ed-preview hr {
+  border: none;
+  border-top: 0.5px solid var(--border);
+  margin: 20px 0;
+}
+.ed-preview table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
+.ed-preview th, .ed-preview td { border: 0.5px solid var(--border); padding: 6px 10px; text-align: left; }
+.ed-preview th { background: var(--bg3); color: var(--accent); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 800px) {
+  .vault-editor-wrap { grid-template-columns: 1fr; }
+  .vault-mini-sidebar {
+    border-right: none;
+    border-bottom: 0.5px solid var(--border);
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: auto;
+  }
+  .mini-back     { padding: 8px 12px; }
+  .mini-file-info { padding: 8px 12px; }
+  .mini-shortcuts { display: none; }
+  .mini-danger   { border-top: none; border-left: 0.5px solid var(--border); padding: 8px 12px; margin-left: auto; display: flex; align-items: center; }
+  .editor-body   { grid-template-columns: 1fr; }
+  .ed-textarea   { border-right: none; border-bottom: 0.5px solid var(--border); min-height: 40vh; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="vault-editor-wrap">
+
+  {# ── MINI SIDEBAR ── #}
+  <aside class="vault-mini-sidebar">
+    <a class="mini-back" href="{{ url_for('obsidian.index') }}">← vault</a>
+    <div class="mini-file-info">
+      <div class="mini-file-name">
+        {{ file.name[:-3] if file.name.endswith('.md') else file.name }}
+      </div>
+      <div class="mini-file-meta">
+        <div>id: <span>{{ file.id[:12] }}…</span></div>
+        <div>güncellendi: <span>{{ file.modifiedTime[:10] if file.modifiedTime else '—' }}</span></div>
+      </div>
+    </div>
+    <div class="mini-shortcuts">
+      <div class="mini-shortcut-title">// kısayollar</div>
+      <div class="shortcut-row">
+        <span>kaydet</span><span class="shortcut-key">Ctrl+S</span>
+      </div>
+      <div class="shortcut-row">
+        <span>kalın</span><span class="shortcut-key">Ctrl+B</span>
+      </div>
+      <div class="shortcut-row">
+        <span>italik</span><span class="shortcut-key">Ctrl+I</span>
+      </div>
+      <div class="shortcut-row">
+        <span>kod</span><span class="shortcut-key">Ctrl+`</span>
+      </div>
+      <div class="shortcut-row">
+        <span>link</span><span class="shortcut-key">Ctrl+K</span>
+      </div>
+      <div class="shortcut-row">
+        <span>önizleme</span><span class="shortcut-key">Ctrl+P</span>
+      </div>
+    </div>
+    <div class="mini-danger">
+      <button class="delete-btn" onclick="deleteFile()">sil</button>
+    </div>
+  </aside>
+
+  {# ── EDITOR PANEL ── #}
+  <div class="editor-panel">
+    <div class="editor-topbar">
+      <div class="editor-tabs">
+        <button class="editor-tab active" id="tabSplit" onclick="setMode('split')">split</button>
+        <button class="editor-tab" id="tabWrite" onclick="setMode('write')">yaz</button>
+        <button class="editor-tab" id="tabPreview" onclick="setMode('preview')">önizle</button>
+      </div>
+      <div class="editor-format-btns">
+        <button class="editor-btn" onclick="wrapSelection('**','**')" title="Kalın">B</button>
+        <button class="editor-btn" onclick="wrapSelection('*','*')" title="İtalik"><i>I</i></button>
+        <button class="editor-btn" onclick="wrapSelection('`','`')" title="Kod">`</button>
+        <button class="editor-btn" onclick="insertHeading()" title="Başlık">H</button>
+        <button class="editor-btn" onclick="insertLink()" title="Link">[ ]</button>
+        <button class="editor-btn" onclick="insertHr()" title="Çizgi">—</button>
+      </div>
+      <div class="save-status" id="saveStatus">—</div>
+      <button class="btn btn-primary" onclick="saveFile()" style="font-size:11px;padding:5px 12px">kaydet</button>
+    </div>
+
+    <div class="editor-body" id="editorBody">
+      <textarea class="ed-textarea" id="editorTextarea"
+                spellcheck="false"
+                autocorrect="off"
+                autocapitalize="off">{{ content }}</textarea>
+      <div class="ed-preview" id="editorPreview"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FILE_ID = "{{ file.id }}";
+const textarea = document.getElementById('editorTextarea');
+const preview  = document.getElementById('editorPreview');
+const body     = document.getElementById('editorBody');
+let saveTimer  = null;
+let mode       = 'split';
+
+// Marked config
+marked.setOptions({ breaks: true, gfm: true });
+
+// İlk render
+renderPreview();
+
+// Live preview
+textarea.addEventListener('input', () => {
+  renderPreview();
+  setStatus('', '');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveFile, 3000); // 3sn sonra otomatik kaydet
+});
+
+function renderPreview() {
+  preview.innerHTML = marked.parse(textarea.value);
+}
+
+// Mod
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab' + m.charAt(0).toUpperCase() + m.slice(1)).classList.add('active');
+
+  if (m === 'split') {
+    body.style.gridTemplateColumns = '1fr 1fr';
+    textarea.style.display = '';
+    preview.style.display  = '';
+  } else if (m === 'write') {
+    body.style.gridTemplateColumns = '1fr';
+    textarea.style.display = '';
+    preview.style.display  = 'none';
+  } else {
+    body.style.gridTemplateColumns = '1fr';
+    textarea.style.display = 'none';
+    preview.style.display  = '';
+    renderPreview();
+  }
+}
+
+// Kaydet
+async function saveFile() {
+  setStatus('kaydediliyor...', 'saving');
+  try {
+    const res = await fetch(`/api/file/${FILE_ID}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ content: textarea.value })
+    });
+    const data = await res.json();
+    if (data.ok) setStatus('kaydedildi ✓', 'saved');
+    else         setStatus('hata', 'error');
+  } catch {
+    setStatus('bağlantı hatası', 'error');
+  }
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('saveStatus');
+  el.textContent = msg;
+  el.className = 'save-status' + (cls ? ' ' + cls : '');
+}
+
+// Silme
+async function deleteFile() {
+  if (!confirm('Bu notu silmek istediğine emin misin?')) return;
+  await fetch(`/api/file/${FILE_ID}`, { method: 'DELETE' });
+  window.location.href = '{{ url_for("obsidian.index") }}';
+}
+
+// Format yardımcıları
+function wrapSelection(before, after) {
+  const start = textarea.selectionStart;
+  const end   = textarea.selectionEnd;
+  const sel   = textarea.value.slice(start, end);
+  const repl  = before + (sel || 'metin') + after;
+  textarea.setRangeText(repl, start, end, 'select');
+  textarea.focus();
+  renderPreview();
+}
+
+function insertHeading() {
+  const start = textarea.selectionStart;
+  const lineStart = textarea.value.lastIndexOf('\n', start - 1) + 1;
+  textarea.setRangeText('## ', lineStart, lineStart, 'end');
+  textarea.focus();
+  renderPreview();
+}
+
+function insertLink() {
+  const start = textarea.selectionStart;
+  const end   = textarea.selectionEnd;
+  const sel   = textarea.value.slice(start, end);
+  textarea.setRangeText(`[${sel || 'metin'}](url)`, start, end, 'end');
+  textarea.focus();
+  renderPreview();
+}
+
+function insertHr() {
+  const start = textarea.selectionStart;
+  textarea.setRangeText('\n\n---\n\n', start, start, 'end');
+  textarea.focus();
+  renderPreview();
+}
+
+// Klavye kısayolları
+textarea.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey)) {
+    if (e.key === 's') { e.preventDefault(); saveFile(); }
+    if (e.key === 'b') { e.preventDefault(); wrapSelection('**','**'); }
+    if (e.key === 'i') { e.preventDefault(); wrapSelection('*','*'); }
+    if (e.key === '`') { e.preventDefault(); wrapSelection('`','`'); }
+    if (e.key === 'k') { e.preventDefault(); insertLink(); }
+    if (e.key === 'p') { e.preventDefault(); setMode(mode === 'preview' ? 'split' : 'preview'); }
+  }
+  // Tab → 2 boşluk
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = textarea.selectionStart;
+    textarea.setRangeText('  ', s, s, 'end');
+  }
+});
+</script>
+{% endblock %}

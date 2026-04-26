@@ -18,3 +18,10 @@ class Config:
     SHOW_STREAM_SECTION = os.environ.get('SHOW_STREAM_SECTION', 'false').lower() == 'true'
     STREAM_LIVE_FALLBACK = os.environ.get('STREAM_LIVE_FALLBACK', 'false')
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    
+    GOOGLE_CLIENT_ID     = os.environ.get('GOOGLE_CLIENT_ID', '')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+    GOOGLE_REDIRECT_URI  = os.environ.get('GOOGLE_REDIRECT_URI',
+                         'https://obsidian.yigitgulyurt.net.tr/oauth2callback')
+    GOOGLE_TOKEN_PATH    = os.path.join(os.path.dirname(__file__), 'google_token.json')
+
