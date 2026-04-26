@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "obsidian/base.html" %}
 
 {% block title %}{{ file.name[:-3] if file.name.endswith('.md') else file.name }} — Vault{% endblock %}
 
 {% block head %}
 <!-- Marked.js markdown parser -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
 <!-- Highlight.js for syntax highlighting -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/github-dark.min.css') }}">
+<script src="{{ url_for('static', filename='js/highlight.min.js') }}"></script>
 <style>
 /* ── EDITOR LAYOUT ── */
 .vault-editor-wrap {
