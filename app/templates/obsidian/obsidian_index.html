@@ -244,6 +244,7 @@
   height: 100%;
   color: var(--text2);
   gap: 12px;
+  user-select: none;
 }
 .loading-spinner {
   width: 32px;
@@ -579,7 +580,7 @@ function openLightbox(src) {
 function renderTabs() {
   const tabBar = document.getElementById('tabBar');
   if (openTabs.length === 0) {
-    tabBar.innerHTML = '<div style="padding:0 16px; color:var(--text2); font-size:10px; display:flex; align-items:center; height:100%;">açık not yok</div>';
+    tabBar.innerHTML = '<div style="padding:0 16px; color:var(--text2); font-size:10px; display:flex; align-items:center; height:100%; user-select:none;">açık not yok</div>';
     showEmptyState();
     return;
   }
