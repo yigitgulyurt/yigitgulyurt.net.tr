@@ -1,24 +1,17 @@
 """
 app/routes/obsidian.py
-Obsidian vault — Google Drive entegrasyonu
+Obsidian vault — Rclone / Local Filesystem entegrasyonu
 Subdomain: obsidian.yigitgulyurt.net.tr
 """
 
-import os, json
+import os
+import shutil
 from functools import wraps
+from datetime import datetime
 from flask import (
     Blueprint, render_template, request, jsonify,
-    redirect, url_for, session, current_app
+    redirect, url_for, session, current_app, abort
 )
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
-import io
-
-# OAuthlib'in HTTPS zorunluluğunu Nginx arkasında esnetmek gerekebilir
-# Ancak Google production'da HTTPS zorunlu tutar.
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' 
 
 bp = Blueprint('obsidian', __name__, subdomain='obsidian')
 
@@ -31,253 +24,60 @@ def obsidian_auth(f):
         return f(*args, **kwargs)
     return decorated
 
-SCOPES = ['https://www.googleapis.com/auth/drive']
-
-# Drive'da vault'un klasör adı (root altında arar)
-VAULT_FOLDER_NAME = 'yigitgulyurt'
-VAULT_PARENT_PATH = ['Obsidian']  # Drive'ım > Obsidian > yigitgulyurt
-
-
-def get_flow():
-    if not current_app.config.get('GOOGLE_CLIENT_ID') or not current_app.config.get('GOOGLE_CLIENT_SECRET'):
-        raise ValueError("GOOGLE_CLIENT_ID veya GOOGLE_CLIENT_SECRET ayarlanmamış.")
-        
-    client_config = {
-        "web": {
-            "client_id":     current_app.config['GOOGLE_CLIENT_ID'],
-            "client_secret": current_app.config['GOOGLE_CLIENT_SECRET'],
-            "auth_uri":      "https://accounts.google.com/o/oauth2/auth",
-            "token_uri":     "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "redirect_uris": [current_app.config['GOOGLE_REDIRECT_URI']],
-        }
-    }
-    # flow nesnesini oluştururken açıkça redirect_uri belirtiyoruz
-    flow = Flow.from_client_config(
-        client_config,
-        scopes=SCOPES,
-        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
-    )
-    return flow
-
-
-def get_credentials():
-    """Session'dan veya .env token'dan credential yükle."""
-    token_path = current_app.config.get('GOOGLE_TOKEN_PATH', 'google_token.json')
-    if os.path.exists(token_path):
-        with open(token_path) as f:
-            token_data = json.load(f)
-        creds = Credentials(
-            token=token_data.get('token'),
-            refresh_token=token_data.get('refresh_token'),
-            token_uri='https://oauth2.googleapis.com/token',
-            client_id=current_app.config['GOOGLE_CLIENT_ID'],
-            client_secret=current_app.config['GOOGLE_CLIENT_SECRET'],
-            scopes=SCOPES
-        )
-        return creds
-    return None
-
-
-def save_credentials(creds):
-    token_path = current_app.config.get('GOOGLE_TOKEN_PATH', 'google_token.json')
-    try:
-        with open(token_path, 'w') as f:
-            json.dump({
-                'token':         creds.token,
-                'refresh_token': creds.refresh_token,
-            }, f)
-        current_app.logger.info(f"Token başarıyla kaydedildi: {token_path}")
-    except Exception as e:
-        current_app.logger.error(f"Token kaydedilirken hata oluştu: {str(e)}")
-        raise e
-
-
-def get_drive_service():
-    creds = get_credentials()
-    if not creds:
+def get_vault_path():
+    path = current_app.config.get('OBSIDIAN_VAULT_PATH')
+    if not path or not os.path.exists(path):
+        current_app.logger.error(f"Vault yolu bulunamadı veya ayarlanmadı: {path}")
         return None
-    # Token expire olmuşsa refresh et
-    if creds.expired and creds.refresh_token:
-        from google.auth.transport.requests import Request
-        creds.refresh(Request())
-        save_credentials(creds)
-    return build('drive', 'v3', credentials=creds)
+    return path
 
-
-def find_vault_folder(service):
-    """Drive'da Obsidian/yigitgulyurt klasörünün ID'sini bulur."""
-    try:
-        # Önce Obsidian klasörünü bul
-        q = "name='Obsidian' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-        res = service.files().list(q=q, fields='files(id,name)').execute()
-        obsidian_folders = res.get('files', [])
-        
-        if not obsidian_folders:
-            current_app.logger.warning("Drive'da 'Obsidian' adında bir klasör bulunamadı.")
-            return None
-        
-        obsidian_id = obsidian_folders[0]['id']
-        current_app.logger.info(f"Obsidian klasörü bulundu. ID: {obsidian_id}")
-
-        # Sonra içindeki yigitgulyurt klasörünü bul
-        q = (f"name='{VAULT_FOLDER_NAME}' and "
-             f"'{obsidian_id}' in parents and "
-             f"mimeType='application/vnd.google-apps.folder' and trashed=false")
-        res = service.files().list(q=q, fields='files(id,name)').execute()
-        folders = res.get('files', [])
-        
-        if not folders:
-            current_app.logger.warning(f"'{obsidian_id}' içinde '{VAULT_FOLDER_NAME}' klasörü bulunamadı.")
-            return None
-            
-        vault_id = folders[0]['id']
-        current_app.logger.info(f"Vault klasörü bulundu. ID: {vault_id}")
-        return vault_id
-    except Exception as e:
-        current_app.logger.error(f"Vault klasörü aranırken hata: {str(e)}")
-        return None
-
-
-def list_folder(service, folder_id):
-    """Klasör içeriğini döner: [{id, name, mimeType, modifiedTime}]"""
-    q = f"'{folder_id}' in parents and trashed=false"
-    res = service.files().list(
-        q=q,
-        fields='files(id,name,mimeType,modifiedTime,size)',
-        orderBy='folder,name'
-    ).execute()
-    return res.get('files', [])
-
-
-def build_tree(service, folder_id, path=''):
-    """Recursive vault tree builder."""
-    items = list_folder(service, folder_id)
+def build_tree(root_path, current_path=''):
+    """Yerel dizin yapısını recursive olarak tarar."""
+    full_path = os.path.join(root_path, current_path)
     tree = []
+    
+    try:
+        items = os.listdir(full_path)
+    except Exception as e:
+        current_app.logger.error(f"Dizin listelenirken hata: {str(e)}")
+        return []
+
+    # Önce klasörler, sonra dosyalar (alfabetik)
+    items.sort(key=lambda x: (not os.path.isdir(os.path.join(full_path, x)), x.lower()))
+
     for item in items:
-        is_folder = item['mimeType'] == 'application/vnd.google-apps.folder'
+        if item.startswith('.'): # Gizli dosyaları (örn: .obsidian) atla
+            continue
+            
+        item_full_path = os.path.join(full_path, item)
+        is_dir = os.path.isdir(item_full_path)
+        rel_path = os.path.join(current_path, item).replace('\\', '/')
+        
+        try:
+            stats = os.stat(item_full_path)
+            modified = datetime.fromtimestamp(stats.st_mtime).isoformat()
+        except:
+            modified = ""
+
         node = {
-            'id':       item['id'],
-            'name':     item['name'],
-            'path':     f"{path}/{item['name']}" if path else item['name'],
-            'is_folder': is_folder,
-            'modified': item.get('modifiedTime', ''),
+            'id': rel_path, # Template'lerde file_id olarak geçer
+            'name': item,
+            'path': rel_path,
+            'is_folder': is_dir,
+            'modified': modified,
             'children': []
         }
-        if is_folder:
-            node['children'] = build_tree(service, item['id'], node['path'])
+
+        if is_dir:
+            node['children'] = build_tree(root_path, rel_path)
         else:
-            # Sadece markdown dosyalarını göster
-            if not item['name'].endswith('.md'):
+            if not item.endswith('.md'):
                 continue
+        
         tree.append(node)
     return tree
 
-
-def get_file_content(service, file_id):
-    """Drive'dan dosya içeriğini string olarak çeker."""
-    req = service.files().get_media(fileId=file_id)
-    buf = io.BytesIO()
-    downloader = MediaIoBaseDownload(buf, req)
-    done = False
-    while not done:
-        _, done = downloader.next_chunk()
-    return buf.getvalue().decode('utf-8')
-
-
-def update_file_content(service, file_id, content):
-    """Var olan dosyayı günceller."""
-    media = MediaIoBaseUpload(
-        io.BytesIO(content.encode('utf-8')),
-        mimetype='text/markdown'
-    )
-    service.files().update(fileId=file_id, media_body=media).execute()
-
-
-def create_file_in_folder(service, folder_id, name, content=''):
-    """Klasörde yeni .md dosyası oluşturur."""
-    if not name.endswith('.md'):
-        name += '.md'
-    meta = {'name': name, 'parents': [folder_id]}
-    media = MediaIoBaseUpload(
-        io.BytesIO(content.encode('utf-8')),
-        mimetype='text/markdown'
-    )
-    file = service.files().create(
-        body=meta, media_body=media, fields='id,name'
-    ).execute()
-    return file
-
-
-def create_subfolder(service, parent_id, name):
-    """Klasör altında yeni klasör oluşturur."""
-    meta = {
-        'name': name,
-        'mimeType': 'application/vnd.google-apps.folder',
-        'parents': [parent_id]
-    }
-    folder = service.files().create(body=meta, fields='id,name').execute()
-    return folder
-
-
-def delete_item(service, file_id):
-    """Dosyayı çöp kutusuna taşır."""
-    service.files().update(fileId=file_id, body={'trashed': True}).execute()
-
-
 # ── AUTH ROUTES ───────────────────────────────────────────────
-
-@bp.route('/oauth2callback')
-def oauth2callback():
-    # Google'dan gelen tüm parametreleri loglayalım (Hata ayıklama için)
-    auth_response = request.url
-    current_app.logger.info(f"OAuth Callback Tetiklendi. URL: {auth_response}")
-    
-    # 1. Google bir hata döndürdü mü? (Örn: access_denied)
-    google_error = request.args.get('error')
-    if google_error:
-        error_desc = request.args.get('error_description', 'Açıklama yok')
-        current_app.logger.error(f"Google OAuth Hatası: {google_error} - {error_desc}")
-        return f"Google tarafında bir sorun oluştu: {google_error} ({error_desc})", 400
-
-    # 2. 'code' parametresi var mı?
-    if 'code' not in request.args:
-        current_app.logger.error(f"URL'de 'code' bulunamadı. Gelen Parametreler: {list(request.args.keys())}")
-        return "Hata: Google'dan onay kodu (code) alınamadı. Lütfen tekrar deneyin.", 400
-
-    flow = get_flow()
-    try:
-        # 3. State doğrulaması
-        state = session.get('oauth_state')
-        incoming_state = request.args.get('state')
-        
-        if not state:
-            current_app.logger.error("Session'da 'oauth_state' yok! Session kaybolmuş olabilir.")
-        elif state != incoming_state:
-            current_app.logger.error(f"State uyuşmazlığı! Session: {state}, Gelen: {incoming_state}")
-        
-        flow.fetch_token(authorization_response=auth_response, state=state)
-        
-        save_credentials(flow.credentials)
-        current_app.logger.info("Google Drive bağlantısı başarıyla kuruldu.")
-        return redirect(url_for('obsidian.index'))
-    except Exception as e:
-        current_app.logger.error(f"OAuth fetch_token Hatası: {str(e)}")
-        return f"Kimlik doğrulama sırasında teknik bir hata oluştu: {str(e)}", 400
-
-
-@bp.route('/auth')
-@obsidian_auth
-def auth():
-    flow = get_flow()
-    # State parametresini zorunlu kılalım ve session'a kaydedelim
-    auth_url, state = flow.authorization_url(
-        access_type='offline',
-        include_granted_scopes='true',
-        prompt='consent'
-    )
-    session['oauth_state'] = state
-    return redirect(auth_url)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -287,128 +87,147 @@ def login():
         if request.form.get('password') == pw:
             session['obsidian_ok'] = pw
             session.permanent = True
-            return redirect(url_for('obsidian.auth'))
+            return redirect(url_for('obsidian.index'))
         error = True
     return render_template('obsidian/obsidian_login.html', error=error)
+
+@bp.route('/logout')
+def logout():
+    session.pop('obsidian_ok', None)
+    return redirect(url_for('obsidian.login'))
 
 # ── MAIN ROUTES ───────────────────────────────────────────────
 
 @bp.route('/')
 @obsidian_auth
 def index():
-    service = get_drive_service()
-    if not service:
-        return redirect(url_for('obsidian.auth'))
-    vault_id = find_vault_folder(service)
-    if not vault_id:
-        return render_template('obsidian/obsidian_index.html',
-                               tree=[], error='Vault klasörü bulunamadı.')
-    tree = build_tree(service, vault_id)
+    vault_path = get_vault_path()
+    if not vault_path:
+        return render_template('obsidian/obsidian_index.html', 
+                               tree=[], error='Vault yolu sunucuda bulunamadı. Rclone mount edildiğinden emin olun.')
+    
+    tree = build_tree(vault_path)
     return render_template('obsidian/obsidian_index.html', tree=tree, error=None)
 
-
-@bp.route('/edit/<file_id>')
+@bp.route('/edit/<path:file_id>')
 @obsidian_auth
 def edit(file_id):
-    service = get_drive_service()
-    if not service:
-        return redirect(url_for('obsidian.auth'))
-    # Dosya meta
-    meta = service.files().get(fileId=file_id, fields='id,name,modifiedTime').execute()
-    content = get_file_content(service, file_id)
+    vault_path = get_vault_path()
+    full_path = os.path.join(vault_path, file_id)
+    
+    if not os.path.exists(full_path):
+        abort(404)
+        
+    with open(full_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+        
+    stats = os.stat(full_path)
+    meta = {
+        'id': file_id,
+        'name': os.path.basename(file_id),
+        'modifiedTime': datetime.fromtimestamp(stats.st_mtime).isoformat()
+    }
+    
     return render_template('obsidian/obsidian_edit.html', file=meta, content=content)
-
 
 @bp.route('/new')
 @obsidian_auth
 def new():
-    service = get_drive_service()
-    if not service:
-        return redirect(url_for('obsidian.auth'))
-    # folder_id query param'dan alınır
-    folder_id = request.args.get('folder_id', '')
-    vault_id  = find_vault_folder(service)
-    return render_template('obsidian/obsidian_new.html',
-                           folder_id=folder_id or vault_id,
-                           vault_id=vault_id)
-
-
-@bp.route('/debug')
-@obsidian_auth
-def debug_info():
-    """Konfigürasyon ve bağlantı teşhis route'u."""
-    info = {
-        'client_id_exists': bool(current_app.config.get('GOOGLE_CLIENT_ID')),
-        'client_secret_exists': bool(current_app.config.get('GOOGLE_CLIENT_SECRET')),
-        'redirect_uri': current_app.config.get('GOOGLE_REDIRECT_URI'),
-        'token_path': current_app.config.get('GOOGLE_TOKEN_PATH'),
-        'token_exists': os.path.exists(current_app.config.get('GOOGLE_TOKEN_PATH', '')),
-        'session_state': session.get('oauth_state'),
-        'insecure_transport': os.environ.get('OAUTHLIB_INSECURE_TRANSPORT'),
-        'request_url': request.url,
-        'request_root': request.url_root
-    }
-    return jsonify(info)
+    folder_path = request.args.get('folder_id', '') 
+    return render_template('obsidian/obsidian_new.html', 
+                           folder_id=folder_path,
+                           vault_id='')
 
 # ── API ROUTES ────────────────────────────────────────────────
 
-@bp.route('/api/file/<file_id>', methods=['GET'])
+@bp.route('/api/file/<path:file_id>', methods=['GET'])
 @obsidian_auth
 def api_get_file(file_id):
-    service = get_drive_service()
-    content = get_file_content(service, file_id)
+    vault_path = get_vault_path()
+    full_path = os.path.join(vault_path, file_id)
+    if not os.path.exists(full_path):
+        return jsonify({'error': 'Dosya bulunamadı'}), 404
+        
+    with open(full_path, 'r', encoding='utf-8') as f:
+        content = f.read()
     return jsonify({'content': content})
 
-
-@bp.route('/api/file/<file_id>', methods=['PUT'])
+@bp.route('/api/file/<path:file_id>', methods=['PUT'])
 @obsidian_auth
 def api_update_file(file_id):
+    vault_path = get_vault_path()
+    full_path = os.path.join(vault_path, file_id)
     data = request.get_json()
     content = data.get('content', '')
-    service = get_drive_service()
-    update_file_content(service, file_id, content)
-    return jsonify({'ok': True})
-
+    
+    try:
+        with open(full_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @bp.route('/api/file', methods=['POST'])
 @obsidian_auth
 def api_create_file():
+    vault_path = get_vault_path()
     data = request.get_json()
-    folder_id = data.get('folder_id')
-    name      = data.get('name', 'Yeni Not')
-    content   = data.get('content', '')
-    service   = get_drive_service()
-    if not folder_id:
-        folder_id = find_vault_folder(service)
-    file = create_file_in_folder(service, folder_id, name, content)
-    return jsonify({'ok': True, 'file': file})
-
+    folder_rel_path = data.get('folder_id', '')
+    name = data.get('name', 'Yeni Not')
+    content = data.get('content', '')
+    
+    if not name.endswith('.md'):
+        name += '.md'
+        
+    full_folder_path = os.path.join(vault_path, folder_rel_path)
+    os.makedirs(full_folder_path, exist_ok=True)
+    
+    full_file_path = os.path.join(full_folder_path, name)
+    rel_file_path = os.path.join(folder_rel_path, name).replace('\\', '/')
+    
+    try:
+        with open(full_file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return jsonify({'ok': True, 'file': {'id': rel_file_path}})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @bp.route('/api/folder', methods=['POST'])
 @obsidian_auth
 def api_create_folder():
-    data      = request.get_json()
-    parent_id = data.get('parent_id')
-    name      = data.get('name', 'Yeni Klasör')
-    service   = get_drive_service()
-    if not parent_id:
-        parent_id = find_vault_folder(service)
-    folder = create_subfolder(service, parent_id, name)
-    return jsonify({'ok': True, 'folder': folder})
+    vault_path = get_vault_path()
+    data = request.get_json()
+    parent_rel_path = data.get('parent_id', '')
+    name = data.get('name', 'Yeni Klasör')
+    
+    full_path = os.path.join(vault_path, parent_rel_path, name)
+    
+    try:
+        os.makedirs(full_path, exist_ok=True)
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-
-@bp.route('/api/file/<file_id>', methods=['DELETE'])
+@bp.route('/api/file/<path:file_id>', methods=['DELETE'])
 @obsidian_auth
 def api_delete_file(file_id):
-    service = get_drive_service()
-    delete_item(service, file_id)
-    return jsonify({'ok': True})
-
+    vault_path = get_vault_path()
+    full_path = os.path.join(vault_path, file_id)
+    
+    try:
+        if os.path.isdir(full_path):
+            shutil.rmtree(full_path)
+        else:
+            os.remove(full_path)
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @bp.route('/api/tree')
 @obsidian_auth
 def api_tree():
-    service  = get_drive_service()
-    vault_id = find_vault_folder(service)
-    tree     = build_tree(service, vault_id)
+    vault_path = get_vault_path()
+    if not vault_path:
+        return jsonify([])
+    tree = build_tree(vault_path)
     return jsonify(tree)
