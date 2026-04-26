@@ -46,13 +46,32 @@
   border: 0.5px solid var(--border);
   border-radius: 3px;
   color: var(--text2);
-  font-size: 11px;
-  padding: 3px 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
   cursor: pointer;
-  font-family: var(--mono);
   transition: all .15s;
 }
+.vault-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
 .vault-icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* SVG Icon Helper */
+.icon {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  vertical-align: middle;
+}
+.tree-item-icon svg { 
+  width: 12px; 
+  height: 12px; 
+  transition: transform 0.2s ease;
+}
 
 /* ── FILE TREE ── */
 /* ── SIDEBAR SEARCH ── */
@@ -364,10 +383,10 @@
     <div class="vault-sidebar-header">
       <span class="vault-title">// vault</span>
       <div class="vault-actions">
-        <button class="vault-icon-btn" onclick="openNewFile()" title="Yeni not">+</button>
-        <button class="vault-icon-btn" onclick="openDailyNote()" title="Günlük not"><i class="fas fa-calendar-day"></i></button>
-        <button class="vault-icon-btn" onclick="showGraph()" title="Graph View"><i class="fas fa-project-diagram"></i></button>
-        <button class="vault-icon-btn" onclick="document.getElementById('fileUpload').click()" title="Dosya yükle"><i class="fas fa-file-upload"></i></button>
+        <button class="vault-icon-btn" onclick="openNewFile()" title="Yeni not"><svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-plus"></use></svg></button>
+        <button class="vault-icon-btn" onclick="openDailyNote()" title="Günlük not"><svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-calendar"></use></svg></button>
+        <button class="vault-icon-btn" onclick="showGraph()" title="Graph View"><svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-graph"></use></svg></button>
+        <button class="vault-icon-btn" onclick="document.getElementById('fileUpload').click()" title="Dosya yükle"><svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-upload"></use></svg></button>
         <input type="file" id="fileUpload" style="display:none" onchange="uploadFile(this)">
       </div>
     </div>
@@ -386,12 +405,13 @@
               <div class="tree-item tree-folder-item"
                    style="padding-left: {{ 16 + depth * 12 }}px"
                    onclick="toggleFolder(this)">
-                <span class="tree-item-icon">▶</span>
+                <span class="tree-item-icon"><svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-chevron-right"></use></svg></span>
+                <span class="tree-item-icon" style="margin-left: -4px;"><svg class="icon" style="color:var(--accent)"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-folder"></use></svg></span>
                 <span class="tree-item-name">{{ node.name }}</span>
                 <button class="vault-icon-btn"
-                        style="padding:1px 5px;font-size:10px;margin-left:auto"
+                        style="padding:1px; margin-left:auto"
                         onclick="event.stopPropagation(); openNewFile('{{ node.id }}')"
-                        title="Bu klasöre not ekle">+</button>
+                        title="Bu klasöre not ekle"><svg class="icon" style="width:10px; height:10px;"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-plus"></use></svg></button>
               </div>
               <div class="tree-children">
                 {{ render_tree(node.children, depth + 1) }}
@@ -403,7 +423,7 @@
                style="padding-left: {{ 16 + depth * 12 }}px"
                data-name="{{ node.name | lower }}"
                data-id="{{ node.id }}">
-              <span class="tree-item-icon" style="color:var(--accent2)">◈</span>
+              <span class="tree-item-icon" style="color:var(--accent2)"><svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-file"></use></svg></span>
               <span class="tree-item-name">{{ node.name[:-3] if node.name.endswith('.md') else node.name }}</span>
             </div>
           {% endif %}
@@ -423,9 +443,9 @@
     </div>
     <div class="vault-main-body" id="mainBody">
       <div class="preview-empty">
-        <div class="vault-empty-icon">◈</div>
-        <div>Düzenlemek için bir not seç</div>
-        <a href="{{ url_for('obsidian.new') }}" class="btn">Yeni not oluştur</a>
+        <div class="vault-empty-icon"><svg class="icon" style="width:48px; height:48px; opacity:0.5;"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-book"></use></svg></div>
+        <div style="margin-top:10px;">Düzenlemek için bir not seç</div>
+        <a href="javascript:openNewFile()" class="btn" style="margin-top:15px;">Yeni not oluştur</a>
       </div>
     </div>
   </div>
@@ -571,9 +591,9 @@ function renderTabs() {
 function showEmptyState() {
   document.getElementById('mainBody').innerHTML = `
     <div class="preview-empty">
-      <div class="vault-empty-icon">◈</div>
-      <div>Düzenlemek için bir not seç</div>
-      <a href="{{ url_for('obsidian.new') }}" class="btn">Yeni not oluştur</a>
+      <div class="vault-empty-icon"><svg class="icon" style="width:48px; height:48px; opacity:0.5;"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-book"></use></svg></div>
+      <div style="margin-top:10px;">Düzenlemek için bir not seç</div>
+      <a href="javascript:openNewFile()" class="btn" style="margin-top:15px;">Yeni not oluştur</a>
     </div>
   `;
 }
@@ -647,8 +667,14 @@ async function renderContent(fileId, fileName, content) {
     <div class="preview-header">
       <div class="preview-title">${cleanName}</div>
       <div style="display:flex; gap:8px;">
-        <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px;">kopyala</button>
-        <a href="/edit/${fileId}" class="btn btn-primary" style="font-size:11px; padding:5px 12px;">düzenle</a>
+        <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
+          <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-copy"></use></svg>
+          kopyala
+        </button>
+        <a href="/edit/${fileId}" class="btn btn-primary" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
+          <svg class="icon"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-edit"></use></svg>
+          düzenle
+        </a>
       </div>
     </div>
     <div class="preview-content">
@@ -684,7 +710,7 @@ async function loadBacklinks(fileId) {
       <a href="javascript:previewFile('${link.id}', '${link.name}.md')" 
          style="padding:10px 15px; background:var(--bg2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:13px; display:flex; justify-content:space-between; align-items:center; transition:0.2s;">
          <span>${link.name}</span>
-         <span style="font-size:10px; opacity:0.5;">→</span>
+         <svg class="icon" style="opacity:0.5; width:12px; height:12px;"><use href="{{ url_for('static', filename='img/icons.svg') }}#icon-chevron-right"></use></svg>
       </a>
     `).join('');
   } catch (e) {
@@ -890,8 +916,8 @@ function filterTree(q) {
       let parent = el.closest('.tree-folder');
       while (parent) {
         parent.classList.add('open');
-        const icon = parent.querySelector('.tree-folder-item .tree-item-icon');
-        if (icon) icon.textContent = '▼';
+        const icon = parent.querySelector('.tree-folder-item .tree-item-icon svg');
+        if (icon) icon.style.transform = 'rotate(90deg)';
         parent = parent.parentElement?.closest('.tree-folder');
       }
     }
@@ -957,7 +983,10 @@ document.getElementById('newFolderName').addEventListener('keydown', e => { if (
 function toggleFolder(el) {
   const folder = el.closest('.tree-folder');
   folder.classList.toggle('open');
-  el.querySelector('.tree-item-icon').textContent = folder.classList.contains('open') ? '▼' : '▶';
+  const icon = el.querySelector('.tree-item-icon svg');
+  if (icon) {
+    icon.style.transform = folder.classList.contains('open') ? 'rotate(90deg)' : 'rotate(0deg)';
+  }
 }
 </script>
 {% endif %}
