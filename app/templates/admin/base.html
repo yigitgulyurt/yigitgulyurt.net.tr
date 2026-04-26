@@ -10,7 +10,7 @@
 <nav class="nav">
   <a class="nav-logo" href="{{ url_for('admin.dashboard') }}">admin<span class="cursor"></span></a>
   <div class="nav-links">
-    <a href="https://obsidian.yigitgulyurt.net.tr">obsidian</a>
+    <a href="{{ url_for('obsidian.index') }}">obsidian</a>
     <a href="{{ url_for('admin.projects') }}">projeler</a>
     <a href="{{ url_for('admin.blog') }}">blog</a>
     <a href="{{ url_for('admin.messages') }}">mesajlar</a>
