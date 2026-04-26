@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Giriş — Obsidian Vault{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width: 400px; margin: 100px auto;">
+    <div class="page-title">// vault access</div>
+    <div class="page-subtitle">Devam etmek için şifre girin.</div>
+
+    <form method="POST" style="margin-top: 24px;">
+        <div style="margin-bottom: 16px;">
+            <input type="password" name="password" placeholder="Şifre" 
+                   style="width: 100%; padding: 10px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 4px; color: var(--text); outline: none;" 
+                   required autofocus>
+        </div>
+        {% if error %}
+            <div style="color: #f87171; font-size: 12px; margin-bottom: 16px;">Hatalı şifre.</div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Giriş Yap</button>
+    </form>
+</div>
+{% endblock %}

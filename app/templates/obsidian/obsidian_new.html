@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Not — Obsidian Vault{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width: 600px; margin: 40px auto;">
+    <div class="page-title">// yeni not</div>
+    <div class="page-subtitle">Vault içinde yeni bir markdown dosyası oluşturun.</div>
+
+    <div style="margin-top: 30px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 8px; padding: 24px;">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 11px; color: var(--accent); margin-bottom: 8px;">DOSYA ADI</label>
+            <input type="text" id="newFileName" placeholder="not-adi.md" 
+                   style="width: 100%; padding: 10px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 4px; color: var(--text); outline: none;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-size: 11px; color: var(--accent); margin-bottom: 8px;">KLASÖR ID (Opsiyonel)</label>
+            <input type="text" id="newFileFolderId" value="{{ folder_id }}" 
+                   style="width: 100%; padding: 10px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 4px; color: var(--text2); outline: none;" readonly>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <a href="{{ url_for('obsidian.index') }}" class="btn">İptal</a>
+            <button onclick="createFile()" class="btn btn-primary">Oluştur ve Düzenle</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function createFile() {
+    const name = document.getElementById('newFileName').value.trim();
+    const folderId = document.getElementById('newFileFolderId').value;
+    if (!name) return;
+    
+    try {
+        const res = await fetch('/api/file', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                name: name, 
+                folder_id: folderId, 
+                content: `# ${name.replace('.md','')}\n\n` 
+            })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            window.location.href = `/edit/${data.file.id}`;
+        } else {
+            alert('Dosya oluşturulamadı.');
+        }
+    } catch (e) {
+        alert('Bir hata oluştu.');
+    }
+}
+
+document.getElementById('newFileName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') createFile();
+});
+</script>
+{% endblock %}

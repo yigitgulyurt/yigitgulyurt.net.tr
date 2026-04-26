@@ -231,7 +231,7 @@ def login():
             session.permanent = True
             return redirect(url_for('obsidian.auth'))
         error = True
-    return render_template('obsidian/login.html', error=error)
+    return render_template('obsidian/obsidian_login.html', error=error)
 
 # ── MAIN ROUTES ───────────────────────────────────────────────
 
@@ -243,10 +243,10 @@ def index():
         return redirect(url_for('obsidian.auth'))
     vault_id = find_vault_folder(service)
     if not vault_id:
-        return render_template('obsidian/index.html',
+        return render_template('obsidian/obsidian_index.html',
                                tree=[], error='Vault klasörü bulunamadı.')
     tree = build_tree(service, vault_id)
-    return render_template('obsidian/index.html', tree=tree, error=None)
+    return render_template('obsidian/obsidian_index.html', tree=tree, error=None)
 
 
 @bp.route('/edit/<file_id>')
@@ -258,7 +258,7 @@ def edit(file_id):
     # Dosya meta
     meta = service.files().get(fileId=file_id, fields='id,name,modifiedTime').execute()
     content = get_file_content(service, file_id)
-    return render_template('obsidian/edit.html', file=meta, content=content)
+    return render_template('obsidian/obsidian_edit.html', file=meta, content=content)
 
 
 @bp.route('/new')
@@ -270,7 +270,7 @@ def new():
     # folder_id query param'dan alınır
     folder_id = request.args.get('folder_id', '')
     vault_id  = find_vault_folder(service)
-    return render_template('obsidian/new.html',
+    return render_template('obsidian/obsidian_new.html',
                            folder_id=folder_id or vault_id,
                            vault_id=vault_id)
 
