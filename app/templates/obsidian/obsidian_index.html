@@ -505,10 +505,8 @@ renderer.text = (text) => {
   const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(embedRegex, (match, target, size) => {
     const cleanTarget = target.trim();
-    // Resolve relative path for media
-    const currentDir = activeTabId ? activeTabId.split('/').slice(0, -1).join('/') : '';
-    const fullHref = currentDir ? `${currentDir}/${cleanTarget}` : cleanTarget;
-    const url = `{{ url_for('obsidian.serve_media', filename='') }}${fullHref}`;
+    // Görseller rootta olduğu için direkt target kullanıyoruz
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${cleanTarget}`;
     
     let style = '';
     if (size && !isNaN(size)) style = `width:${size}px;`;
@@ -521,9 +519,8 @@ renderer.text = (text) => {
 
 renderer.image = (href, title, text) => {
   if (!href.startsWith('http') && !href.startsWith('/')) {
-    const currentDir = activeTabId ? activeTabId.split('/').slice(0, -1).join('/') : '';
-    const fullHref = currentDir ? `${currentDir}/${href}` : href;
-    href = `{{ url_for('obsidian.serve_media', filename='') }}${fullHref}`;
+    // Görseller rootta olduğu için direkt href kullanıyoruz
+    href = `{{ url_for('obsidian.serve_media', filename='') }}${href}`;
   }
   return `<img src="${href}" title="${title || ''}" alt="${text || ''}" onclick="openLightbox(this.src)">`;
 };
