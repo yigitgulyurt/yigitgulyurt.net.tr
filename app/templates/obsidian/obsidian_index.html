@@ -416,7 +416,7 @@
                         onclick="event.stopPropagation(); openNewFile('{{ node.id }}')"
                         title="Bu klasöre not ekle"><svg class="icon" style="width:10px; height:10px;"><use href="#icon-plus"></use></svg></button>
               </div>
-              <div class="tree-children fade-in">
+              <div class="tree-children fade-in" style="animation: fadeInOpacity 0.1s ease-in !important">
                 {{ render_tree(node.children, depth + 1) }}
               </div>
             </div>
