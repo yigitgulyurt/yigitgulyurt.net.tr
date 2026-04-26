@@ -229,16 +229,32 @@ def delete_item(service, file_id):
 
 @bp.route('/oauth2callback')
 def oauth2callback():
-    # ProxyFix sayesinde request.url zaten https gelmeli.
+    # Google'dan gelen tüm parametreleri loglayalım (Hata ayıklama için)
     auth_response = request.url
-    
     current_app.logger.info(f"OAuth Callback Tetiklendi. URL: {auth_response}")
     
+    # 1. Google bir hata döndürdü mü? (Örn: access_denied)
+    google_error = request.args.get('error')
+    if google_error:
+        error_desc = request.args.get('error_description', 'Açıklama yok')
+        current_app.logger.error(f"Google OAuth Hatası: {google_error} - {error_desc}")
+        return f"Google tarafında bir sorun oluştu: {google_error} ({error_desc})", 400
+
+    # 2. 'code' parametresi var mı?
+    if 'code' not in request.args:
+        current_app.logger.error(f"URL'de 'code' bulunamadı. Gelen Parametreler: {list(request.args.keys())}")
+        return "Hata: Google'dan onay kodu (code) alınamadı. Lütfen tekrar deneyin.", 400
+
     flow = get_flow()
     try:
+        # 3. State doğrulaması
         state = session.get('oauth_state')
+        incoming_state = request.args.get('state')
+        
         if not state:
-            current_app.logger.error("Session'da oauth_state bulunamadı!")
+            current_app.logger.error("Session'da 'oauth_state' yok! Session kaybolmuş olabilir.")
+        elif state != incoming_state:
+            current_app.logger.error(f"State uyuşmazlığı! Session: {state}, Gelen: {incoming_state}")
         
         flow.fetch_token(authorization_response=auth_response, state=state)
         
@@ -246,12 +262,8 @@ def oauth2callback():
         current_app.logger.info("Google Drive bağlantısı başarıyla kuruldu.")
         return redirect(url_for('obsidian.index'))
     except Exception as e:
-        current_app.logger.error(f"OAuth Hatası Detaylı: {str(e)}")
-        # Hata mesajını daha açıklayıcı yapalım
-        error_msg = str(e)
-        if "missing_code" in error_msg:
-            return "Hata: Google'dan 'code' parametresi gelmedi. Lütfen tekrar giriş yapın ve izinleri onaylayın.", 400
-        return f"Kimlik doğrulama hatası: {error_msg}", 400
+        current_app.logger.error(f"OAuth fetch_token Hatası: {str(e)}")
+        return f"Kimlik doğrulama sırasında teknik bir hata oluştu: {str(e)}", 400
 
 
 @bp.route('/auth')
