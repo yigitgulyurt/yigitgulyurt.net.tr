@@ -200,8 +200,11 @@ def delete_item(service, file_id):
 
 @bp.route('/oauth2callback')
 def oauth2callback():
+    # Nginx arkasında HTTP→HTTPS dönüşümü için
+    auth_response = request.url.replace('http://', 'https://')
     flow = get_flow()
-    flow.fetch_token(authorization_response=request.url)
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    flow.fetch_token(authorization_response=auth_response)
     save_credentials(flow.credentials)
     return redirect(url_for('obsidian.index'))
 
