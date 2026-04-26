@@ -93,6 +93,7 @@ a { color: inherit; }
   display: flex;
   gap: 20px;
   align-items: center;
+  user-select: none;
 }
 .nav-links a {
   font-size: 12px;
