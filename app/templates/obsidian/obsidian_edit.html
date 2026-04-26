@@ -5,6 +5,9 @@
 {% block head %}
 <!-- Marked.js markdown parser -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<!-- Highlight.js for syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
 /* ── EDITOR LAYOUT ── */
 .vault-editor-wrap {
@@ -179,6 +182,10 @@
   scrollbar-color: var(--border) transparent;
 }
 
+.ed-preview a { color: var(--accent); text-decoration: none; }
+.ed-preview a:hover { text-decoration: underline; }
+.wiki-link { border-bottom: 1px dashed var(--accent2); color: var(--accent2) !important; }
+
 /* Markdown preview stilleri — blog-content'ten miras */
 .ed-preview h1 { font-size: 20px; font-weight: 500; margin: 0 0 16px; color: var(--text); }
 .ed-preview h2 { font-size: 16px; font-weight: 500; margin: 24px 0 10px; color: var(--text); }
@@ -324,11 +331,30 @@ let mode       = 'split';
 marked.setOptions({ 
   breaks: true, 
   gfm: true,
-  headerIds: true
+  headerIds: true,
+  highlight: function(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    return hljs.highlight(code, { language }).value;
+  },
+  langPrefix: 'hljs language-'
 });
 
-// Resim yollarını /media/ route'una yönlendir
+// Wiki-links [[Link]] desteği ve Resim yolları
 const renderer = new marked.Renderer();
+
+// Custom text parser for Wiki-links
+const originalText = renderer.text.bind(renderer);
+renderer.text = (text) => {
+  // [[Not Adı]] veya [[Not Adı|Görünecek İsim]]
+  const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  return text.replace(wikiLinkRegex, (match, target, alias) => {
+    const label = alias || target;
+    // Obsidian'da linkler genellikle dosya uzantısızdır, .md ekleyelim
+    const url = `{{ url_for('obsidian.edit', file_id='') }}${target}.md`;
+    return `<a href="${url}" class="wiki-link">${label}</a>`;
+  });
+};
+
 const originalImage = renderer.image.bind(renderer);
 renderer.image = (href, title, text) => {
   if (!href.startsWith('http') && !href.startsWith('/')) {

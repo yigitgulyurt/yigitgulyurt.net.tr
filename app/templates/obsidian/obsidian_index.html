@@ -49,6 +49,47 @@
 .vault-icon-btn:hover { color: var(--accent); border-color: var(--accent); }
 
 /* ── FILE TREE ── */
+/* ── SIDEBAR SEARCH ── */
+.sidebar-header {
+  padding: 12px;
+  border-bottom: 0.5px solid var(--border);
+}
+.search-box input {
+  width: 100%;
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text);
+  outline: none;
+}
+.search-box input:focus { border-color: var(--accent); }
+
+.search-results {
+  position: absolute;
+  top: 100px;
+  left: 12px;
+  right: 12px;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.search-result-item {
+  padding: 10px;
+  border-bottom: 0.5px solid var(--border);
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+}
+.search-result-item:hover { background: var(--bg2); }
+.search-result-item .name { font-weight: 500; font-size: 11px; color: var(--accent); margin-bottom: 4px; }
+.search-result-item .snippet { font-size: 10px; color: var(--text2); font-style: italic; }
+
 .vault-tree {
   flex: 1;
   overflow-y: auto;
@@ -192,9 +233,13 @@
         <button class="vault-icon-btn" onclick="openNewFolder()" title="Yeni klasör">+dir</button>
       </div>
     </div>
-    <div class="vault-search">
-      <input type="text" id="treeSearch" placeholder="ara..." oninput="filterTree(this.value)">
+    <div class="sidebar-header">
+      <div class="search-box">
+        <input type="text" id="vaultSearch" placeholder="Notlarda ara..." oninput="handleSearch(this.value)">
+      </div>
+      <div id="searchResults" class="search-results" style="display:none"></div>
     </div>
+    
     <div class="vault-tree" id="vaultTree">
       {% macro render_tree(nodes, depth=0) %}
         {% for node in nodes %}
@@ -286,6 +331,46 @@ function toggleFolder(el) {
   folder.classList.toggle('open');
   el.querySelector('.tree-item-icon').textContent = folder.classList.contains('open') ? '▼' : '▶';
 }
+
+let searchTimer = null;
+
+async function handleSearch(q) {
+  const resultsEl = document.getElementById('searchResults');
+  if (!q || q.length < 2) {
+    resultsEl.style.display = 'none';
+    return;
+  }
+  
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      
+      if (data.length > 0) {
+        resultsEl.innerHTML = data.map(item => `
+          <a href="/edit/${item.id}" class="search-result-item">
+            <div class="name">${item.name}</div>
+            <div class="snippet">${item.snippet}</div>
+          </a>
+        `).join('');
+        resultsEl.style.display = 'block';
+      } else {
+        resultsEl.innerHTML = '<div style="padding:10px;font-size:10px;color:var(--text2)">Sonuç bulunamadı.</div>';
+        resultsEl.style.display = 'block';
+      }
+    } catch (e) {
+      console.error('Arama hatası:', e);
+    }
+  }, 300);
+}
+
+// Click outside to close search
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.sidebar-header')) {
+    document.getElementById('searchResults').style.display = 'none';
+  }
+});
 
 // Arama
 function filterTree(q) {

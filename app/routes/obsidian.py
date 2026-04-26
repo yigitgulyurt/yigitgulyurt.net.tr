@@ -259,6 +259,52 @@ def serve_media(filename):
     vault_path = get_vault_path()
     return send_from_directory(vault_path, filename)
 
+@bp.route('/api/search')
+@obsidian_auth
+def api_search():
+    query = request.args.get('q', '').lower()
+    if not query:
+        return jsonify([])
+        
+    vault_path = get_vault_path()
+    results = []
+    
+    for root, dirs, files in os.walk(vault_path):
+        # .obsidian gibi gizli klasörleri atla
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        
+        for file in files:
+            if not file.endswith('.md'):
+                continue
+                
+            full_path = os.path.join(root, file)
+            rel_path = os.path.relpath(full_path, vault_path).replace('\\', '/')
+            
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if query in content.lower() or query in file.lower():
+                        # İçerikten kısa bir kesit al
+                        idx = content.lower().find(query)
+                        start = max(0, idx - 40)
+                        end = min(len(content), idx + 60)
+                        snippet = content[start:end].replace('\n', ' ')
+                        
+                        results.append({
+                            'id': rel_path,
+                            'name': file,
+                            'snippet': f"...{snippet}..." if idx != -1 else ""
+                        })
+            except:
+                continue
+                
+            if len(results) > 20: # Performans için sınırı koru
+                break
+        if len(results) > 20:
+            break
+            
+    return jsonify(results)
+
 @bp.route('/api/tree')
 @obsidian_auth
 def api_tree():
