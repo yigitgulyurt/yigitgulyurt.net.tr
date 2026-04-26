@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 
 db = SQLAlchemy()
@@ -12,6 +13,9 @@ login_manager.login_view = 'admin.login'
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Nginx arkasında HTTPS ve IP bilgilerini doğru almak için
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     app.config['SESSION_COOKIE_DOMAIN'] = '.yigitgulyurt.net.tr'
 

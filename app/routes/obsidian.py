@@ -16,6 +16,10 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 import io
 
+# OAuthlib'in HTTPS zorunluluğunu Nginx arkasında esnetmek gerekebilir
+# Ancak Google production'da HTTPS zorunlu tutar.
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' 
+
 bp = Blueprint('obsidian', __name__, subdomain='obsidian')
 
 def obsidian_auth(f):
@@ -35,6 +39,9 @@ VAULT_PARENT_PATH = ['Obsidian']  # Drive'ım > Obsidian > yigitgulyurt
 
 
 def get_flow():
+    if not current_app.config.get('GOOGLE_CLIENT_ID') or not current_app.config.get('GOOGLE_CLIENT_SECRET'):
+        raise ValueError("GOOGLE_CLIENT_ID veya GOOGLE_CLIENT_SECRET ayarlanmamış.")
+        
     client_config = {
         "web": {
             "client_id":     current_app.config['GOOGLE_CLIENT_ID'],
@@ -72,11 +79,16 @@ def get_credentials():
 
 def save_credentials(creds):
     token_path = current_app.config.get('GOOGLE_TOKEN_PATH', 'google_token.json')
-    with open(token_path, 'w') as f:
-        json.dump({
-            'token':         creds.token,
-            'refresh_token': creds.refresh_token,
-        }, f)
+    try:
+        with open(token_path, 'w') as f:
+            json.dump({
+                'token':         creds.token,
+                'refresh_token': creds.refresh_token,
+            }, f)
+        current_app.logger.info(f"Token başarıyla kaydedildi: {token_path}")
+    except Exception as e:
+        current_app.logger.error(f"Token kaydedilirken hata oluştu: {str(e)}")
+        raise e
 
 
 def get_drive_service():
@@ -93,21 +105,36 @@ def get_drive_service():
 
 def find_vault_folder(service):
     """Drive'da Obsidian/yigitgulyurt klasörünün ID'sini bulur."""
-    # Önce Obsidian klasörünü bul
-    q = "name='Obsidian' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    res = service.files().list(q=q, fields='files(id,name)').execute()
-    obsidian_folders = res.get('files', [])
-    if not obsidian_folders:
-        return None
-    obsidian_id = obsidian_folders[0]['id']
+    try:
+        # Önce Obsidian klasörünü bul
+        q = "name='Obsidian' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        res = service.files().list(q=q, fields='files(id,name)').execute()
+        obsidian_folders = res.get('files', [])
+        
+        if not obsidian_folders:
+            current_app.logger.warning("Drive'da 'Obsidian' adında bir klasör bulunamadı.")
+            return None
+        
+        obsidian_id = obsidian_folders[0]['id']
+        current_app.logger.info(f"Obsidian klasörü bulundu. ID: {obsidian_id}")
 
-    # Sonra içindeki yigitgulyurt klasörünü bul
-    q = (f"name='{VAULT_FOLDER_NAME}' and "
-         f"'{obsidian_id}' in parents and "
-         f"mimeType='application/vnd.google-apps.folder' and trashed=false")
-    res = service.files().list(q=q, fields='files(id,name)').execute()
-    folders = res.get('files', [])
-    return folders[0]['id'] if folders else None
+        # Sonra içindeki yigitgulyurt klasörünü bul
+        q = (f"name='{VAULT_FOLDER_NAME}' and "
+             f"'{obsidian_id}' in parents and "
+             f"mimeType='application/vnd.google-apps.folder' and trashed=false")
+        res = service.files().list(q=q, fields='files(id,name)').execute()
+        folders = res.get('files', [])
+        
+        if not folders:
+            current_app.logger.warning(f"'{obsidian_id}' içinde '{VAULT_FOLDER_NAME}' klasörü bulunamadı.")
+            return None
+            
+        vault_id = folders[0]['id']
+        current_app.logger.info(f"Vault klasörü bulundu. ID: {vault_id}")
+        return vault_id
+    except Exception as e:
+        current_app.logger.error(f"Vault klasörü aranırken hata: {str(e)}")
+        return None
 
 
 def list_folder(service, folder_id):
@@ -200,19 +227,29 @@ def delete_item(service, file_id):
 
 @bp.route('/oauth2callback')
 def oauth2callback():
-    # Nginx arkasında HTTP→HTTPS dönüşümü için
-    auth_response = request.url.replace('http://', 'https://')
+    # Nginx arkasında request.url 'http' gelebilir, Google 'https' bekler
+    auth_response = request.url
+    if 'http://' in auth_response and not current_app.debug:
+        auth_response = auth_response.replace('http://', 'https://')
+    
     flow = get_flow()
-    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-    flow.fetch_token(authorization_response=auth_response)
-    save_credentials(flow.credentials)
-    return redirect(url_for('obsidian.index'))
+    try:
+        # State doğrulaması ekleyelim
+        state = session.get('oauth_state')
+        flow.fetch_token(authorization_response=auth_response, state=state)
+        
+        save_credentials(flow.credentials)
+        return redirect(url_for('obsidian.index'))
+    except Exception as e:
+        current_app.logger.error(f"OAuth Hatası: {str(e)}")
+        return f"Kimlik doğrulama sırasında bir hata oluştu: {str(e)}", 400
 
 
 @bp.route('/auth')
 @obsidian_auth
 def auth():
     flow = get_flow()
+    # State parametresini zorunlu kılalım ve session'a kaydedelim
     auth_url, state = flow.authorization_url(
         access_type='offline',
         include_granted_scopes='true',
@@ -274,6 +311,23 @@ def new():
                            folder_id=folder_id or vault_id,
                            vault_id=vault_id)
 
+
+@bp.route('/debug')
+@obsidian_auth
+def debug_info():
+    """Konfigürasyon ve bağlantı teşhis route'u."""
+    info = {
+        'client_id_exists': bool(current_app.config.get('GOOGLE_CLIENT_ID')),
+        'client_secret_exists': bool(current_app.config.get('GOOGLE_CLIENT_SECRET')),
+        'redirect_uri': current_app.config.get('GOOGLE_REDIRECT_URI'),
+        'token_path': current_app.config.get('GOOGLE_TOKEN_PATH'),
+        'token_exists': os.path.exists(current_app.config.get('GOOGLE_TOKEN_PATH', '')),
+        'session_state': session.get('oauth_state'),
+        'insecure_transport': os.environ.get('OAUTHLIB_INSECURE_TRANSPORT'),
+        'request_url': request.url,
+        'request_root': request.url_root
+    }
+    return jsonify(info)
 
 # ── API ROUTES ────────────────────────────────────────────────
 
