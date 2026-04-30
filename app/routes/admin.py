@@ -8,10 +8,29 @@ import re
 
 bp = Blueprint('admin', __name__)
 
+import re
+
 def slugify(text):
     text = text.lower().strip()
+    
+    # Türkçe karakter dönüşümü
+    replacements = {
+        "ç": "c",
+        "ğ": "g",
+        "ı": "i",
+        "ö": "o",
+        "ş": "s",
+        "ü": "u"
+    }
+    for tr, en in replacements.items():
+        text = text.replace(tr, en)
+    
+    # boşlukları tire yap
     text = re.sub(r'[\s]+', '-', text)
+    
+    # geçersiz karakterleri temizle
     text = re.sub(r'[^\w\-]', '', text)
+    
     return text
 
 # --- Auth ---
