@@ -129,7 +129,9 @@
         </a>
         </div>
         {% endif %}
+        {% if not project.title == 'Çağrı Vakti' %}
         <div class="proj-desc">{{ project.description }}</div>
+        {% endif %}
         <div class="proj-tags">
           {% for tech in project.tech_list %}
           <span class="tag">{{ tech }}</span>
