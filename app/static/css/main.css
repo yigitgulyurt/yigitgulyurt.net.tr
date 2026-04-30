@@ -273,6 +273,11 @@ a { color: inherit; }
   display: block;
 }
 .proj-card:hover { border-color: var(--text2); }
+.proj-title-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
 .proj-head {
   display: flex;
   align-items: flex-start;
