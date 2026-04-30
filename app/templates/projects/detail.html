@@ -46,10 +46,13 @@
     <div class="sidebar-block">
       <div class="sidebar-label">// linkler</div>
       {% if project.live_url %}
-      <a class="btn btn-primary" href="{{ project.live_url }}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-bottom:8px">→ live</a>
+      <a class="btn btn-primary lang-tr" href="{{ project.live_url }}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-bottom:8px">→ Siteye Git</a>
+      <a class="btn btn-primary lang-en" href="{{ project.live_url }}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-bottom:8px">→ Live</a>
+
       {% endif %}
       {% if project.github_url %}
-      <a class="btn" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">GitHub</a>
+      <a class="btn btn-primary lang-tr" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">→ GitHuba Git</a>
+      <a class="btn btn-primary lang-en" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">→ GitHub</a>
       {% endif %}
     </div>
     {% endif %}
