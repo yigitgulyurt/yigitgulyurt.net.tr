@@ -120,7 +120,11 @@
           <div class="proj-name">{{ project.title }}</div>
           <div class="proj-arrow">↗</div>
         </div>
+        {%if project.title == 'Çağrı Vakti' %}
+        <div class="proj-desc">sa</div>
+        {% else %}  
         <div class="proj-desc">{{ project.description }}</div>
+        {% endif %}
         <div class="proj-tags">
           {% for tech in project.tech_list %}
           <span class="tag">{{ tech }}</span>
