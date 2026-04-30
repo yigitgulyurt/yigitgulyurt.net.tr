@@ -140,6 +140,7 @@
   text-decoration: none;
 }
 .tree-item:hover { color: var(--text); background: var(--bg2); }
+.tree-item:hover .vault-icon-btn { opacity: 1 !important; }
 .tree-item.active { color: var(--accent2); background: var(--bg3); }
 .tree-item-icon { font-size: 10px; flex-shrink: 0; }
 .tree-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -401,6 +402,18 @@
       </div>
       <div id="searchResults" class="search-results" style="display:none"></div>
     </div>
+
+    {% if recent %}
+    <div class="vault-recent" style="padding: 8px 0; border-bottom: 0.5px solid var(--border);">
+      <div class="vault-title" style="padding: 0 16px 4px; opacity: 0.6;">// son kullanılanlar</div>
+      {% for item in recent %}
+        <div class="tree-item" onclick="previewFile('{{ item.id }}', '{{ item.name }}')" style="padding-top: 2px; padding-bottom: 2px;">
+          <span class="tree-item-icon" style="color:var(--text2); opacity:0.5;"><svg class="icon"><use href="#icon-file"></use></svg></span>
+          <span class="tree-item-name" style="font-size: 11px;">{{ item.name[:-3] if item.name.endswith('.md') else item.name }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
     
     <div class="vault-tree" id="vaultTree">
       {% macro render_tree(nodes, depth=0) %}
@@ -430,6 +443,12 @@
                data-id="{{ node.id }}">
               <span class="tree-item-icon" style="color:var(--accent2)"><svg class="icon"><use href="#icon-file"></use></svg></span>
               <span class="tree-item-name">{{ node.name[:-3] if node.name.endswith('.md') else node.name }}</span>
+              <button class="vault-icon-btn"
+                      style="padding:1px; opacity:0; transition:opacity 0.2s;"
+                      onclick="event.stopPropagation(); copyWikiLink('{{ node.name[:-3] if node.name.endswith('.md') else node.name }}')"
+                      title="Wiki-link kopyala">
+                <svg class="icon" style="width:10px; height:10px;"><use href="#icon-copy"></use></svg>
+              </button>
             </div>
           {% endif %}
         {% endfor %}
@@ -494,6 +513,14 @@
 </div>
 
 <script>
+function copyWikiLink(name) {
+  const wikiLink = `[[${name}]]`;
+  navigator.clipboard.writeText(wikiLink).then(() => {
+    // Geçici bir tooltip veya bildirim gösterilebilir
+    alert(`Wiki-link kopyalandı: ${wikiLink}`);
+  });
+}
+
 // State Management
 let openTabs = [];
 let activeTabId = null;

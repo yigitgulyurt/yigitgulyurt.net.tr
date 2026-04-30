@@ -331,6 +331,10 @@
       </div>
     </div>
     <div class="mini-danger">
+      <button class="delete-btn" onclick="copyWikiLink()" style="margin-bottom:8px;color:var(--accent);border-color:var(--accent); display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <svg class="icon"><use href="#icon-copy"></use></svg>
+        wiki-link kopyala
+      </button>
       <button class="delete-btn" onclick="renameFile()" style="margin-bottom:8px;color:var(--text2);border-color:var(--border); display: flex; align-items: center; justify-content: center; gap: 6px;">
         <svg class="icon"><use href="#icon-edit"></use></svg>
         yeniden adlandır
@@ -387,6 +391,14 @@
 </div>
 
 <script>
+function copyWikiLink() {
+  const name = "{{ file.name[:-3] if file.name.endswith('.md') else file.name }}";
+  const wikiLink = `[[${name}]]`;
+  navigator.clipboard.writeText(wikiLink).then(() => {
+    alert(`Wiki-link kopyalandı: ${wikiLink}`);
+  });
+}
+
 const FILE_ID = "{{ file.id }}";
 const textarea = document.getElementById('editorTextarea');
 const preview  = document.getElementById('editorPreview');
