@@ -42,7 +42,7 @@ def index():
                            stream_live=stream_live,
                            stream_config=stream_config)
 
-@bp.route('/ataturk')
+@bp.route('/Mustafa-Kemal-Ataturk')
 def ataturk():
     return render_template('main/ataturk.html')
 

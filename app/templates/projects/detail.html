@@ -27,7 +27,8 @@
     <div class="blog-content">{{ project.content_html | safe }}</div>
     {% endif %}
     <div style="margin-top:32px">
-      <a class="btn" href="{{ url_for('projects.index') }}">← projeler</a>
+      <a class="btn lang-tr" href="{{ url_for('projects.index') }}">← projeler</a>
+      <a class="btn lang-en" href="{{ url_for('projects.index') }}">← projects</a>
     </div>
   </div>
 
@@ -44,22 +45,25 @@
 
     {% if project.live_url or project.github_url %}
     <div class="sidebar-block">
-      <div class="sidebar-label">// linkler</div>
+      <div class="sidebar-label lang-tr">// linkler</div>
+      <div class="sidebar-label lang-en">// Links</div>
+
       {% if project.live_url %}
       <a class="btn btn-primary lang-tr" href="{{ project.live_url }}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-bottom:8px">→ Siteye Git</a>
       <a class="btn btn-primary lang-en" href="{{ project.live_url }}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-bottom:8px">→ Live</a>
 
       {% endif %}
       {% if project.github_url %}
-      <a class="btn btn-primary lang-tr" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">→ GitHuba Git</a>
-      <a class="btn btn-primary lang-en" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">→ GitHub</a>
+      <a class="btn lang-tr" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">→ GitHuba Git</a>
+      <a class="btn lang-en" href="{{ project.github_url }}" target="_blank" rel="noopener" style="display:block;text-align:center">→ GitHub</a>
       {% endif %}
     </div>
     {% endif %}
 
     {% if project.tech_list %}
     <div class="sidebar-block">
-      <div class="sidebar-label">// teknolojiler</div>
+      <div class="sidebar-label lang-tr">// teknolojiler</div>
+      <div class="sidebar-label lang-en">// Technologies</div>
       <div class="proj-tags" style="gap:6px">
         {% for tech in project.tech_list %}
         <span class="tag">{{ tech }}</span>
@@ -69,7 +73,8 @@
     {% endif %}
 
     <div class="sidebar-block">
-      <div class="sidebar-label">// tarih</div>
+      <div class="sidebar-label lang-tr">// tarih</div>
+      <div class="sidebar-label lang-en">// Date</div>
       <div style="font-size:12px;color:var(--text2)">{{ project.created_at.strftime('%Y-%m-%d') }}</div>
     </div>
 
