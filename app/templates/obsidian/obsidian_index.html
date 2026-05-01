@@ -16,6 +16,26 @@
 <script src="{{ url_for('static', filename='js/highlight.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/force-graph.min.js') }}"></script>
 <style>
+/* ── CUSTOM SCROLLBAR ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text2);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
 /* ── VAULT LAYOUT ── */
 html, body {
   height: 100%;
@@ -394,7 +414,7 @@ html, body {
 
 .preview-container {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 1fr 220px;
   gap: 0;
   flex: 1;
   overflow: hidden;
@@ -408,8 +428,38 @@ html, body {
   flex-direction: column;
   gap: 25px;
   user-select: none;
-  border-right: 0.5px solid var(--border);
+  border-left: 0.5px solid var(--border);
   background: var(--bg);
+}
+
+/* ── RECENT TOGGLE ── */
+.vault-recent-header {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s;
+}
+.vault-recent-header:hover {
+  background: var(--bg2);
+}
+.vault-recent-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+.vault-recent.open .vault-recent-content {
+  max-height: 300px;
+  border-bottom: 0.5px solid var(--border);
+}
+.vault-recent.open .recent-arrow {
+  transform: rotate(90deg);
+}
+.recent-arrow {
+  transition: transform 0.2s;
+  font-size: 8px;
+  opacity: 0.5;
 }
 .side-panel-title {
   font-size: 10px;
@@ -666,14 +716,21 @@ html, body {
     </div>
 
     {% if recent %}
-    <div class="vault-recent" style="padding: 8px 0; border-bottom: 0.5px solid var(--border);">
-      <div class="vault-title" style="padding: 0 16px 4px; opacity: 0.6;">// son kullanılanlar</div>
-      {% for item in recent %}
-        <div class="tree-item" onclick="previewFile('{{ item.id }}', '{{ item.name }}')" style="padding-top: 2px; padding-bottom: 2px;">
-          <span class="tree-item-icon" style="color:var(--text2); opacity:0.5;"><svg class="icon"><use href="#icon-file"></use></svg></span>
-          <span class="tree-item-name" style="font-size: 11px;">{{ item.name[:-3] if item.name.endswith('.md') else item.name }}</span>
+    <div class="vault-recent" id="recentMenu">
+      <div class="vault-recent-header" onclick="toggleRecent()">
+        <span class="vault-title" style="opacity: 0.6;">// son kullanılanlar</span>
+        <span class="recent-arrow"><svg class="icon" style="width:8px; height:8px;"><use href="#icon-chevron-right"></use></svg></span>
+      </div>
+      <div class="vault-recent-content">
+        <div style="padding: 4px 0;">
+          {% for item in recent %}
+            <div class="tree-item" onclick="previewFile('{{ item.id }}', '{{ item.name }}')" style="padding-top: 2px; padding-bottom: 2px;">
+              <span class="tree-item-icon" style="color:var(--text2); opacity:0.5;"><svg class="icon"><use href="#icon-file"></use></svg></span>
+              <span class="tree-item-name" style="font-size: 11px;">{{ item.name[:-3] if item.name.endswith('.md') else item.name }}</span>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
     </div>
     {% endif %}
     
@@ -886,6 +943,23 @@ function updateAutocompleteActive() {
     child.classList.toggle('active', i === selectedIndex);
   });
 }
+
+function toggleRecent() {
+  const menu = document.getElementById('recentMenu');
+  if (menu) {
+    menu.classList.toggle('open');
+    // Save preference to localStorage
+    localStorage.setItem('obsidian_recent_open', menu.classList.contains('open'));
+  }
+}
+
+// Initial state for recent menu
+window.addEventListener('DOMContentLoaded', () => {
+  const menu = document.getElementById('recentMenu');
+  if (menu && localStorage.getItem('obsidian_recent_open') === 'true') {
+    menu.classList.add('open');
+  }
+});
 
 // Drag and Drop Logic
 let draggedId = null;
@@ -1357,7 +1431,12 @@ async function renderContent(file_id, fileName, content) {
     mainBody.innerHTML = `
       ${headerHtml}
       <div class="preview-container fade-in">
-        <!-- Left Panel: TOC & Backlinks -->
+        <!-- Left: Content -->
+        <div class="preview-content">
+          <div id="markdownBody">${htmlContent}</div>
+        </div>
+
+        <!-- Right Panel: TOC & Backlinks -->
         <aside class="preview-side-panel">
           <div>
             <div class="side-panel-title">İçindekiler</div>
@@ -1378,11 +1457,6 @@ async function renderContent(file_id, fileName, content) {
             <div id="metaContent"></div>
           </div>
         </aside>
-
-        <!-- Center: Content -->
-        <div class="preview-content">
-          <div id="markdownBody">${htmlContent}</div>
-        </div>
       </div>
     `;
     generateTOC();
