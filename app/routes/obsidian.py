@@ -142,20 +142,6 @@ def index():
                            recent=valid_recent,
                            error=None)
 
-@bp.route('/edit/<path:file_id>')
-@obsidian_auth
-def edit(file_id):
-    """Edit sayfasını iptal ediyoruz, index üzerinden edit yapılıyor."""
-    return redirect(url_for('obsidian.index', file=file_id))
-
-@bp.route('/new')
-@obsidian_auth
-def new():
-    folder_path = request.args.get('folder_id', '') 
-    return render_template('obsidian/obsidian_new.html', 
-                           folder_id=folder_path,
-                           vault_id='')
-
 # ── API ROUTES ────────────────────────────────────────────────
 
 @bp.route('/api/file/<path:file_id>', methods=['GET'])
@@ -352,30 +338,30 @@ def api_rename():
 @bp.route('/media/<path:filename>')
 @obsidian_auth
 def serve_media(filename):
-    """
-    Obsidian içindeki medya dosyalarını sunar.
-    Wiki-link formatındaki ![[dosya.png]] yapılarını destekler.
-    """
-    import urllib.parse
-    filename = urllib.parse.unquote(filename)
+    """Vault içindeki resim ve diğer medya dosyalarını sunar."""
     vault_path = get_vault_path()
+    if not vault_path:
+        abort(404)
     
-    # 1. Direkt dosya adıyla ara (en hızlı)
-    # Eğer filename içinde yol varsa (klasör/resim.png gibi)
-    full_path = safe_join(vault_path, filename)
-    if os.path.exists(full_path) and os.path.isfile(full_path):
-        return send_from_directory(os.path.dirname(full_path), os.path.basename(full_path))
-    
-    # 2. Sadece dosya adıyla tüm vault'ta ara (Obsidian stili)
-    base_name = os.path.basename(filename)
-    for root, dirs, files in os.walk(vault_path):
-        # .obsidian klasörünü atla
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
-        if base_name in files:
-            return send_from_directory(root, base_name)
-            
-    current_app.logger.warning(f"Medya dosyası bulunamadı: {filename}")
-    abort(404)
+    # Güvenlik kontrolü: vault dışına çıkılmasını engelle
+    full_path = os.path.normpath(os.path.join(vault_path, filename))
+    if not full_path.startswith(os.path.normpath(vault_path)):
+        abort(403)
+        
+    if not os.path.exists(full_path):
+        # Eğer dosya tam yolda bulunamazsa, vault içinde ismen ara (Obsidian tarzı)
+        file_only = os.path.basename(filename).lower()
+        for root, dirs, files in os.walk(vault_path):
+            # .obsidian klasörünü atla
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for f in files:
+                if f.lower() == file_only:
+                    return send_from_directory(root, f)
+        
+        current_app.logger.error(f"Medya dosyası bulunamadı: {filename} (Yol: {full_path})")
+        abort(404)
+        
+    return send_from_directory(os.path.dirname(full_path), os.path.basename(full_path))
 
 # Arama sonuçları için basit bir bellek içi önbellek
 _search_cache = {
@@ -533,7 +519,7 @@ def api_graph_data():
 @obsidian_auth
 def api_search():
     query = request.args.get('q', '').lower().strip()
-    if not query:
+    if not query or len(query) < 2:
         return jsonify([])
     
     vault_path = get_vault_path()
@@ -541,13 +527,13 @@ def api_search():
         return jsonify([])
 
     results = []
-    MAX_RESULTS = 50
+    MAX_RESULTS = 40
     now = time.time()
     
     # Cache'i güncelle (Her 5 dakikada bir veya ilk çalışmada)
     refresh_cache = (now - _search_cache['last_scan']) > 300
     
-    if refresh_cache or not _search_cache['files']:
+    if refresh_cache:
         current_app.logger.info("Obsidian arama indeksi güncelleniyor...")
         new_files_cache = {}
         for root, dirs, files in os.walk(vault_path):
@@ -573,7 +559,7 @@ def api_search():
                                 'content': content,
                                 'content_lower': content.lower(),
                                 'mtime': mtime,
-                                'name_lower': file.lower().replace('.md', '')
+                                'name_lower': file.lower()
                             }
                 except:
                     continue
@@ -581,53 +567,31 @@ def api_search():
         _search_cache['files'] = new_files_cache
         _search_cache['last_scan'] = now
 
-    # Fuzzy Search Mantığı
-    query_parts = query.split()
-    
+    # İndeks üzerinden ara
     for rel_path, data in _search_cache['files'].items():
-        score = 0
-        name_lower = data['name_lower']
-        content_lower = data['content_lower']
+        name_match = query in data['name_lower']
+        content_match = query in data['content_lower']
         
-        # 1. Tam isim eşleşmesi (En yüksek öncelik)
-        if query == name_lower:
-            score += 1000
-        elif query in name_lower:
-            score += 500
-            
-        # 2. Parçalı eşleşme
-        matches_all_parts = True
-        for part in query_parts:
-            if part in name_lower:
-                score += 100
-            elif part in content_lower:
-                score += 10
-            else:
-                matches_all_parts = False
-        
-        if score > 0:
+        if name_match or content_match:
             snippet = ""
-            if query in content_lower:
-                idx = content_lower.find(query)
+            if content_match:
+                idx = data['content_lower'].find(query)
                 start = max(0, idx - 40)
-                end = min(len(content_lower), idx + 60)
+                end = min(len(data['content_lower']), idx + 60)
                 snippet = data['content'][start:end].replace('\n', ' ')
-            elif query_parts and query_parts[0] in content_lower:
-                idx = content_lower.find(query_parts[0])
-                start = max(0, idx - 40)
-                end = min(len(content_lower), idx + 60)
-                snippet = data['content'][start:end].replace('\n', ' ')
-
+            
             results.append({
                 'id': rel_path,
-                'name': os.path.basename(rel_path).replace('.md', ''),
+                'name': os.path.basename(rel_path),
                 'snippet': f"...{snippet}..." if snippet else "",
-                'score': score + (100 if matches_all_parts else 0)
+                'score': 100 if name_match else 1
             })
             
-    # Skora göre sırala ve limit koy
+        if len(results) >= MAX_RESULTS:
+            break
+            
     results.sort(key=lambda x: x['score'], reverse=True)
-    return jsonify(results[:MAX_RESULTS])
+    return jsonify(results)
 
 @bp.route('/api/tree')
 @obsidian_auth
