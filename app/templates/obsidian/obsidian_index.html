@@ -566,6 +566,31 @@ html, body {
 .modal-input:focus { border-color: var(--accent2); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+/* ── TOAST CUSTOM DESIGN ── */
+.toastify {
+  padding: 12px 20px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.toast-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+.toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+.toast-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
   .vault-wrap { grid-template-columns: 1fr; }
@@ -893,17 +918,14 @@ let fileMap = {}; // name -> path mapping for wiki-links
 let fuse = null; // Fuse instance for search
 
 function showToast(text, type = 'success') {
+  const icon = type === 'success' ? '✓' : (type === 'error' ? '✕' : 'ℹ');
   Toastify({
-    text: text,
+    text: `${icon} ${text}`,
     duration: 3000,
     gravity: "bottom",
     position: "right",
-    style: {
-      background: type === 'success' ? "var(--accent)" : "#ef4444",
-      fontSize: "12px",
-      borderRadius: "4px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
-    }
+    className: `toast-${type}`,
+    stopOnFocus: true
   }).showToast();
 }
 
