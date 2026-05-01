@@ -387,11 +387,54 @@ html, body {
   justify-content: space-between;
 }
 
+.preview-container {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  gap: 20px;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+.preview-side-panel {
+  padding: 20px 10px;
+  overflow-y: auto;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  user-select: none;
+}
+.side-panel-title {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+.toc-item {
+  padding: 4px 8px;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.1s;
+}
+.toc-item:hover {
+  background: var(--bg2);
+  color: var(--text);
+}
+.toc-h1 { font-weight: 600; }
+.toc-h2 { padding-left: 16px; opacity: 0.9; }
+.toc-h3 { padding-left: 28px; opacity: 0.8; font-size: 10px; }
+
 .preview-content {
   flex: 1;
   overflow-y: auto; /* Kendi içinde scroll */
-  padding: 20px 40px;
-  max-width: 900px;
+  padding: 20px 0;
+  max-width: 800px;
   margin: 0 auto;
   width: 100%;
 }
@@ -1226,16 +1269,36 @@ async function renderContent(fileId, fileName, content) {
   } else {
     mainBody.innerHTML = `
       ${headerHtml}
-      <div class="preview-content fade-in">
-        <div id="markdownBody">${htmlContent}</div>
-        <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
-          <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500; user-select:none;">BACKLINKS</div>
-          <div class="fade-in" id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">
-            <div style="font-size:11px; color:var(--text2);">Yükleniyor...</div>
+      <div class="preview-container fade-in">
+        <!-- Left Panel: TOC -->
+        <aside class="preview-side-panel">
+          <div class="side-panel-title">İçindekiler</div>
+          <div id="tocContent"></div>
+        </aside>
+
+        <!-- Center: Content -->
+        <div class="preview-content">
+          <div id="markdownBody">${htmlContent}</div>
+          <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
+            <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500; user-select:none;">BACKLINKS</div>
+            <div class="fade-in" id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:11px; color:var(--text2);">Yükleniyor...</div>
+            </div>
           </div>
         </div>
+
+        <!-- Right Panel: Meta & Tags -->
+        <aside class="preview-side-panel">
+          <div class="side-panel-title">Etiketler</div>
+          <div id="tagsContent" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+          
+          <div class="side-panel-title" style="margin-top:20px;">Özellikler</div>
+          <div id="metaContent"></div>
+        </aside>
       </div>
     `;
+    generateTOC();
+    updateIndexMeta(content);
     loadBacklinks(fileId);
   }
   
@@ -1357,6 +1420,57 @@ function getCursorXY(input, selectionStart) {
   const { offsetLeft: spanLeft, offsetTop: spanTop } = span;
   document.body.removeChild(div);
   return { x: offsetLeft + spanLeft, y: offsetTop + spanTop };
+}
+
+// Preview Side Panels Logic
+function generateTOC() {
+  const markdownBody = document.getElementById('markdownBody');
+  const tocContent = document.getElementById('tocContent');
+  if (!markdownBody || !tocContent) return;
+
+  const headings = markdownBody.querySelectorAll('h1, h2, h3');
+  if (headings.length === 0) {
+    tocContent.innerHTML = '<div style="color:var(--text2); opacity:0.5;">Başlık bulunamadı.</div>';
+    return;
+  }
+
+  tocContent.innerHTML = Array.from(headings).map((h, i) => {
+    const level = h.tagName.toLowerCase();
+    const text = h.innerText;
+    // Add ID to heading for jumping
+    const id = `heading-${i}`;
+    h.id = id;
+    return `<div class="toc-item toc-${level}" onclick="document.getElementById('${id}').scrollIntoView({behavior:'smooth'})">${text}</div>`;
+  }).join('');
+}
+
+function updateIndexMeta(content) {
+  const tagsContent = document.getElementById('tagsContent');
+  const metaContent = document.getElementById('metaContent');
+  if (!tagsContent || !metaContent) return;
+
+  // Tags
+  const tagRegex = /#([\wğüşıöçĞÜŞİÖÇ/-]+)/g;
+  const tags = [...new Set([...content.matchAll(tagRegex)].map(m => m[1]))];
+  tagsContent.innerHTML = tags.length > 0 
+    ? tags.map(t => `<span class="tag-badge">#${t}</span>`).join('')
+    : '<div style="color:var(--text2); opacity:0.5;">Etiket yok.</div>';
+
+  // YAML Meta
+  const yamlRegex = /^---\n([\s\S]*?)\n---/;
+  const yamlMatch = content.match(yamlRegex);
+  if (yamlMatch) {
+    const lines = yamlMatch[1].split('\n');
+    metaContent.innerHTML = lines.map(line => {
+      const [key, ...valParts] = line.split(':');
+      if (key && valParts.length > 0) {
+        return `<div class="meta-item"><span class="meta-label">${key.trim()}</span><span class="meta-value">${valParts.join(':').trim()}</span></div>`;
+      }
+      return '';
+    }).join('');
+  } else {
+    metaContent.innerHTML = '<div style="color:var(--text2); opacity:0.5;">Özellik tanımlanmamış.</div>';
+  }
 }
 
 async function loadBacklinks(fileId) {
