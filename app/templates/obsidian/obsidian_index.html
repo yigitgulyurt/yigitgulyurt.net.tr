@@ -613,6 +613,67 @@ function copyWikiLink(name) {
   });
 }
 
+// Keyboard Shortcuts (Alt-based to avoid browser conflicts)
+document.addEventListener('keydown', (e) => {
+  if (e.altKey) {
+    // 1. Tab Navigation (Alt + 1, 2, 3...)
+    if (e.key >= '1' && e.key <= '9') {
+      const index = parseInt(e.key) - 1;
+      if (openTabs[index]) {
+        e.preventDefault();
+        previewFile(openTabs[index].id, openTabs[index].name, false);
+      }
+    }
+
+    // 2. Tab Navigation (Alt + Left/Right)
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      if (openTabs.length > 1) {
+        e.preventDefault();
+        const currentIndex = openTabs.findIndex(t => t.id === activeTabId);
+        let nextIndex;
+        if (e.key === 'ArrowRight') {
+          nextIndex = (currentIndex + 1) % openTabs.length;
+        } else {
+          nextIndex = (currentIndex - 1 + openTabs.length) % openTabs.length;
+        }
+        previewFile(openTabs[nextIndex].id, openTabs[nextIndex].name, false);
+      }
+    }
+
+    // 3. Close Active Tab (Alt + W)
+    if (e.key.toLowerCase() === 'w') {
+      if (activeTabId) {
+        e.preventDefault();
+        closeTab(activeTabId);
+      }
+    }
+
+    // 4. Focus Search (Alt + S)
+    if (e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      document.getElementById('vaultSearch').focus();
+    }
+
+    // 5. New Note (Alt + N)
+    if (e.key.toLowerCase() === 'n') {
+      e.preventDefault();
+      openNewFile();
+    }
+
+    // 6. Daily Note (Alt + D)
+    if (e.key.toLowerCase() === 'd') {
+      e.preventDefault();
+      openDailyNote();
+    }
+
+    // 7. Graph View (Alt + G)
+    if (e.key.toLowerCase() === 'g') {
+      e.preventDefault();
+      showGraph();
+    }
+  }
+});
+
 // Drag and Drop Logic
 let draggedId = null;
 let isDraggedFolder = false;
