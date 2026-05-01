@@ -1204,23 +1204,38 @@ async function showGraph() {
     });
 
   // Physics - Perfectly tuned for "Obsidian Feel"
-  // 1. Düşük itme, yakın mesafe
-  graphInstance.d3Force('charge')
-    .strength(-10)
-    .distanceMax(100); // Sadece yakınındaki notları it, tüm sistemi değil
+  // 1. İtme kuvvetini (repulsion) tamamen kapatıyoruz veya yok denecek kadar azaltıyoruz
+  // Obsidian'da notlar birbirini uzağa itmez, sadece üst üste binmezler.
+  graphInstance.d3Force('charge', null); // İtmeyi tamamen kapat
     
-  // 2. Sıkı bağlantılar
+  // 2. Sıkı bağlantılar ve mesafe koruma
   graphInstance.d3Force('link')
-    .distance(25)
+    .distance(30)
     .strength(1);
     
-  // 3. Merkeze çekim (dağılmayı önler)
-  graphInstance.d3Force('center')
-    .strength(0.5);
+  // 3. Konum sabitleme (Dağılmayı önleyen en kritik ayar)
+  graphInstance.d3Force('x', d3.forceX(0).strength(0.05));
+  graphInstance.d3Force('y', d3.forceY(0).strength(0.05));
   
-  // 4. Hareket direnci (titremeyi ve sürekli açılmayı engeller)
-  graphInstance.d3VelocityDecay(0.5);
-  graphInstance.d3AlphaDecay(0.05); // Daha hızlı stabil hale gelmesini sağlar
+  // 4. Çarpışma (Collision) - Notların üst üste binmesini engeller ama itmez
+  graphInstance.d3Force('collide', d3.forceCollide(12));
+  
+  // 5. Hareket direnci (Tuttuğunda diğerlerinin kaçmasını engeller)
+  graphInstance.d3VelocityDecay(0.7); // Çok yüksek sürtünme
+  graphInstance.d3AlphaDecay(0.01); 
+
+  // Drag işlemi sırasında tüm sistemin sarsılmasını engelle
+  graphInstance.onNodeDrag((node, translate) => {
+    // Sürüklenen notun sabitlenmesini sağla
+    node.fx = node.x;
+    node.fy = node.y;
+  });
+  
+  graphInstance.onNodeDragEnd(node => {
+    // Bırakıldığında yavaşça yerine otursun (veya sabit kalsın)
+    node.fx = null;
+    node.fy = null;
+  });
   
   // Fit to canvas on load
   setTimeout(() => graphInstance.zoomToFit(400, 50), 100);
