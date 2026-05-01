@@ -231,6 +231,130 @@
 .callout.success { border-left-color: #10b981; }
 .callout.success .callout-title { color: #10b981; }
 
+/* Seamless Editor Styles */
+.seamless-textarea {
+  flex: 1;
+  background: var(--bg);
+  color: var(--text);
+  border: none;
+  border-right: 0.5px solid var(--border);
+  padding: 40px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  display: none; /* Edit modunda açılır */
+}
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--bg3);
+  color: var(--accent);
+}
+.btn-save {
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  border: none;
+}
+.btn-save:hover { background: var(--accent2); }
+
+/* Wiki-link Autocomplete (Shared with Index) */
+.autocomplete-menu {
+  position: absolute;
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  min-width: 200px;
+}
+.autocomplete-item {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+}
+.autocomplete-item:hover, .autocomplete-item.active {
+  background: var(--bg3);
+  color: var(--accent);
+}
+
+/* Command Palette Styles */
+.command-palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  padding-top: 15vh;
+  backdrop-filter: blur(4px);
+}
+.command-palette-box {
+  width: 600px;
+  max-width: 90vw;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#commandInput {
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 0.5px solid var(--border);
+  color: var(--text);
+  font-size: 16px;
+  outline: none;
+  width: 100%;
+}
+.command-results {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.command-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.1s;
+}
+.command-item.active {
+  background: var(--bg3);
+  border-left-color: var(--accent);
+}
+.command-item-icon { color: var(--text2); opacity: 0.6; }
+.command-item-info { display: flex; flex-direction: column; gap: 2px; }
+.command-item-name { font-size: 14px; color: var(--text); }
+.command-item-path { font-size: 10px; color: var(--text2); opacity: 0.5; }
+
+.command-palette-footer {
+  padding: 10px 20px;
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  gap: 15px;
+  font-size: 10px;
+  color: var(--text2);
+}
+
 .vault-main-header {
   padding: 0;
   border-bottom: 0.5px solid var(--border);
@@ -547,8 +671,15 @@
 
   {# ── MAIN ── #}
   <div class="vault-main fade-in">
-    <div class="vault-main-header" id="tabBar">
-      <!-- Tabs will be injected here -->
+    <div class="vault-main-header">
+      <div class="vault-tabs" id="vaultTabs"></div>
+      <div id="editorActions" style="display:none; gap:8px; margin-left: auto; padding-right: 15px;">
+        <div class="editor-modes" style="display:flex; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 4px; padding: 2px;">
+          <button class="mode-btn active" id="btnView" onclick="setEditorMode('view')">Önizleme</button>
+          <button class="mode-btn" id="btnEdit" onclick="setEditorMode('edit')">Düzenle</button>
+        </div>
+        <button class="btn btn-save" id="saveBtn" onclick="saveActiveFile()" style="display:none; font-size:11px; padding:4px 12px;">Kaydet</button>
+      </div>
     </div>
     <div class="vault-main-body" id="mainBody">
       <div class="preview-empty">
@@ -557,12 +688,35 @@
         <a href="javascript:openNewFile()" class="btn" style="margin-top:15px;">Yeni not oluştur</a>
       </div>
     </div>
+    
+    <!-- Seamless Editor Component (Hidden by default) -->
+    <div id="seamlessEditor" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <div class="editor-container" style="display:flex; flex:1; overflow:hidden; position:relative;">
+        <textarea id="mainEditorTextarea" class="seamless-textarea" spellcheck="false"></textarea>
+        <div id="mainEditorPreview" class="preview-content" style="display:block; flex:1; overflow-y:auto; padding:40px;"></div>
+        <div id="autocompleteMenu" class="autocomplete-menu" style="display:none;"></div>
+      </div>
+    </div>
+
     <div id="backlinksPanel" class="backlinks-panel" style="display:none;">
       <div class="backlinks-header">
         <span class="backlinks-title">// geri bağlantılar</span>
         <button class="vault-icon-btn" onclick="toggleBacklinks()" title="Kapat">×</button>
       </div>
       <div id="backlinksList" class="backlinks-list"></div>
+    </div>
+  </div>
+
+  <!-- Command Palette Overlay -->
+  <div id="commandPalette" class="command-palette-overlay" style="display:none;" onclick="if(event.target===this) hideCommandPalette()">
+    <div class="command-palette-box">
+      <input type="text" id="commandInput" placeholder="Dosya ara veya komut yaz..." autocomplete="off">
+      <div id="commandResults" class="command-results"></div>
+      <div class="command-palette-footer">
+        <span><b>↑↓</b> Gez</span>
+        <span><b>Enter</b> Aç</span>
+        <span><b>Esc</b> Kapat</span>
+      </div>
     </div>
   </div>
 
@@ -671,6 +825,127 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault();
       showGraph();
     }
+
+    // 8. Command Palette (Alt + K)
+    if (e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      showCommandPalette();
+    }
+  }
+});
+
+// Command Palette Logic
+let commandPaletteActiveIndex = 0;
+let filteredCommands = [];
+
+function showCommandPalette() {
+  const palette = document.getElementById('commandPalette');
+  const input = document.getElementById('commandInput');
+  palette.style.display = 'flex';
+  input.value = '';
+  input.focus();
+  renderCommandResults([]);
+}
+
+function hideCommandPalette() {
+  document.getElementById('commandPalette').style.display = 'none';
+}
+
+document.getElementById('commandInput').addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase().trim();
+  if (!query) {
+    renderCommandResults([]);
+    return;
+  }
+
+  // Filter files and commands
+  filteredCommands = [];
+  
+  // 1. Files
+  Object.keys(fileMap).forEach(name => {
+    if (name.includes(query)) {
+      filteredCommands.push({
+        type: 'file',
+        name: name,
+        path: fileMap[name],
+        icon: '#icon-file'
+      });
+    }
+  });
+
+  // 2. Special Commands
+  const commands = [
+    { name: 'Yeni Not Oluştur', action: openNewFile, icon: '#icon-plus' },
+    { name: 'Günlük Notu Aç', action: openDailyNote, icon: '#icon-calendar' },
+    { name: 'Graph View Aç', action: showGraph, icon: '#icon-graph' },
+    { name: 'Geri Bağlantıları Aç/Kapat', action: toggleBacklinks, icon: '#icon-link' }
+  ];
+  
+  commands.forEach(cmd => {
+    if (cmd.name.toLowerCase().includes(query)) {
+      filteredCommands.push({
+        type: 'command',
+        name: cmd.name,
+        action: cmd.action,
+        icon: cmd.icon
+      });
+    }
+  });
+
+  renderCommandResults(filteredCommands.slice(0, 10));
+});
+
+function renderCommandResults(results) {
+  const container = document.getElementById('commandResults');
+  commandPaletteActiveIndex = 0;
+  
+  if (results.length === 0) {
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text2); font-size:12px;">Sonuç bulunamadı...</div>';
+    return;
+  }
+
+  container.innerHTML = results.map((res, i) => `
+    <div class="command-item ${i === 0 ? 'active' : ''}" onclick="executeCommand(${i})">
+      <div class="command-item-icon"><svg class="icon"><use href="${res.icon}"></use></svg></div>
+      <div class="command-item-info">
+        <div class="command-item-name">${res.name}</div>
+        <div class="command-item-path">${res.path || 'Komut'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function executeCommand(index) {
+  const cmd = filteredCommands[index];
+  if (!cmd) return;
+  
+  hideCommandPalette();
+  if (cmd.type === 'file') {
+    previewFile(cmd.path, cmd.name + '.md');
+  } else {
+    cmd.action();
+  }
+}
+
+document.getElementById('commandInput').addEventListener('keydown', (e) => {
+  const items = document.querySelectorAll('.command-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    items[commandPaletteActiveIndex].classList.remove('active');
+    commandPaletteActiveIndex = (commandPaletteActiveIndex + 1) % items.length;
+    items[commandPaletteActiveIndex].classList.add('active');
+    items[commandPaletteActiveIndex].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    items[commandPaletteActiveIndex].classList.remove('active');
+    commandPaletteActiveIndex = (commandPaletteActiveIndex - 1 + items.length) % items.length;
+    items[commandPaletteActiveIndex].classList.add('active');
+    items[commandPaletteActiveIndex].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    executeCommand(commandPaletteActiveIndex);
+  } else if (e.key === 'Escape') {
+    hideCommandPalette();
   }
 });
 
@@ -726,8 +1001,11 @@ async function handleDrop(e, targetFolderId) {
 // State Management
 let openTabs = [];
 let activeTabId = null;
+let activeMode = 'view'; // 'view' or 'edit'
 let fileMap = {}; // name -> path mapping for wiki-links
 const fileCache = new Map();
+let allFilesForAutocomplete = [];
+let selectedIndexAutocomplete = 0;
 
 // Build file map from the tree data passed from Flask
 function buildFileMap(nodes) {
@@ -737,6 +1015,7 @@ function buildFileMap(nodes) {
     } else if (node.name.endsWith('.md')) {
       const cleanName = node.name.slice(0, -3).toLowerCase();
       fileMap[cleanName] = node.id;
+      allFilesForAutocomplete.push(node.name.slice(0, -3));
     }
   });
 }
@@ -760,7 +1039,6 @@ const renderer = new marked.Renderer();
 // Checklist support: [ ] ve [x]
 renderer.listitem = (text, task, checked) => {
   if (task) {
-    // marked.js gfm modunda bazen text içine kendi checkbox'ını koyar, onu temizleyelim
     const cleanText = text.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '').trim();
     return `
       <li class="task-list-item">
@@ -774,48 +1052,38 @@ renderer.listitem = (text, task, checked) => {
 // Custom text parser for Wiki-links and Embeds
 const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
-  // 0. Obsidian Callouts [!info]
   const calloutRegex = /^> \[!(\w+)\](.*?)\n((?:>.*\n?)*)/gm;
   text = text.replace(calloutRegex, (match, type, title, content) => {
     const cleanType = type.toLowerCase();
     const cleanTitle = title.trim() || type;
     const cleanContent = content.replace(/^> ?/gm, '');
     return `<div class="callout ${cleanType}">
-      <div class="callout-title">
-        <svg class="icon"><use href="#icon-book"></use></svg>
-        ${cleanTitle}
-      </div>
+      <div class="callout-title"><svg class="icon"><use href="#icon-book"></use></svg>${cleanTitle}</div>
       <div class="callout-content">${marked.parse(cleanContent)}</div>
     </div>`;
   });
 
-  // 1. Obsidian Embeds ![[image.png]]
   const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(embedRegex, (match, target, size) => {
     const cleanTarget = target.trim();
     const encodedTarget = encodeURIComponent(cleanTarget);
     const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodedTarget}`;
-    
     let style = '';
     if (size && !isNaN(size)) style = `width:${size}px;`;
-    
     return `<img src="${url}" alt="${cleanTarget}" style="${style}" onclick="openLightbox(this.src)">`;
   });
 
-  // 2. Wiki-links [[Link]] - SONRA BUNU YAPMALIYIZ
   const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(wikiLinkRegex, (match, target, alias) => {
     const label = alias || target;
     const cleanTarget = target.toLowerCase().trim();
     const resolvedPath = fileMap[cleanTarget];
-    
     if (resolvedPath) {
       return `<a href="javascript:previewFile('${resolvedPath}', '${target}')" class="wiki-link">${label}</a>`;
     } else {
       return `<span class="wiki-link broken" title="Dosya bulunamadı">${label}</span>`;
     }
   });
-
   return text;
 };
 
@@ -836,7 +1104,7 @@ function openLightbox(src) {
 
 // Tab UI Management
 function renderTabs() {
-  const tabBar = document.getElementById('tabBar');
+  const tabBar = document.getElementById('vaultTabs'); // Header'daki tab alanı
   if (openTabs.length === 0) {
     tabBar.innerHTML = '<div style="padding:0 16px; color:var(--text2); font-size:10px; display:flex; align-items:center; height:100%; user-select:none;">açık not yok</div>';
     showEmptyState();
@@ -852,6 +1120,9 @@ function renderTabs() {
 }
 
 function showEmptyState() {
+  document.getElementById('mainBody').style.display = 'flex';
+  document.getElementById('seamlessEditor').style.display = 'none';
+  document.getElementById('editorActions').style.display = 'none';
   document.getElementById('mainBody').innerHTML = `
     <div class="preview-empty">
       <div class="vault-empty-icon"><svg class="icon" style="width:48px; height:48px; opacity:0.5;"><use href="#icon-book"></use></svg></div>
@@ -868,9 +1139,194 @@ function closeTab(id) {
     if (activeTabId) {
       const tab = openTabs.find(t => t.id === activeTabId);
       previewFile(tab.id, tab.name, false);
+    } else {
+      showEmptyState();
     }
   }
   renderTabs();
+}
+
+async function previewFile(fileId, fileName, pushHistory = true) {
+  activeTabId = fileId;
+  
+  if (!openTabs.find(t => t.id === fileId)) {
+    openTabs.push({ id: fileId, name: fileName });
+  }
+  renderTabs();
+
+  document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+  const activeEl = document.querySelector(`.tree-item[data-id="${fileId}"]`);
+  if (activeEl) activeEl.classList.add('active');
+
+  const isMarkdown = fileName.endsWith('.md');
+  document.getElementById('editorActions').style.display = isMarkdown ? 'flex' : 'none';
+  setEditorMode('view'); // Yeni dosya her zaman view modunda açılır
+
+  if (fileCache.has(fileId)) {
+    renderContent(fileId, fileName, fileCache.get(fileId));
+  } else {
+    document.getElementById('mainBody').innerHTML = '<div class="preview-empty"><div class="loading-spinner"></div>Yükleniyor...</div>';
+  }
+
+  try {
+    const res = await fetch(`/api/file/${fileId}`);
+    const data = await res.json();
+    if (data.content !== undefined) {
+      fileCache.set(fileId, data.content);
+      if (activeTabId === fileId) renderContent(fileId, fileName, data.content);
+    }
+  } catch (e) {
+    if (!fileCache.has(fileId)) document.getElementById('mainBody').innerHTML = '<div class="preview-empty">Hata oluştu.</div>';
+  }
+
+  if (pushHistory) history.pushState({ fileId, fileName }, '', `?file=${encodeURIComponent(fileId)}`);
+}
+
+async function renderContent(fileId, fileName, content) {
+  const mainBody = document.getElementById('mainBody');
+  const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
+  
+  if (fileName.toLowerCase().endsWith('.pdf')) {
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodeURIComponent(fileId)}`;
+    mainBody.innerHTML = `
+      <div class="preview-header fade-in"><div class="preview-title">${cleanName}</div><a href="${url}" target="_blank" class="btn btn-primary" style="font-size:11px; padding:4px 12px;">Yeni Sekmede Aç</a></div>
+      <div style="flex:1; overflow:hidden;"><iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe></div>`;
+    return;
+  }
+
+  const htmlContent = marked.parse(content);
+  mainBody.innerHTML = `
+    <div class="preview-header fade-in">
+      <div class="preview-title">${cleanName}</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="toggleBacklinks()" style="font-size:11px; padding:4px 12px; display:inline-flex; align-items:center; gap:5px;"><svg class="icon"><use href="#icon-link"></use></svg>geri bağlantılar</button>
+        <button class="btn" onclick="copyContent()" style="font-size:11px; padding:4px 12px; display:inline-flex; align-items:center; gap:5px;"><svg class="icon"><use href="#icon-copy"></use></svg>kopyala</button>
+      </div>
+    </div>
+    <div class="preview-content fade-in">
+      <div id="markdownBody">${htmlContent}</div>
+      <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
+        <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500;">BACKLINKS</div>
+        <div id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">Yükleniyor...</div>
+      </div>
+    </div>`;
+  
+  mainBody.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  loadBacklinks(fileId);
+  document.getElementById('mainEditorTextarea').value = content;
+}
+
+function setEditorMode(mode) {
+  activeMode = mode;
+  const mainBody = document.getElementById('mainBody');
+  const seamlessEditor = document.getElementById('seamlessEditor');
+  const btnView = document.getElementById('btnView');
+  const btnEdit = document.getElementById('btnEdit');
+  const saveBtn = document.getElementById('saveBtn');
+
+  if (mode === 'edit') {
+    mainBody.style.display = 'none';
+    seamlessEditor.style.display = 'flex';
+    btnView.classList.remove('active');
+    btnEdit.classList.add('active');
+    saveBtn.style.display = 'block';
+    renderEditorPreview();
+  } else {
+    mainBody.style.display = 'flex';
+    seamlessEditor.style.display = 'none';
+    btnView.classList.add('active');
+    btnEdit.classList.remove('active');
+    saveBtn.style.display = 'none';
+    const content = document.getElementById('mainEditorTextarea').value;
+    const tab = openTabs.find(t => t.id === activeTabId);
+    if (tab) renderContent(activeTabId, tab.name, content);
+  }
+}
+
+function renderEditorPreview() {
+  const content = document.getElementById('mainEditorTextarea').value;
+  document.getElementById('mainEditorPreview').innerHTML = marked.parse(content);
+  document.querySelectorAll('#mainEditorPreview pre code').forEach(el => hljs.highlightElement(el));
+}
+
+async function saveActiveFile() {
+  if (!activeTabId) return;
+  const content = document.getElementById('mainEditorTextarea').value;
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.innerText = '...';
+  try {
+    const res = await fetch(`/api/file/${activeTabId}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ content })
+    });
+    if ((await res.json()).ok) {
+      fileCache.set(activeTabId, content);
+      saveBtn.innerText = 'OK';
+      setTimeout(() => saveBtn.innerText = 'Kaydet', 1000);
+    }
+  } catch (e) { alert('Hata!'); saveBtn.innerText = 'Kaydet'; }
+}
+
+const mainEditorTextarea = document.getElementById('mainEditorTextarea');
+mainEditorTextarea.addEventListener('input', () => {
+  renderEditorPreview();
+  const cursor = mainEditorTextarea.selectionStart;
+  const textBefore = mainEditorTextarea.value.substring(0, cursor);
+  const match = textBefore.match(/\[\[([^\]]*)$/);
+  if (match) {
+    const query = match[1].toLowerCase();
+    const filtered = allFilesForAutocomplete.filter(f => f.toLowerCase().includes(query)).slice(0, 10);
+    if (filtered.length > 0) showAutocompleteMenu(filtered); else hideAutocompleteMenu();
+  } else hideAutocompleteMenu();
+});
+
+function showAutocompleteMenu(files) {
+  const menu = document.getElementById('autocompleteMenu');
+  menu.style.display = 'block';
+  menu.style.left = '40px'; menu.style.bottom = '40px';
+  menu.innerHTML = files.map((f, i) => `<div class="autocomplete-item ${i === selectedIndexAutocomplete ? 'active' : ''}" onclick="insertWikiLinkMain('${f}')">${f}</div>`).join('');
+}
+
+function hideAutocompleteMenu() { document.getElementById('autocompleteMenu').style.display = 'none'; selectedIndexAutocomplete = 0; }
+
+function insertWikiLinkMain(name) {
+  const ta = mainEditorTextarea;
+  const cursor = ta.selectionStart;
+  const textBefore = ta.value.substring(0, cursor);
+  const textAfter = ta.value.substring(cursor);
+  const match = textBefore.match(/\[\[[^\]]*$/);
+  if (match) {
+    const newTextBefore = textBefore.substring(0, match.index) + `[[${name}]]`;
+    ta.value = newTextBefore + textAfter;
+    ta.selectionStart = ta.selectionEnd = newTextBefore.length;
+    renderEditorPreview(); hideAutocompleteMenu();
+  }
+}
+
+mainEditorTextarea.addEventListener('keydown', (e) => {
+  const menu = document.getElementById('autocompleteMenu');
+  if (menu.style.display === 'block') {
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndexAutocomplete = (selectedIndexAutocomplete + 1) % menu.children.length; updateAutocompleteActiveMain(); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndexAutocomplete = (selectedIndexAutocomplete - 1 + menu.children.length) % menu.children.length; updateAutocompleteActiveMain(); return; }
+    if (e.key === 'Enter') { e.preventDefault(); menu.children[selectedIndexAutocomplete]?.click(); return; }
+    if (e.key === 'Escape') { hideAutocompleteMenu(); return; }
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveActiveFile(); }
+});
+
+function updateAutocompleteActiveMain() {
+  Array.from(document.getElementById('autocompleteMenu').children).forEach((child, i) => child.classList.toggle('active', i === selectedIndexAutocomplete));
+}
+
+async function loadBacklinks(fileId) {
+  try {
+    const res = await fetch(`/api/backlinks/${fileId}`);
+    const links = await res.json();
+    const list = document.getElementById('backlinksList');
+    if (links.length === 0) { list.innerHTML = '<div style="font-size:11px; color:var(--text2); opacity:0.6;">Link yok.</div>'; return; }
+    list.innerHTML = links.map(link => `<a href="javascript:previewFile('${link.id}', '${link.name}.md')" style="padding:10px 15px; background:var(--bg2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:13px; display:flex; justify-content:space-between; align-items:center;"><span>${link.name}</span><svg class="icon" style="opacity:0.5; width:12px; height:12px;"><use href="#icon-chevron-right"></use></svg></a>`).join('');
+  } catch (e) { document.getElementById('backlinksList').innerHTML = 'Hata.'; }
 }
 
 async function toggleBacklinks() {
@@ -880,221 +1336,51 @@ async function toggleBacklinks() {
     if (activeTabId) {
       const res = await fetch(`/api/backlinks/${activeTabId}`);
       const links = await res.json();
-      const list = document.getElementById('backlinksList');
-      if (links.length === 0) {
-        list.innerHTML = '<div style="padding:16px; font-size:11px; color:var(--text2);">Geri bağlantı bulunamadı.</div>';
-      } else {
-        list.innerHTML = links.map(link => `
-          <div class="backlink-item" onclick="previewFile('${link.id}', '${link.name}')">
-            ${link.name}
-          </div>
-        `).join('');
-      }
+      const list = document.getElementById('backlinksList'); // Bu panel içindeki list
+      document.getElementById('backlinksList').innerHTML = links.length === 0 ? 'Link yok.' : links.map(link => `<div class="backlink-item" onclick="previewFile('${link.id}', '${link.name}')">${link.name}</div>`).join('');
     }
-  } else {
-    panel.style.display = 'none';
-  }
+  } else panel.style.display = 'none';
 }
 
 async function toggleIndexChecklist(cb) {
   const fileId = activeTabId;
   const taskItem = cb.closest('.task-list-item');
   const textElement = taskItem ? taskItem.querySelector('.task-text') : null;
-  
-  if (!fileId || !textElement) {
-    console.error("Checklist hatası: fileId veya text bulunamadı");
-    return;
-  }
-
+  if (!fileId || !textElement) return;
   const text = textElement.innerText.trim();
   const isChecked = cb.checked;
   let content = fileCache.get(fileId);
-  
   if (!content) {
-    // Cache yoksa sunucudan çek
     try {
       const res = await fetch(`/api/file/${fileId}`);
-      const data = await res.json();
-      content = data.content;
+      content = (await res.json()).content;
       fileCache.set(fileId, content);
-    } catch (e) {
-      cb.checked = !isChecked;
-      return;
-    }
+    } catch (e) { cb.checked = !isChecked; return; }
   }
-
   const targetStatus = isChecked ? '[ ]' : '[x]';
   const newStatus = isChecked ? '[x]' : '[ ]';
-  
   const lines = content.split('\n');
   let found = false;
-  
   for (let i = 0; i < lines.length; i++) {
-    // Daha güvenli eşleşme: Satır hem durumu hem de metni içermeli
-    if (lines[i].includes(targetStatus) && lines[i].includes(text)) {
-      lines[i] = lines[i].replace(targetStatus, newStatus);
-      found = true;
-      break;
-    }
+    if (lines[i].includes(targetStatus) && lines[i].includes(text)) { lines[i] = lines[i].replace(targetStatus, newStatus); found = true; break; }
   }
-
   if (!found) {
-    console.error("Satır bulunamadı, daha esnek arama yapılıyor...");
-    // Fallback: Sadece metni içeren ilk checklist satırını bul
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].includes('[ ]') || lines[i].includes('[x]')) {
-        if (lines[i].includes(text)) {
-          lines[i] = lines[i].replace(/\[[ xX]\]/, newStatus);
-          found = true;
-          break;
-        }
-      }
+      if ((lines[i].includes('[ ]') || lines[i].includes('[x]')) && lines[i].includes(text)) { lines[i] = lines[i].replace(/\[[ xX]\]/, newStatus); found = true; break; }
     }
   }
-
-  if (!found) {
-    alert("Not içeriğinde bu görev satırı bulunamadı.");
-    cb.checked = !isChecked;
-    return;
-  }
-
+  if (!found) { alert("Satır bulunamadı."); cb.checked = !isChecked; return; }
   const newContent = lines.join('\n');
   fileCache.set(fileId, newContent);
-
-  // Sunucuya kaydet (PUT)
   try {
-    const res = await fetch(`/api/file/${fileId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: newContent })
-    });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error);
-    
-    // UI Güncelle (Sadece Markdown gövdesini yenile, backlinks'e dokunma)
+    const res = await fetch(`/api/file/${fileId}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ content: newContent }) });
+    if (!(await res.json()).ok) throw new Error();
     const markdownBody = document.getElementById('markdownBody');
-    if (markdownBody) {
-      markdownBody.innerHTML = marked.parse(newContent);
-      markdownBody.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
-    }
-  } catch (e) {
-    alert('Kaydedilemedi: ' + e.message);
-    cb.checked = !isChecked;
-    fileCache.set(fileId, content);
-  }
+    if (markdownBody) { markdownBody.innerHTML = marked.parse(newContent); markdownBody.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el)); }
+  } catch (e) { alert('Hata!'); cb.checked = !isChecked; fileCache.set(fileId, content); }
 }
 
-// Event Delegation for Checkboxes
-document.addEventListener('change', (e) => {
-  if (e.target.classList.contains('task-checkbox')) {
-    toggleIndexChecklist(e.target);
-  }
-});
-
-// Preview Logic with Smart Caching (Stale-While-Revalidate)
-async function previewFile(fileId, fileName, pushHistory = true) {
-  activeTabId = fileId;
-  
-  // Tab management
-  if (!openTabs.find(t => t.id === fileId)) {
-    openTabs.push({ id: fileId, name: fileName });
-  }
-  renderTabs();
-
-  // Highlight in tree
-  document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
-  const activeEl = document.querySelector(`.tree-item[data-id="${fileId}"]`);
-  if (activeEl) activeEl.classList.add('active');
-
-  const mainBody = document.getElementById('mainBody');
-  
-  // 1. Show cached version immediately if available
-  if (fileCache.has(fileId)) {
-    renderContent(fileId, fileName, fileCache.get(fileId));
-  } else {
-    mainBody.innerHTML = '<div class="preview-empty"><div class="loading-spinner"></div>Yükleniyor...</div>';
-  }
-
-  // 2. Always fetch latest in background
-  try {
-    const res = await fetch(`/api/file/${fileId}`);
-    const data = await res.json();
-    
-    if (data.content !== undefined) {
-      const oldContent = fileCache.get(fileId);
-      // Only re-render if content has changed
-      if (oldContent !== data.content) {
-        fileCache.set(fileId, data.content);
-        renderContent(fileId, fileName, data.content);
-      }
-    }
-  } catch (e) {
-    if (!fileCache.has(fileId)) {
-      mainBody.innerHTML = '<div class="preview-empty">Not yüklenirken hata oluştu.</div>';
-    }
-  }
-
-  if (pushHistory) {
-    history.pushState({ fileId, fileName }, '', `?file=${encodeURIComponent(fileId)}`);
-  }
-}
-
-async function renderContent(fileId, fileName, content) {
-  const mainBody = document.getElementById('mainBody');
-  const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
-  
-  // PDF Desteği
-  if (fileName.toLowerCase().endsWith('.pdf')) {
-    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodeURIComponent(fileId)}`;
-    mainBody.innerHTML = `
-      <div class="preview-header fade-in">
-        <div class="preview-title">${cleanName}</div>
-        <a href="${url}" target="_blank" class="btn btn-primary" style="font-size:11px; padding:5px 12px;">Yeni Sekmede Aç</a>
-      </div>
-      <div style="flex:1; overflow:hidden;">
-        <iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>
-      </div>
-    `;
-    return;
-  }
-
-  const htmlContent = marked.parse(content);
-  
-  mainBody.innerHTML = `
-    <div class="preview-header fade-in">
-      <div class="preview-title">${cleanName}</div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn" onclick="toggleBacklinks()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
-          <svg class="icon"><use href="#icon-link"></use></svg>
-          geri bağlantılar
-        </button>
-        <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
-          <svg class="icon"><use href="#icon-copy"></use></svg>
-          kopyala
-        </button>
-        <a href="/edit/${fileId}" class="btn btn-primary" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
-          <svg class="icon"><use href="#icon-edit"></use></svg>
-          düzenle
-        </a>
-      </div>
-    </div>
-    <div class="preview-content fade-in">
-      <div id="markdownBody">${htmlContent}</div>
-      <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
-        <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500; user-select:none;">BACKLINKS</div>
-        <div class="fade-in" id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">
-          <div style="font-size:11px; color:var(--text2);">Yükleniyor...</div>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  mainBody.querySelectorAll('pre code').forEach((el) => {
-    hljs.highlightElement(el);
-  });
-
-  loadBacklinks(fileId);
-}
+document.addEventListener('change', (e) => { if (e.target.classList.contains('task-checkbox')) toggleIndexChecklist(e.target); });
 
 async function loadBacklinks(fileId) {
   try {
