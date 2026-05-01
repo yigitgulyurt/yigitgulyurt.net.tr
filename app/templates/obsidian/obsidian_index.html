@@ -1203,35 +1203,37 @@ async function showGraph() {
       previewFile(node.id, node.name + '.md');
     });
 
-  // Physics - Perfectly tuned for "Obsidian Feel" (No Repulsion, Only Collision)
+  // Physics - Perfectly tuned for "Obsidian Feel" (No Global Repulsion, Strong Local Presence)
   
-  // 1. İtmeyi tamamen kapatıyoruz (Coulomb Yasası devre dışı)
-  graphInstance.d3Force('charge', null);
+  // 1. Çok kısa mesafeli itme (Sadece birbirine çok yakınlaşanlar için tampon bölge)
+  // Bu, bağımsız notların birbirinin içine girmesini engeller ama uzağa fırlatmaz.
+  graphInstance.d3Force('charge')
+    .strength(-40)
+    .distanceMax(60); // Sadece 60 birim içinde etkili, sonrası "sıfır" itme.
 
-  // 2. Link Force (Sadece bağlı olanlar arasındaki mesafeyi korur)
+  // 2. Link Force (Bağlı olanlar arasındaki esnek mesafe)
   graphInstance.d3Force('link')
-    .distance(45)
+    .distance(40)
     .strength(1);
 
   // 3. Merkeze toplama (Dağılmayı önler)
-  graphInstance.d3Force('x', d3.forceX(0).strength(0.04));
-  graphInstance.d3Force('y', d3.forceY(0).strength(0.04));
+  graphInstance.d3Force('x', d3.forceX(0).strength(0.05));
+  graphInstance.d3Force('y', d3.forceY(0).strength(0.05));
 
-  // 4. Collision Force (ASIL MESAFE KORUYUCU)
-  // Notlar birbirini itmez, ama bu yarıçap (25) içine girmelerine izin verilmez.
-  // Bu "mutlak mesafe" hissini veren kuvvettir.
-  graphInstance.d3Force('collide', d3.forceCollide(25).iterations(3));
+  // 4. Collision Force (ASIL MESAFE KORUYUCU - Üst üste binmeyi imkansız kılar)
+  // Yarıçapı 30 yaparak notlar arasında net bir boşluk bırakıyoruz.
+  graphInstance.d3Force('collide', d3.forceCollide(30).iterations(4));
 
-  // 5. Hareket direnci (Daha ağır ve stabil hareket)
-  graphInstance.d3VelocityDecay(0.7); 
-  graphInstance.d3AlphaDecay(0.01); 
+  // 5. Hareket direnci ve Stabilite
+  graphInstance.d3VelocityDecay(0.6); 
+  graphInstance.d3AlphaDecay(0.02); 
 
   // 6. Sürükleme Mantığı
   graphInstance.onNodeDrag((node) => {
     node.fx = node.x;
     node.fy = node.y;
-    // Sürüklerken diğerlerini sarsmamak için alphaTarget'ı sıfırda tutuyoruz
-    graphInstance.d3AlphaTarget(0); 
+    // Sürüklerken diğerlerinin "kaçmaması" için alphaTarget'ı çok düşük tutuyoruz
+    graphInstance.d3AlphaTarget(0.01).restart(); 
   });
   
   graphInstance.onNodeDragEnd(node => {
