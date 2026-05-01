@@ -1206,43 +1206,41 @@ async function showGraph() {
   // Physics - Perfectly tuned for "Obsidian Feel" (Mathematical & Physical Optimization)
   
   // 1. Repel Force (Coulomb's Law Approximation)
-  // Obsidian Repel force: 12.40
+  // Obsidian'da notlar birbirini sonsuza kadar itmez. 
+  // Sadece birbirlerine çok yakınlaştıklarında (short-range) iterler.
   graphInstance.d3Force('charge')
-    .strength(-120) // Coulomb-like repulsion
-    .distanceMax(250) // Optimization: don't calculate for far nodes
-    .theta(0.9); // Barnes-Hut optimization
+    .strength(-30) 
+    .distanceMax(80) // KRİTİK: Sadece 80 birim içindeki notlar birbirini iter.
+    .theta(0.9);
 
   // 2. Link Force (Hooke's Law - Spring Force)
-  // Obsidian Link distance: 30, Link force: 0.91
   graphInstance.d3Force('link')
     .distance(30)
-    .strength(0.9);
+    .strength(1); // Bağlar daha sıkı
 
-  // 3. Center Force (Gravity towards center)
-  // Obsidian Center force: 0.65
+  // 3. Center Force (Yerçekimi gibi merkeze toplar)
   graphInstance.d3Force('center')
-    .strength(0.6);
+    .strength(0.8);
 
-  // 4. Collision Force (Preventing Overlap)
-  // Node size: 0.51 -> radius approx 4-5
-  graphInstance.d3Force('collide', d3.forceCollide(8).iterations(2));
+  // 4. Collision Force (Mutlak mesafe koruma - Üst üste binmeyi engeller)
+  graphInstance.d3Force('collide', d3.forceCollide(15).iterations(2));
 
-  // 5. Velocity & Alpha Decay (Buttery Smooth Movement)
-  graphInstance.d3VelocityDecay(0.4); // Resistance to movement
-  graphInstance.d3AlphaDecay(0.0228); // Standard d3 decay for stability
+  // 5. Velocity & Alpha Decay (Sistemin uçmasını engeller)
+  // velocityDecay: Sürtünme. Ne kadar yüksekse o kadar çabuk durur.
+  graphInstance.d3VelocityDecay(0.6); 
+  graphInstance.d3AlphaDecay(0.05); 
 
-  // 6. Custom Forces for "Stable" dragging
+  // 6. Sürükleme Mantığı (Sadece sürüklenen not hareket eder, diğerleri itilmez)
   graphInstance.onNodeDrag((node) => {
     node.fx = node.x;
     node.fy = node.y;
-    // Sürüklerken sistemi biraz "ısıt" ki diğer notlar tepki versin ama uçmasın
-    graphInstance.d3AlphaTarget(0.1).restart();
+    // Sürükleme sırasında sistemi "ısıtma" (alphaTarget(0) yaparak diğerlerinin kaçmasını engelliyoruz)
+    graphInstance.d3AlphaTarget(0); 
   });
   
   graphInstance.onNodeDragEnd(node => {
     node.fx = null;
     node.fy = null;
-    graphInstance.d3AlphaTarget(0); // Sistemi tekrar soğut
   });
 
   // Fit to canvas on load
