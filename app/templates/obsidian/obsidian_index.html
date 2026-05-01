@@ -699,14 +699,10 @@ const renderer = new marked.Renderer();
 // Checklist support: [ ] ve [x]
 renderer.listitem = (text, task, checked) => {
   if (task) {
-    // text içindeki tırnak işaretlerini escape et
-    const escapedText = text.replace(/'/g, "\\'");
     return `
       <li class="task-list-item">
-        <input type="checkbox" ${checked ? 'checked' : ''} 
-               data-text="${escapedText}"
-               onchange="toggleIndexChecklist(this)">
-        ${text}
+        <input type="checkbox" ${checked ? 'checked' : ''} class="task-checkbox">
+        <span class="task-text">${text}</span>
       </li>`;
   }
   return `<li>${text}</li>`;
@@ -839,28 +835,25 @@ async function toggleBacklinks() {
 
 async function toggleIndexChecklist(cb) {
   const fileId = activeTabId;
-  const text = cb.getAttribute('data-text');
+  const taskItem = cb.closest('.task-list-item');
+  const textElement = taskItem ? taskItem.querySelector('.task-text') : null;
   
-  if (!fileId || !text) {
-    console.error("Checklist hatası: fileId veya text bulunamadı", { fileId, text });
+  if (!fileId || !textElement) {
+    console.error("Checklist hatası: fileId veya text bulunamadı");
     return;
   }
 
+  const text = textElement.innerText.trim();
   const isChecked = cb.checked;
-  let oldContent = fileCache.get(fileId);
+  let content = fileCache.get(fileId);
   
-  // Eğer cache boşsa (henüz yüklenmediyse)
-  if (!oldContent) {
-    console.warn("Checklist hatası: Cache henüz yüklenmedi, sunucudan çekiliyor...");
+  if (!content) {
+    // Cache yoksa sunucudan çek
     try {
       const res = await fetch(`/api/file/${fileId}`);
       const data = await res.json();
-      if (data.content) {
-        fileCache.set(fileId, data.content);
-        oldContent = data.content;
-      } else {
-        throw new Error("Dosya içeriği alınamadı");
-      }
+      content = data.content;
+      fileCache.set(fileId, content);
     } catch (e) {
       cb.checked = !isChecked;
       return;
@@ -870,16 +863,12 @@ async function toggleIndexChecklist(cb) {
   const targetStatus = isChecked ? '[ ]' : '[x]';
   const newStatus = isChecked ? '[x]' : '[ ]';
   
-  // HTML etiketlerini temizle (Markdown içinde ham metni aramak için)
-  const cleanText = text.replace(/<[^>]*>?/gm, '').trim();
-  
-  // Satır bazlı arama ve değiştirme (en güvenli yöntem)
-  const lines = oldContent.split('\n');
+  const lines = content.split('\n');
   let found = false;
   
   for (let i = 0; i < lines.length; i++) {
-    // Satır hem status'u ([ ] veya [x]) hem de temizlenmiş metni içermeli
-    if (lines[i].includes(targetStatus) && lines[i].toLowerCase().includes(cleanText.toLowerCase())) {
+    // Daha güvenli eşleşme: Satır hem durumu hem de metni içermeli
+    if (lines[i].includes(targetStatus) && lines[i].includes(text)) {
       lines[i] = lines[i].replace(targetStatus, newStatus);
       found = true;
       break;
@@ -887,46 +876,57 @@ async function toggleIndexChecklist(cb) {
   }
 
   if (!found) {
-    console.error("Checklist hatası: Eşleşen satır bulunamadı", { targetStatus, text });
-    cb.checked = !isChecked; // UI'ı geri al
+    console.error("Satır bulunamadı, daha esnek arama yapılıyor...");
+    // Fallback: Sadece metni içeren ilk checklist satırını bul
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes('[ ]') || lines[i].includes('[x]')) {
+        if (lines[i].includes(text)) {
+          lines[i] = lines[i].replace(/\[[ xX]\]/, newStatus);
+          found = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!found) {
+    alert("Not içeriğinde bu görev satırı bulunamadı.");
+    cb.checked = !isChecked;
     return;
   }
 
   const newContent = lines.join('\n');
-
-  // 1. Cache ve UI'ı anında güncelle
   fileCache.set(fileId, newContent);
-  const previewContent = document.querySelector('.preview-content');
-  if (previewContent) {
-    // Tüm içeriği marked ile tekrar render et (tutarlılık için)
-    previewContent.innerHTML = marked.parse(newContent);
-    previewContent.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
-  }
 
-  // 2. Sunucuya kaydet
-  const apiUrl = `/api/file/${encodeURI(fileId)}`;
-  console.log("Checklist kaydediliyor:", apiUrl);
-  
+  // Sunucuya kaydet (PUT)
   try {
-    const res = await fetch(apiUrl, {
+    const res = await fetch(`/api/file/${fileId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: newContent })
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error);
-    console.log("Checklist başarıyla kaydedildi:", fileId);
-  } catch (e) {
-    console.error('Checklist kaydetme hatası:', e);
-    alert('Değişiklik kaydedilemedi: ' + e.message);
-    cb.checked = !isChecked; // UI'ı geri al
-    fileCache.set(fileId, oldContent); // Cache'i geri al
-    // UI'ı eski haline döndürmek için tekrar render gerekebilir
+    
+    // UI Güncelle (Sadece önizleme içeriğini yenile, tüm sayfayı değil)
+    const previewContent = document.querySelector('.preview-content');
     if (previewContent) {
-        previewContent.innerHTML = marked.parse(oldContent);
+      previewContent.innerHTML = marked.parse(newContent);
+      previewContent.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
     }
+  } catch (e) {
+    alert('Kaydedilemedi: ' + e.message);
+    cb.checked = !isChecked;
+    fileCache.set(fileId, content);
   }
 }
+
+// Event Delegation for Checkboxes
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('task-checkbox')) {
+    toggleIndexChecklist(e.target);
+  }
+});
 
 // Preview Logic with Smart Caching (Stale-While-Revalidate)
 async function previewFile(fileId, fileName, pushHistory = true) {
