@@ -1210,7 +1210,7 @@ async function showGraph() {
   // Sadece birbirlerine çok yakınlaştıklarında (short-range) iterler.
   graphInstance.d3Force('charge')
     .strength(-30) 
-    .distanceMax(80) // KRİTİK: Sadece 80 birim içindeki notlar birbirini iter.
+    .distanceMax(0) // KRİTİK: Sadece 80 birim içindeki notlar birbirini iter.
     .theta(0.9);
 
   // 2. Link Force (Hooke's Law - Spring Force)
