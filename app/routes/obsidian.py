@@ -401,22 +401,44 @@ _search_cache = {
 @bp.route('/api/daily-note')
 @obsidian_auth
 def api_daily_note():
-    """Bugünün tarihli notunu bulur veya oluşturur."""
+    """Bugünün tarihli notunu bulur veya oluşturur ve Günlük.md'ye linkler."""
     vault_path = get_vault_path()
     today = datetime.now().strftime("%Y-%m-%d")
     filename = f"{today}.md"
     
-    # "Daily" klasörü varsa oraya, yoksa root'a
+    # "Günlük" klasörünü garantile
     daily_dir = safe_join(vault_path, "Günlük")
-    if os.path.isdir(daily_dir):
-        rel_path = f"Günlük/{filename}"
-    else:
-        rel_path = filename
+    if not os.path.exists(daily_dir):
+        os.makedirs(daily_dir, exist_ok=True)
         
+    rel_path = f"Günlük/{filename}"
     full_path = safe_join(vault_path, rel_path)
+    
+    # 1. Günlük notu oluştur (yoksa)
     if not os.path.exists(full_path):
         with open(full_path, 'w', encoding='utf-8') as f:
             f.write(f"# {today}\n\n")
+            
+    # 2. Günlük/Günlük.md (Dizin dosyası) güncelle
+    index_rel_path = "Günlük/Günlük.md"
+    index_full_path = safe_join(vault_path, index_rel_path)
+    
+    # Dosya yoksa oluştur
+    if not os.path.exists(index_full_path):
+        with open(index_full_path, 'w', encoding='utf-8') as f:
+            f.write("# Günlük İndeksi\n\n")
+            
+    # Link zaten var mı kontrol et
+    with open(index_full_path, 'r', encoding='utf-8') as f:
+        index_content = f.read()
+        
+    link_str = f"[[{today}]]"
+    if link_str not in index_content:
+        with open(index_full_path, 'a', encoding='utf-8') as f:
+            # Yeni bir satıra linki ekle
+            if not index_content.endswith('\n'):
+                f.write('\n')
+            f.write(f"- {link_str}\n")
             
     update_recent_files(rel_path)
     return jsonify({'ok': True, 'path': rel_path})
