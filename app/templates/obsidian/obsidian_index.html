@@ -1203,38 +1203,34 @@ async function showGraph() {
       previewFile(node.id, node.name + '.md');
     });
 
-  // Physics - Perfectly tuned for "Obsidian Feel" (Mathematical & Physical Optimization)
+  // Physics - Perfectly tuned for "Obsidian Feel" (No Repulsion, Only Collision)
   
-  // 1. Repel Force (Coulomb's Law Approximation)
-  // Obsidian'da notlar birbirini sonsuza kadar itmez. 
-  // Sadece birbirlerine çok yakınlaştıklarında (short-range) iterler.
-  graphInstance.d3Force('charge')
-    .strength(-30) 
-    .distanceMax(0) // KRİTİK: Sadece 80 birim içindeki notlar birbirini iter.
-    .theta(0.9);
+  // 1. İtmeyi tamamen kapatıyoruz (Coulomb Yasası devre dışı)
+  graphInstance.d3Force('charge', null);
 
-  // 2. Link Force (Hooke's Law - Spring Force)
+  // 2. Link Force (Sadece bağlı olanlar arasındaki mesafeyi korur)
   graphInstance.d3Force('link')
-    .distance(30)
-    .strength(1); // Bağlar daha sıkı
+    .distance(45)
+    .strength(1);
 
-  // 3. Center Force (Yerçekimi gibi merkeze toplar)
-  graphInstance.d3Force('center')
-    .strength(0.8);
+  // 3. Merkeze toplama (Dağılmayı önler)
+  graphInstance.d3Force('x', d3.forceX(0).strength(0.04));
+  graphInstance.d3Force('y', d3.forceY(0).strength(0.04));
 
-  // 4. Collision Force (Mutlak mesafe koruma - Üst üste binmeyi engeller)
-  graphInstance.d3Force('collide', d3.forceCollide(15).iterations(2));
+  // 4. Collision Force (ASIL MESAFE KORUYUCU)
+  // Notlar birbirini itmez, ama bu yarıçap (25) içine girmelerine izin verilmez.
+  // Bu "mutlak mesafe" hissini veren kuvvettir.
+  graphInstance.d3Force('collide', d3.forceCollide(25).iterations(3));
 
-  // 5. Velocity & Alpha Decay (Sistemin uçmasını engeller)
-  // velocityDecay: Sürtünme. Ne kadar yüksekse o kadar çabuk durur.
-  graphInstance.d3VelocityDecay(0.6); 
-  graphInstance.d3AlphaDecay(0.05); 
+  // 5. Hareket direnci (Daha ağır ve stabil hareket)
+  graphInstance.d3VelocityDecay(0.7); 
+  graphInstance.d3AlphaDecay(0.01); 
 
-  // 6. Sürükleme Mantığı (Sadece sürüklenen not hareket eder, diğerleri itilmez)
+  // 6. Sürükleme Mantığı
   graphInstance.onNodeDrag((node) => {
     node.fx = node.x;
     node.fy = node.y;
-    // Sürükleme sırasında sistemi "ısıtma" (alphaTarget(0) yaparak diğerlerinin kaçmasını engelliyoruz)
+    // Sürüklerken diğerlerini sarsmamak için alphaTarget'ı sıfırda tutuyoruz
     graphInstance.d3AlphaTarget(0); 
   });
   
