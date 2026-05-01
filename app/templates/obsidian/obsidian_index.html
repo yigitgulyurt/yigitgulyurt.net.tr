@@ -4,7 +4,7 @@
 {% block description %}Kişisel not defteri — Obsidian vault{% endblock %}
 
 {% block head %}
-<!-- CodeMirror 6 -->
+<!-- Toast Library (Notyf) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 <!-- Marked.js markdown parser -->
@@ -22,6 +22,12 @@ html, body {
   overflow: hidden !important;
 }
 
+:root {
+  --sidebar-width: 280px;
+  --transition-speed: 0.3s;
+  --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .vault-wrap {
   position: fixed;
   top: 60px;
@@ -29,13 +35,23 @@ html, body {
   right: 0;
   bottom: 0;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   overflow: hidden;
   background: var(--bg);
 }
 
-/* Toast Customization */
-.notyf__toast { border-radius: 4px; padding: 12px 16px; font-family: var(--mono); font-size: 12px; }
+/* Toast Modernization */
+.notyf__toast { 
+  border-radius: 8px !important; 
+  padding: 12px 16px !important; 
+  font-family: var(--font) !important; 
+  font-size: 13px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  max-width: 350px !important;
+}
+.notyf__ripple { display: none !important; }
+.notyf__message { font-weight: 500; }
+/* Notyf Custom Types via JS config */
 
 /* ── SIDEBAR ── */
 .vault-sidebar {
@@ -45,6 +61,7 @@ html, body {
   background: var(--bg);
   height: 100%;
   overflow: hidden;
+  z-index: 10;
 }
 .vault-tree {
   flex: 1;
@@ -65,6 +82,7 @@ html, body {
   color: var(--accent);
   letter-spacing: 0.5px;
   user-select: none;
+  font-weight: 600;
 }
 .vault-actions {
   display: flex;
@@ -73,29 +91,21 @@ html, body {
 .vault-icon-btn {
   background: transparent;
   border: 0.5px solid var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
   color: var(--text2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 5px;
   cursor: pointer;
-  transition: all .15s;
+  transition: all .2s;
 }
 .vault-icon-btn svg {
   width: 14px;
   height: 14px;
   fill: currentColor;
 }
-.vault-icon-btn:hover { color: var(--accent); border-color: var(--accent); }
-
-/* SVG Icon Helper */
-.icon {
-  width: 1em;
-  height: 1em;
-  fill: currentColor;
-  vertical-align: middle;
-}
+.vault-icon-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--bg2); }
 
 /* ── SIDEBAR SEARCH ── */
 .sidebar-header {
@@ -103,65 +113,67 @@ html, body {
   border-bottom: 0.5px solid var(--border);
   position: relative;
 }
-.search-box {
-  position: relative;
-}
 .search-box input {
   width: 100%;
   background: var(--bg2);
   border: 0.5px solid var(--border);
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 11px;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
   color: var(--text);
   outline: none;
+  transition: border-color 0.2s;
 }
 .search-box input:focus { border-color: var(--accent); }
 
 .search-results {
   position: absolute;
   top: calc(100% + 5px);
-  left: 0;
-  right: 0;
+  left: 12px;
+  right: 12px;
   background: var(--bg);
   border: 0.5px solid var(--border);
-  border-radius: 4px;
+  border-radius: 8px;
   max-height: 400px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 .search-result-item {
-  padding: 10px;
+  padding: 12px;
   border-bottom: 0.5px solid var(--border);
   cursor: pointer;
   display: block;
   text-decoration: none;
 }
 .search-result-item:hover { background: var(--bg2); }
-.search-result-item .name { font-weight: 500; font-size: 11px; color: var(--accent); margin-bottom: 4px; }
-.search-result-item .snippet { font-size: 10px; color: var(--text2); font-style: italic; }
+.search-result-item .name { font-weight: 600; font-size: 12px; color: var(--accent); margin-bottom: 4px; }
+.search-result-item .snippet { font-size: 11px; color: var(--text2); line-height: 1.4; }
 
 /* ── FILE TREE ── */
 .tree-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 16px;
-  font-size: 12px;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 13px;
   color: var(--text2);
-  cursor: grab;
+  cursor: pointer;
   user-select: none;
-  transition: color .1s, background .1s;
+  transition: all 0.2s;
   text-decoration: none;
+  border-left: 2px solid transparent;
 }
 .tree-item:hover { color: var(--text); background: var(--bg2); }
-.tree-item.active { color: var(--accent2); background: var(--bg3); }
-.tree-item-icon { font-size: 10px; flex-shrink: 0; }
+.tree-item.active { 
+  color: var(--accent); 
+  background: var(--bg2); 
+  border-left-color: var(--accent);
+}
+.tree-item-icon { font-size: 12px; flex-shrink: 0; opacity: 0.7; }
 .tree-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tree-folder { color: var(--text2); }
-.tree-folder.open > .tree-item { color: var(--text); }
-.tree-children { display: none; padding-left: 14px; }
+.tree-folder.open > .tree-item { color: var(--text); font-weight: 500; }
+.tree-children { display: none; padding-left: 16px; }
 .tree-folder.open > .tree-children { display: block; }
 
 /* ── MAIN PANEL ── */
@@ -173,36 +185,35 @@ html, body {
   height: 100%;
 }
 
-/* Tabs */
 .vault-main-header {
   padding: 0;
   border-bottom: 0.5px solid var(--border);
   display: flex;
   align-items: center;
   background: var(--bg2);
-  height: 36px;
+  height: 40px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 .tab {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 0 16px;
   height: 100%;
   border-right: 0.5px solid var(--border);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text2);
   cursor: pointer;
-  background: var(--bg);
+  background: var(--bg2);
   user-select: none;
   white-space: nowrap;
-  transition: all 0.1s;
+  transition: all 0.2s;
 }
-.tab:hover { background: var(--bg2); color: var(--text); }
-.tab.active { background: var(--bg); color: var(--accent); border-top: 2px solid var(--accent); }
-.tab-close { font-size: 14px; opacity: 0.5; padding: 2px; }
-.tab-close:hover { opacity: 1; color: #f87171; }
+.tab:hover { background: var(--bg3); color: var(--text); }
+.tab.active { background: var(--bg); color: var(--accent); border-top: 2px solid var(--accent); font-weight: 600; }
+.tab-close { font-size: 16px; opacity: 0.4; padding: 2px; border-radius: 4px; transition: all 0.2s; }
+.tab-close:hover { opacity: 1; color: #f87171; background: rgba(248, 113, 113, 0.1); }
 
 .vault-main-body {
   flex: 1;
@@ -210,16 +221,43 @@ html, body {
   flex-direction: column;
   background: var(--bg);
   overflow: hidden;
+  position: relative;
 }
 
-/* Editor & Preview */
-.editor-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* ── MODES (READ vs EDIT) ── */
+.content-wrapper {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   height: 100%;
+  position: relative;
 }
+
+/* Rendered (Read-only) Mode */
+.render-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 60px;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  transition: opacity var(--transition-speed) var(--transition-ease);
+}
+
+/* Editor Layout (Split Mode) */
+.editor-layout {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+  z-index: 20;
+  transform: translateY(100%);
+  transition: transform var(--transition-speed) var(--transition-ease);
+}
+.editor-layout.active { transform: translateY(0); }
+
 .editor-pane, .preview-pane {
   display: flex;
   flex-direction: column;
@@ -228,92 +266,141 @@ html, body {
 }
 .editor-pane { border-right: 0.5px solid var(--border); }
 
-/* CodeMirror Wrapper */
-#cm-editor {
-  flex: 1;
-  overflow: hidden;
-  font-size: 14px;
-}
-.cm-editor { height: 100%; }
-
-.preview-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 30px 40px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Toolbar */
 .pane-toolbar {
-  height: 36px;
+  height: 40px;
   padding: 0 16px;
   border-bottom: 0.5px solid var(--border);
   background: var(--bg2);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 .toolbar-actions { display: flex; gap: 8px; }
 
-/* Markdown Styles */
-.preview-content h1 { font-size: 24px; font-weight: 500; margin: 0 0 16px; color: var(--text); }
-.preview-content h2 { font-size: 20px; font-weight: 500; margin: 24px 0 10px; color: var(--text); }
-.preview-content h3 { font-size: 16px; font-weight: 500; margin: 20px 0 8px; color: var(--accent2); }
-.preview-content p  { font-size: 14px; line-height: 1.8; margin-bottom: 14px; color: var(--text); }
-.preview-content img { max-width: 100%; border-radius: 6px; margin: 12px 0; }
-.preview-content a { color: var(--accent); text-decoration: none; }
-.preview-content a:hover { text-decoration: underline; }
-.wiki-link { border-bottom: 1px dashed var(--accent2); color: var(--accent2) !important; }
+#cm-editor { flex: 1; overflow: hidden; font-size: 14px; }
+.cm-editor { height: 100%; }
+
+.preview-pane-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 40px;
+}
+
+/* Floating Actions Header (For Read Mode) */
+.read-mode-header {
+  padding: 12px 24px;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* Markdown & Images */
+.markdown-body { line-height: 1.6; color: var(--text); }
+.markdown-body h1 { font-size: 2.2em; margin-top: 0; margin-bottom: 24px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.markdown-body h2 { font-size: 1.6em; margin: 1.5em 0 16px; font-weight: 600; }
+.markdown-body p { margin-bottom: 16px; font-size: 15px; }
+
+/* Image Skeleton & Blur-up */
+.img-container {
+  position: relative;
+  margin: 20px 0;
+  background: var(--bg2);
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 100px;
+}
+.img-container.loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--bg3), transparent);
+  animation: skeleton-loading 1.5s infinite;
+}
+@keyframes skeleton-loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.markdown-body img {
+  max-width: 100%;
+  display: block;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.4s ease-in;
+}
+.markdown-body img.loaded { opacity: 1; }
+
+.wiki-link { 
+  color: var(--accent) !important; 
+  text-decoration: none; 
+  border-bottom: 1px dashed var(--accent);
+  transition: all 0.2s;
+}
+.wiki-link:hover { background: rgba(var(--accent-rgb), 0.1); border-bottom-style: solid; }
 
 /* ── MODAL ── */
 .modal-overlay {
   display: none;
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
   z-index: 2000;
   align-items: center;
   justify-content: center;
 }
 .modal-overlay.open { display: flex; }
 .modal-box {
-  background: var(--bg2);
-  border: 0.5px solid var(--border);
-  border-radius: 6px;
-  padding: 24px;
-  width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 30px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
-.modal-title { font-size: 14px; color: var(--accent); font-weight: 500; }
+.modal-title { font-size: 18px; color: var(--accent); font-weight: 600; margin-bottom: 20px; }
 .modal-input {
   width: 100%;
-  background: var(--bg);
-  border: 0.5px solid var(--border);
-  border-radius: 4px;
-  padding: 10px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
   color: var(--text);
   outline: none;
-  font-family: var(--mono);
+  font-family: inherit;
+  margin-bottom: 24px;
 }
 .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
-/* Helper classes */
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+}
+.btn:hover { background: var(--bg3); }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover { opacity: 0.9; }
+
 .hidden { display: none !important; }
-.fade-in { animation: fadeIn 0.2s ease-out; }
+.fade-in { animation: fadeIn 0.3s var(--transition-ease); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Graph View */
-.graph-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; flex-direction: column;
-}
-
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .vault-wrap { grid-template-columns: 1fr; }
   .vault-sidebar { display: none; }
-  .editor-container { grid-template-columns: 1fr; }
+  .editor-layout { grid-template-columns: 1fr; }
   .preview-pane { display: none; }
 }
 </style>
@@ -328,19 +415,16 @@ html, body {
   {# ── SIDEBAR ── #}
   <aside class="vault-sidebar">
     <div class="vault-sidebar-header">
-      <span class="vault-title">// vault</span>
+      <span class="vault-title">// OBSIDIAN VAULT</span>
       <div class="vault-actions">
-        <button class="vault-icon-btn" onclick="openModal('modalNewFile')" title="Yeni not"><svg class="icon"><use href="#icon-plus"></use></svg></button>
-        <button class="vault-icon-btn" onclick="openDailyNote()" title="Günlük not"><svg class="icon"><use href="#icon-calendar"></use></svg></button>
-        <button class="vault-icon-btn" onclick="showGraph()" title="Graph View"><svg class="icon"><use href="#icon-graph"></use></svg></button>
-        <button class="vault-icon-btn" onclick="document.getElementById('fileUpload').click()" title="Dosya yükle"><svg class="icon"><use href="#icon-upload"></use></svg></button>
-        <input type="file" id="fileUpload" style="display:none" onchange="uploadFile(this)">
+        <button class="vault-icon-btn" onclick="openModal('modalNewFile')" title="Yeni Not"><svg class="icon"><use href="#icon-plus"></use></svg></button>
+        <button class="vault-icon-btn" onclick="showGraph()" title="Grafik Görünümü"><svg class="icon"><use href="#icon-graph"></use></svg></button>
       </div>
     </div>
     
     <div class="sidebar-header">
       <div class="search-box">
-        <input type="text" id="vaultSearch" placeholder="Notlarda ara..." oninput="handleSearch(this.value)">
+        <input type="text" id="vaultSearch" placeholder="Aramak için yazın..." oninput="handleSearch(this.value)">
       </div>
       <div id="searchResults" class="search-results hidden"></div>
     </div>
@@ -351,10 +435,9 @@ html, body {
           {% if node.is_folder %}
             <div class="tree-folder" data-id="{{ node.id }}">
               <div class="tree-item tree-folder-item"
-                   style="padding-left: {{ 16 + depth * 12 }}px"
+                   style="padding-left: {{ 16 + depth * 16 }}px"
                    onclick="toggleFolder(this)">
                 <span class="tree-item-icon"><svg class="icon"><use href="#icon-chevron-right"></use></svg></span>
-                <span class="tree-item-icon" style="margin-left: -4px;"><svg class="icon" style="color:var(--accent)"><use href="#icon-folder"></use></svg></span>
                 <span class="tree-item-name">{{ node.name }}</span>
               </div>
               <div class="tree-children">
@@ -364,9 +447,9 @@ html, body {
           {% else %}
             <div class="tree-item"
                onclick="openFile('{{ node.id }}', '{{ node.name }}')"
-               style="padding-left: {{ 16 + depth * 12 }}px"
+               style="padding-left: {{ 16 + depth * 16 }}px"
                data-id="{{ node.id }}">
-              <span class="tree-item-icon" style="color:var(--accent2)"><svg class="icon"><use href="#icon-file"></use></svg></span>
+              <span class="tree-item-icon"><svg class="icon"><use href="#icon-file"></use></svg></span>
               <span class="tree-item-name">{{ node.name[:-3] if node.name.endswith('.md') else node.name }}</span>
             </div>
           {% endif %}
@@ -378,42 +461,60 @@ html, body {
 
   {# ── MAIN ── #}
   <main class="vault-main">
-    <div class="vault-main-header" id="tabBar">
-      <!-- Tabs will be injected here -->
-    </div>
+    <div class="vault-main-header" id="tabBar"></div>
     
     <div class="vault-main-body" id="mainBody">
-      <div id="editorLayout" class="editor-container hidden">
-        <div class="editor-pane">
-          <div class="pane-toolbar">
-            <span id="activeFileName" style="font-size: 11px; color: var(--text2);">not.md</span>
+      <div id="contentWrapper" class="content-wrapper hidden">
+        
+        {# 1. Read Mode #}
+        <div id="readMode" class="render-pane">
+          <div class="read-mode-header">
+            <h1 id="readModeTitle" style="margin:0; font-size: 20px; border:none; padding:0;">Not Başlığı</h1>
             <div class="toolbar-actions">
-              <button class="vault-icon-btn" onclick="saveActiveFile()" title="Kaydet (Ctrl+S)"><svg class="icon"><use href="#icon-upload"></use></svg></button>
-              <button class="vault-icon-btn" onclick="copyWikiLink()" title="Link Kopyala"><svg class="icon"><use href="#icon-link"></use></svg></button>
-              <button class="vault-icon-btn" onclick="deleteActiveFile()" title="Sil"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+              <button class="btn btn-primary" onclick="toggleEditMode(true)">
+                <svg class="icon" style="margin-right:6px;"><use href="#icon-edit"></use></svg> Düzenle
+              </button>
+              <button class="btn" onclick="copyWikiLink()" title="Link Kopyala"><svg class="icon"><use href="#icon-link"></use></svg></button>
+              <button class="btn" onclick="deleteActiveFile()" title="Sil"><svg class="icon" style="color:#f87171;"><use href="#icon-trash"></use></svg></button>
             </div>
           </div>
-          <div id="cm-editor"></div>
+          <div id="renderArea" class="markdown-body" style="padding-top:30px;"></div>
         </div>
-        <div class="preview-pane">
-          <div class="pane-toolbar">
-            <span style="font-size: 11px; color: var(--text2);">önizleme</span>
+
+        {# 2. Edit Mode (Split) #}
+        <div id="editMode" class="editor-layout">
+          <div class="editor-pane">
+            <div class="pane-toolbar">
+              <span style="font-size: 11px; font-weight:600; color: var(--accent);">DÜZENLEME MODU</span>
+              <div class="toolbar-actions">
+                <button class="btn btn-primary" onclick="saveActiveFile()">Kaydet</button>
+                <button class="btn" onclick="toggleEditMode(false)">İptal</button>
+              </div>
+            </div>
+            <div id="cm-editor"></div>
           </div>
-          <div id="previewArea" class="preview-content"></div>
+          <div class="preview-pane">
+            <div class="pane-toolbar">
+              <span style="font-size: 11px; font-weight:600; color: var(--text2);">ÖNİZLEME</span>
+            </div>
+            <div id="previewArea" class="preview-pane-content markdown-body"></div>
+          </div>
         </div>
+
       </div>
 
-      <div id="emptyState" class="fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2);">
-        <svg class="icon" style="width: 48px; height: 48px; opacity: 0.2; margin-bottom: 16px;"><use href="#icon-book"></use></svg>
-        <p>Düzenlemek için bir not seçin veya yeni bir tane oluşturun.</p>
-        <button class="btn" style="margin-top: 16px;" onclick="openModal('modalNewFile')">Yeni Not Oluştur</button>
+      <div id="emptyState" class="fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); text-align:center; padding: 20px;">
+        <svg class="icon" style="width: 64px; height: 64px; opacity: 0.1; margin-bottom: 24px;"><use href="#icon-book"></use></svg>
+        <h2 style="font-weight: 500; margin-bottom: 8px; color: var(--text);">Vault'a Hoş Geldiniz</h2>
+        <p style="max-width: 300px; line-height: 1.5;">Sol taraftaki ağaçtan bir not seçerek okumaya başlayabilir veya yeni bir not oluşturabilirsiniz.</p>
+        <button class="btn btn-primary" style="margin-top: 24px;" onclick="openModal('modalNewFile')">Yeni Not Oluştur</button>
       </div>
     </div>
   </main>
 
   <div id="graphOverlay" class="graph-overlay hidden">
-    <div style="padding: 16px; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-      <span class="vault-title">// graph view</span>
+    <div style="padding: 16px; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg2);">
+      <span class="vault-title">// BİLGİ GRAFİĞİ</span>
       <button class="btn" onclick="hideGraph()">Kapat</button>
     </div>
     <div id="graph-container" style="flex: 1;"></div>
@@ -421,13 +522,13 @@ html, body {
 </div>
 
 {# ── MODALS ── #}
-<div class="modal-overlay" id="modalNewFile">
+<div class="modal-overlay" id="modalNewFile" onclick="if(event.target==this) closeModal('this.id')">
   <div class="modal-box fade-in">
-    <div class="modal-title">// yeni not</div>
-    <input class="modal-input" id="newFileName" type="text" placeholder="not-adi.md" />
+    <div class="modal-title">Yeni Not Oluştur</div>
+    <input class="modal-input" id="newFileName" type="text" placeholder="Not adı (örn: Proje Planı)" autofocus />
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modalNewFile')">İptal</button>
-      <button class="btn btn-primary" onclick="createNewFile()">Oluştur</button>
+      <button class="btn btn-primary" onclick="createNewFile()">Notu Oluştur</button>
     </div>
   </div>
 </div>
@@ -446,33 +547,36 @@ let editor = null;
 let activeFileId = null;
 let openTabs = [];
 let allFiles = [];
+let isEditMode = false;
 
+// Modernized Notyf Config
 const notyf = new Notyf({
-    duration: 3000,
+    duration: 4000,
+    ripple: false,
     position: { x: 'right', y: 'bottom' },
-    types: [{ type: 'success', background: 'var(--accent)', icon: false }]
+    dismissible: true,
+    types: [
+        { type: 'success', background: '#10b981', icon: { className: 'notyf__icon--success', tagName: 'i' } },
+        { type: 'error', background: '#ef4444', icon: { className: 'notyf__icon--error', tagName: 'i' } },
+        { type: 'warning', background: '#f59e0b', icon: { className: 'notyf__icon--warning', tagName: 'i' } },
+        { type: 'info', background: '#3b82f6', icon: { className: 'notyf__icon--info', tagName: 'i' } }
+    ]
 });
 
 // Wiki-link Autocomplete Source
 function wikiLinkCompletion(context) {
     let word = context.matchBefore(/\[\[[^\]]*/);
     if (!word || (word.from == word.to && !context.explicit)) return null;
-    
     const query = word.text.slice(2).toLowerCase();
     const options = allFiles
         .filter(f => f.toLowerCase().includes(query))
         .map(f => ({ label: f, type: "variable", apply: f + "]]" }));
-
-    return {
-        from: word.from + 2,
-        options: options
-    };
+    return { from: word.from + 2, options: options };
 }
 
 // Initialize Editor
 function initEditor(content = "") {
     if (editor) editor.destroy();
-    
     editor = new EditorView({
         doc: content,
         extensions: [
@@ -483,13 +587,12 @@ function initEditor(content = "") {
             autocompletion({ override: [wikiLinkCompletion] }),
             EditorView.updateListener.of((update) => {
                 if (update.docChanged) {
-                    renderPreview(update.state.doc.toString());
+                    renderContent(update.state.doc.toString(), "previewArea");
                 }
             })
         ],
         parent: document.getElementById("cm-editor")
     });
-    renderPreview(content);
 }
 
 // File Operations
@@ -500,15 +603,38 @@ window.openFile = async (id, name) => {
         if (data.error) throw new Error(data.error);
 
         activeFileId = id;
-        document.getElementById("activeFileName").textContent = name;
+        document.getElementById("readModeTitle").textContent = name.replace('.md', '');
         document.getElementById("emptyState").classList.add("hidden");
-        document.getElementById("editorLayout").classList.remove("hidden");
+        document.getElementById("contentWrapper").classList.remove("hidden");
         
+        // Show Read Mode by default
+        toggleEditMode(false);
+        renderContent(data.content, "renderArea");
+        
+        // Prepare editor in background
         initEditor(data.content);
         updateTabs(id, name);
-        notyf.success("Dosya açıldı");
+        notyf.success({ message: "Not yüklendi", duration: 2000 });
     } catch (err) {
-        notyf.error("Dosya yüklenemedi: " + err.message);
+        notyf.error("Not açılamadı: " + err.message);
+    }
+};
+
+window.toggleEditMode = (enable) => {
+    isEditMode = enable;
+    const editLayout = document.getElementById("editMode");
+    const readMode = document.getElementById("readMode");
+    
+    if (enable) {
+        editLayout.classList.add("active");
+        readMode.style.opacity = "0.3";
+        // Sync editor preview
+        if (editor) renderContent(editor.state.doc.toString(), "previewArea");
+    } else {
+        editLayout.classList.remove("active");
+        readMode.style.opacity = "1";
+        // If we cancel, re-render read area from editor state (if changed)
+        if (editor) renderContent(editor.state.doc.toString(), "renderArea");
     }
 };
 
@@ -523,7 +649,9 @@ window.saveActiveFile = async () => {
         });
         const data = await res.json();
         if (data.ok) {
-            notyf.success("Kaydedildi");
+            notyf.success("Not kaydedildi");
+            toggleEditMode(false);
+            renderContent(content, "renderArea");
         } else {
             throw new Error(data.error);
         }
@@ -555,7 +683,7 @@ window.createNewFile = async () => {
             throw new Error(data.error);
         }
     } catch (err) {
-        notyf.error("Oluşturma hatası: " + err.message);
+        notyf.error("Hata: " + err.message);
     }
 };
 
@@ -570,19 +698,43 @@ window.deleteActiveFile = async () => {
             refreshTree();
         }
     } catch (err) {
-        notyf.error("Silme hatası");
+        notyf.error("Silme işlemi başarısız");
     }
 };
 
-// UI Helpers
-function renderPreview(content) {
-    const previewArea = document.getElementById("previewArea");
-    previewArea.innerHTML = marked.parse(content);
-    previewArea.querySelectorAll('pre code').forEach((block) => {
+// Image & Markdown Rendering
+function renderContent(content, targetId) {
+    const target = document.getElementById(targetId);
+    
+    // Custom renderer for Obsidian-style images
+    const renderer = new marked.Renderer();
+    renderer.image = (href, title, text) => {
+        // Handle Obsidian relative paths ![[image.png]]
+        let finalSrc = href;
+        if (!href.startsWith('http') && !href.startsWith('/')) {
+            finalSrc = `/obsidian/media/${encodeURIComponent(href)}`;
+        }
+        
+        return `
+            <div class="img-container loading">
+                <img src="${finalSrc}" 
+                     alt="${text || 'Görsel'}" 
+                     title="${title || ''}" 
+                     loading="lazy" 
+                     onload="this.classList.add('loaded'); this.parentElement.classList.remove('loading');"
+                     onerror="this.src='/static/img/placeholder.png'; this.parentElement.classList.remove('loading'); this.style.opacity=0.5;">
+            </div>`;
+    };
+
+    target.innerHTML = marked.parse(content, { renderer });
+    
+    // Syntax highlighting
+    target.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
     });
 }
 
+// UI Helpers
 function updateTabs(id, name) {
     if (!openTabs.find(t => t.id === id)) {
         openTabs.push({ id, name });
@@ -608,7 +760,7 @@ window.closeTab = (id) => {
             openFile(next.id, next.name);
         } else {
             activeFileId = null;
-            document.getElementById("editorLayout").classList.add("hidden");
+            document.getElementById("contentWrapper").classList.add("hidden");
             document.getElementById("emptyState").classList.remove("hidden");
         }
     }
@@ -623,25 +775,16 @@ window.toggleFolder = (el) => {
     const folder = el.closest('.tree-folder');
     folder.classList.toggle('open');
     const icon = el.querySelector('.tree-item-icon svg use');
-    if (folder.classList.contains('open')) {
-        icon.setAttribute('href', '#icon-chevron-down');
-    } else {
-        icon.setAttribute('href', '#icon-chevron-right');
-    }
+    icon.setAttribute('href', folder.classList.contains('open') ? '#icon-chevron-down' : '#icon-chevron-right');
 };
 
 // Search
 window.handleSearch = async (query) => {
     const resultsDiv = document.getElementById("searchResults");
-    if (!query) {
-        resultsDiv.classList.add("hidden");
-        return;
-    }
-
+    if (!query) { resultsDiv.classList.add("hidden"); return; }
     try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const results = await res.json();
-        
         if (results.length > 0) {
             resultsDiv.innerHTML = results.map(r => `
                 <div class="search-result-item" onclick="openFile('${r.id}', '${r.name}.md'); document.getElementById('searchResults').classList.add('hidden');">
@@ -651,16 +794,18 @@ window.handleSearch = async (query) => {
             `).join('');
             resultsDiv.classList.remove("hidden");
         } else {
-            resultsDiv.innerHTML = '<div class="search-result-item">Sonuç bulunamadı</div>';
+            resultsDiv.innerHTML = '<div class="search-result-item">Eşleşme bulunamadı</div>';
             resultsDiv.classList.remove("hidden");
         }
-    } catch (err) {
-        console.error("Arama hatası", err);
-    }
+    } catch (err) { console.error(err); }
 };
 
 // Modal Management
-window.openModal = (id) => document.getElementById(id).classList.add('open');
+window.openModal = (id) => {
+    document.getElementById(id).classList.add('open');
+    const input = document.getElementById(id).querySelector('input');
+    if(input) setTimeout(() => input.focus(), 100);
+};
 window.closeModal = (id) => document.getElementById(id).classList.remove('open');
 
 // Shortcuts
@@ -669,10 +814,14 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         saveActiveFile();
     }
+    if (e.key === 'Escape') {
+        if (isEditMode) toggleEditMode(false);
+        closeModal('modalNewFile');
+    }
 });
 
 async function refreshTree() {
-    window.location.reload(); // Simple reload for now to reflect file changes
+    window.location.reload(); 
 }
 
 async function fetchAllFiles() {
@@ -690,30 +839,20 @@ async function fetchAllFiles() {
 
 // Init
 fetchAllFiles();
+marked.setOptions({ gfm: true, breaks: true });
 
 // Handle initial file from URL
 const urlParams = new URLSearchParams(window.location.search);
 const initialFile = urlParams.get('file');
-if (initialFile) {
-    openFile(initialFile, initialFile.split('/').pop());
-}
+if (initialFile) openFile(initialFile, initialFile.split('/').pop());
 
 window.copyWikiLink = () => {
     if (!activeFileId) return;
-    const name = document.getElementById("activeFileName").textContent.replace('.md', '');
+    const name = document.getElementById("readModeTitle").textContent;
     const link = `[[${name}]]`;
     navigator.clipboard.writeText(link).then(() => {
         notyf.success("Wiki-link kopyalandı");
     });
 };
-
-marked.setOptions({
-    gfm: true,
-    breaks: true,
-    highlight: function(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-        return hljs.highlight(code, { language }).value;
-    }
-});
 </script>
 {% endblock %}
