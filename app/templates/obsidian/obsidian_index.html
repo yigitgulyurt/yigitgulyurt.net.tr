@@ -1136,16 +1136,21 @@ async function showGraph() {
   graphInstance = ForceGraph()(container)
     .graphData(data)
     .nodeId('id')
-    .nodeLabel('name')
+    .nodeLabel(null) // Disable default tooltip
+    .backgroundColor('#161617') // Obsidian dark background
     .nodeColor(node => {
-      if (highlightNodes.has(node)) return node === hoverNode ? '#fff' : 'var(--accent)';
-      return 'rgba(255, 255, 255, 0.3)';
+      if (node === hoverNode) return '#fff';
+      if (highlightNodes.has(node)) return 'var(--accent)';
+      return '#444';
     })
-    .linkColor(() => 'rgba(255, 255, 255, 0.1)')
-    .linkWidth(link => highlightLinks.has(link) ? 1.5 : 0.5)
-    .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
-    .linkDirectionalParticleWidth(1.5)
-    .linkDirectionalParticleSpeed(0.01)
+    .linkColor(link => {
+      if (highlightLinks.has(link)) return 'rgba(255, 255, 255, 0.4)';
+      return 'rgba(255, 255, 255, 0.08)';
+    })
+    .linkWidth(link => highlightLinks.has(link) ? 1 : 0.5)
+    .linkDirectionalParticles(link => highlightLinks.has(link) ? 3 : 0)
+    .linkDirectionalParticleWidth(1.2)
+    .linkDirectionalParticleSpeed(0.006)
     .onNodeHover(node => {
       highlightNodes.clear();
       highlightLinks.clear();
@@ -1164,25 +1169,33 @@ async function showGraph() {
     })
     .nodeCanvasObject((node, ctx, globalScale) => {
       const label = node.name;
-      const fontSize = 14/globalScale;
-      ctx.font = `${fontSize}px Inter, sans-serif`;
-      
       const isHighlighted = highlightNodes.has(node);
       const isHovered = node === hoverNode;
       
       // Node circle
-      const r = isHovered ? 5 : (isHighlighted ? 4 : 3);
+      const r = isHovered ? 4 : (isHighlighted ? 3 : 2.5);
       ctx.beginPath();
       ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
-      ctx.fillStyle = isHighlighted ? 'var(--accent)' : 'rgba(255, 255, 255, 0.4)';
+      ctx.fillStyle = isHovered ? '#fff' : (isHighlighted ? 'var(--accent)' : '#555');
       ctx.fill();
       
-      // Label (only show if zoomed in or highlighted)
-      if (globalScale > 1.5 || isHighlighted) {
+      // Label Rendering (Optimized for readability)
+      const fontSize = 13/globalScale;
+      // Labels are visible if zoomed in OR if node is highlighted
+      if (globalScale > 0.8 || isHighlighted) {
+        ctx.font = `${isHighlighted ? '600' : '400'} ${fontSize}px Inter, sans-serif`;
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = isHighlighted ? '#fff' : 'rgba(255, 255, 255, 0.6)';
-        ctx.fillText(label, node.x, node.y + r + 5);
+        ctx.textBaseline = 'top';
+        
+        // Subtle shadow for readability
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 4;
+        
+        ctx.fillStyle = isHighlighted ? '#fff' : 'rgba(255, 255, 255, 0.5)';
+        ctx.fillText(label, node.x, node.y + r + 3);
+        
+        // Reset shadow
+        ctx.shadowBlur = 0;
       }
     })
     .onNodeClick(node => {
@@ -1190,9 +1203,13 @@ async function showGraph() {
       previewFile(node.id, node.name + '.md');
     });
 
-  // Physics adjustments for a more "Obsidian-like" feel
-  graphInstance.d3Force('charge').strength(-120);
-  graphInstance.d3Force('link').distance(50);
+  // Physics - Perfectly tuned for "Obsidian Feel"
+  graphInstance.d3Force('charge').strength(-40); // Soft repulsion
+  graphInstance.d3Force('link').distance(40).strength(0.5); // Natural distance
+  graphInstance.d3Force('center').strength(0.15); // Keep it centered
+  
+  // Fit to canvas on load
+  setTimeout(() => graphInstance.zoomToFit(400, 50), 100);
 }
 
 function hideGraph() {
