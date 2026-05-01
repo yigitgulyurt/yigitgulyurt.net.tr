@@ -289,6 +289,45 @@ def api_delete_file(file_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@bp.route('/api/move', methods=['POST'])
+@obsidian_auth
+def api_move():
+    vault_path = get_vault_path()
+    data = request.get_json()
+    source_id = data.get('source_id')
+    target_folder_id = data.get('target_folder_id') # Boşsa root
+    
+    if source_id is None:
+        return jsonify({'error': 'Kaynak belirtilmedi'}), 400
+        
+    source_full_path = safe_join(vault_path, source_id)
+    target_dir_full = safe_join(vault_path, target_folder_id) if target_folder_id else vault_path
+    
+    if not os.path.exists(target_dir_full) or not os.path.isdir(target_dir_full):
+        return jsonify({'error': 'Hedef klasör bulunamadı'}), 400
+        
+    target_full_path = os.path.join(target_dir_full, os.path.basename(source_full_path))
+    
+    if os.path.exists(target_full_path):
+        return jsonify({'error': 'Hedefte aynı isimli dosya/klasör var'}), 400
+        
+    try:
+        shutil.move(source_full_path, target_full_path)
+        new_rel_path = os.path.relpath(target_full_path, vault_path).replace('\\', '/')
+        
+        # Recent listesinde güncelle (Eğer dosya ise)
+        if os.path.isfile(target_full_path):
+            recent = session.get('obsidian_recent', [])
+            if source_id in recent:
+                idx = recent.index(source_id)
+                recent[idx] = new_rel_path
+                session['obsidian_recent'] = recent
+                session.modified = True
+                
+        return jsonify({'ok': True, 'new_path': new_rel_path})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @bp.route('/api/rename', methods=['POST'])
 @obsidian_auth
 def api_rename():
@@ -356,7 +395,7 @@ def serve_media(filename):
 # Arama sonuçları için basit bir bellek içi önbellek
 _search_cache = {
     'last_scan': 0,
-    'files': {} # {rel_path: {'content': '...', 'mtime': ...}}
+    'files': {} # {rel_path: {'content': '...', 'mtime': ..., 'content_lower': '...'}}
 }
 
 @bp.route('/api/daily-note')
@@ -368,9 +407,9 @@ def api_daily_note():
     filename = f"{today}.md"
     
     # "Daily" klasörü varsa oraya, yoksa root'a
-    daily_dir = safe_join(vault_path, "Daily")
+    daily_dir = safe_join(vault_path, "Günlük")
     if os.path.isdir(daily_dir):
-        rel_path = f"Daily/{filename}"
+        rel_path = f"Günlük/{filename}"
     else:
         rel_path = filename
         
@@ -495,68 +534,66 @@ def api_search():
         return jsonify([])
 
     results = []
-    MAX_RESULTS = 30
+    MAX_RESULTS = 40
     now = time.time()
     
-    # Her 5 dakikada bir dosya listesini tazele (veya ilk çalışmada)
+    # Cache'i güncelle (Her 5 dakikada bir veya ilk çalışmada)
     refresh_cache = (now - _search_cache['last_scan']) > 300
     
     if refresh_cache:
+        current_app.logger.info("Obsidian arama indeksi güncelleniyor...")
+        new_files_cache = {}
+        for root, dirs, files in os.walk(vault_path):
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for file in files:
+                if not file.endswith('.md'): continue
+                
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, vault_path).replace('\\', '/')
+                
+                try:
+                    stats = os.stat(full_path)
+                    mtime = stats.st_mtime
+                    
+                    # Eğer dosya mtime değişmediyse eski cache'i kullan
+                    old_cached = _search_cache['files'].get(rel_path)
+                    if old_cached and old_cached['mtime'] == mtime:
+                        new_files_cache[rel_path] = old_cached
+                    else:
+                        with open(full_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            new_files_cache[rel_path] = {
+                                'content': content,
+                                'content_lower': content.lower(),
+                                'mtime': mtime,
+                                'name_lower': file.lower()
+                            }
+                except:
+                    continue
+        
+        _search_cache['files'] = new_files_cache
         _search_cache['last_scan'] = now
-        # Cache'deki artık dosyaları temizle (isteğe bağlı, şimdilik basit tutalım)
 
-    for root, dirs, files in os.walk(vault_path):
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
-        for file in files:
-            if not file.endswith('.md'):
-                continue
-                
-            full_path = os.path.join(root, file)
-            rel_path = os.path.relpath(full_path, vault_path).replace('\\', '/')
+    # İndeks üzerinden ara
+    for rel_path, data in _search_cache['files'].items():
+        name_match = query in data['name_lower']
+        content_match = query in data['content_lower']
+        
+        if name_match or content_match:
+            snippet = ""
+            if content_match:
+                idx = data['content_lower'].find(query)
+                start = max(0, idx - 40)
+                end = min(len(data['content_lower']), idx + 60)
+                snippet = data['content'][start:end].replace('\n', ' ')
             
-            # Dosya adında eşleşme (Çok hızlı, disk okuması gerektirmez)
-            name_match = query in file.lower()
+            results.append({
+                'id': rel_path,
+                'name': os.path.basename(rel_path),
+                'snippet': f"...{snippet}..." if snippet else "",
+                'score': 100 if name_match else 1
+            })
             
-            # İçerik araması
-            content_lower = ""
-            try:
-                stats = os.stat(full_path)
-                mtime = stats.st_mtime
-                
-                # Cache kontrolü
-                cached = _search_cache['files'].get(rel_path)
-                if cached and cached['mtime'] == mtime:
-                    content = cached['content']
-                else:
-                    # Rclone üzerinden okuma maliyetli olduğu için sadece gerektiğinde oku
-                    with open(full_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        _search_cache['files'][rel_path] = {
-                            'content': content,
-                            'mtime': mtime
-                        }
-                content_lower = content.lower()
-            except Exception as e:
-                current_app.logger.error(f"Arama hatası ({file}): {str(e)}")
-                continue
-
-            if name_match or query in content_lower:
-                snippet = ""
-                idx = content_lower.find(query)
-                if idx != -1:
-                    start = max(0, idx - 40)
-                    end = min(len(content_lower), idx + 60)
-                    snippet = _search_cache['files'][rel_path]['content'][start:end].replace('\n', ' ')
-                
-                results.append({
-                    'id': rel_path,
-                    'name': file,
-                    'snippet': f"...{snippet}..." if snippet else "",
-                    'score': 100 if name_match else 1
-                })
-                
-            if len(results) >= MAX_RESULTS:
-                break
         if len(results) >= MAX_RESULTS:
             break
             

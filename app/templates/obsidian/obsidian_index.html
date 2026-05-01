@@ -134,11 +134,14 @@
   padding: 4px 16px;
   font-size: 12px;
   color: var(--text2);
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   transition: color .1s, background .1s;
   text-decoration: none;
 }
+.tree-item:active { cursor: grabbing; }
+.tree-item.drag-over { background: var(--bg3); border: 1px dashed var(--accent); }
+.tree-folder-item.drag-over { background: var(--bg3); border: 1px dashed var(--accent); }
 .tree-item:hover { color: var(--text); background: var(--bg2); }
 .tree-item:hover .vault-icon-btn { opacity: 1 !important; }
 .tree-item.active { color: var(--accent2); background: var(--bg3); }
@@ -154,7 +157,80 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
+.backlinks-panel {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  bottom: 0;
+  width: 240px;
+  background: var(--bg2);
+  border-left: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+}
+.backlinks-header {
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.backlinks-title {
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+.backlinks-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.backlink-item {
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.backlink-item:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+/* Callouts */
+.callout {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid var(--accent);
+  background: var(--bg2);
+}
+.callout-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 13px;
+  text-transform: capitalize;
+}
+.callout-content {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.callout.info { border-left-color: #3b82f6; }
+.callout.info .callout-title { color: #3b82f6; }
+.callout.warning { border-left-color: #f59e0b; }
+.callout.warning .callout-title { color: #f59e0b; }
+.callout.error { border-left-color: #ef4444; }
+.callout.error .callout-title { color: #ef4444; }
+.callout.success { border-left-color: #10b981; }
+.callout.success .callout-title { color: #10b981; }
+
 .vault-main-header {
   padding: 0;
   border-bottom: 0.5px solid var(--border);
@@ -422,7 +498,12 @@
             <div class="tree-folder fade-in" data-name="{{ node.name | lower }}">
               <div class="tree-item tree-folder-item"
                    style="padding-left: {{ 16 + depth * 12 }}px"
-                   onclick="toggleFolder(this)">
+                   onclick="toggleFolder(this)"
+                   draggable="true"
+                   ondragstart="handleDragStart(event, '{{ node.id }}', true)"
+                   ondragover="handleDragOver(event)"
+                   ondragleave="handleDragLeave(event)"
+                   ondrop="handleDrop(event, '{{ node.id }}')">
                 <span class="tree-item-icon"><svg class="icon"><use href="#icon-chevron-right"></use></svg></span>
                 <span class="tree-item-icon" style="margin-left: -4px;"><svg class="icon" style="color:var(--accent)"><use href="#icon-folder"></use></svg></span>
                 <span class="tree-item-name">{{ node.name }}</span>
@@ -440,7 +521,11 @@
                onclick="previewFile('{{ node.id }}', '{{ node.name }}')"
                style="padding-left: {{ 16 + depth * 12 }}px"
                data-name="{{ node.name | lower }}"
-               data-id="{{ node.id }}">
+               data-id="{{ node.id }}"
+               draggable="true"
+               ondragstart="handleDragStart(event, '{{ node.id }}', false)"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)">
               <span class="tree-item-icon" style="color:var(--accent2)"><svg class="icon"><use href="#icon-file"></use></svg></span>
               <span class="tree-item-name">{{ node.name[:-3] if node.name.endswith('.md') else node.name }}</span>
               <button class="vault-icon-btn"
@@ -471,6 +556,13 @@
         <div style="margin-top:10px;">Düzenlemek için bir not seç</div>
         <a href="javascript:openNewFile()" class="btn" style="margin-top:15px;">Yeni not oluştur</a>
       </div>
+    </div>
+    <div id="backlinksPanel" class="backlinks-panel" style="display:none;">
+      <div class="backlinks-header">
+        <span class="backlinks-title">// geri bağlantılar</span>
+        <button class="vault-icon-btn" onclick="toggleBacklinks()" title="Kapat">×</button>
+      </div>
+      <div id="backlinksList" class="backlinks-list"></div>
     </div>
   </div>
 
@@ -521,6 +613,55 @@ function copyWikiLink(name) {
   });
 }
 
+// Drag and Drop Logic
+let draggedId = null;
+let isDraggedFolder = false;
+
+function handleDragStart(e, id, isFolder) {
+  draggedId = id;
+  isDraggedFolder = isFolder;
+  e.dataTransfer.setData('text/plain', id);
+  e.target.style.opacity = '0.5';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  const target = e.target.closest('.tree-item');
+  if (target) target.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  const target = e.target.closest('.tree-item');
+  if (target) target.classList.remove('drag-over');
+}
+
+async function handleDrop(e, targetFolderId) {
+  e.preventDefault();
+  const target = e.target.closest('.tree-item');
+  if (target) target.classList.remove('drag-over');
+  
+  if (!draggedId || draggedId === targetFolderId) return;
+
+  try {
+    const res = await fetch('/api/move', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source_id: draggedId,
+        target_folder_id: targetFolderId
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      location.reload(); // Ağacı yenile
+    } else {
+      alert(data.error || 'Taşıma işlemi başarısız');
+    }
+  } catch (err) {
+    alert('Bir hata oluştu');
+  }
+}
+
 // State Management
 let openTabs = [];
 let activeTabId = null;
@@ -555,10 +696,25 @@ marked.setOptions({
 // Wiki-links and Image Renderer
 const renderer = new marked.Renderer();
 
-// Custom Image Parser for Obsidian ![[image.png]] style
+// Custom text parser for Wiki-links and Embeds
 const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
-  // 1. Obsidian Embeds ![[image.png]] - ÖNCE BUNU YAPMALIYIZ (Regex'i daha spesifik yapıyoruz)
+  // 0. Obsidian Callouts [!info]
+  const calloutRegex = /^> \[!(\w+)\](.*?)\n((?:>.*\n?)*)/gm;
+  text = text.replace(calloutRegex, (match, type, title, content) => {
+    const cleanType = type.toLowerCase();
+    const cleanTitle = title.trim() || type;
+    const cleanContent = content.replace(/^> ?/gm, '');
+    return `<div class="callout ${cleanType}">
+      <div class="callout-title">
+        <svg class="icon"><use href="#icon-book"></use></svg>
+        ${cleanTitle}
+      </div>
+      <div class="callout-content">${marked.parse(cleanContent)}</div>
+    </div>`;
+  });
+
+  // 1. Obsidian Embeds ![[image.png]]
   const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(embedRegex, (match, target, size) => {
     const cleanTarget = target.trim();
@@ -642,6 +798,29 @@ function closeTab(id) {
   renderTabs();
 }
 
+async function toggleBacklinks() {
+  const panel = document.getElementById('backlinksPanel');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'flex';
+    if (activeTabId) {
+      const res = await fetch(`/api/backlinks/${activeTabId}`);
+      const links = await res.json();
+      const list = document.getElementById('backlinksList');
+      if (links.length === 0) {
+        list.innerHTML = '<div style="padding:16px; font-size:11px; color:var(--text2);">Geri bağlantı bulunamadı.</div>';
+      } else {
+        list.innerHTML = links.map(link => `
+          <div class="backlink-item" onclick="previewFile('${link.id}', '${link.name}')">
+            ${link.name}
+          </div>
+        `).join('');
+      }
+    }
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
 // Preview Logic with Smart Caching (Stale-While-Revalidate)
 async function previewFile(fileId, fileName, pushHistory = true) {
   activeTabId = fileId;
@@ -699,6 +878,10 @@ async function renderContent(fileId, fileName, content) {
     <div class="preview-header fade-in">
       <div class="preview-title">${cleanName}</div>
       <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="toggleBacklinks()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
+          <svg class="icon"><use href="#icon-link"></use></svg>
+          geri bağlantılar
+        </button>
         <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
           <svg class="icon"><use href="#icon-copy"></use></svg>
           kopyala
