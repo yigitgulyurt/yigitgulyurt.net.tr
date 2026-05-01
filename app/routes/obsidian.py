@@ -145,25 +145,8 @@ def index():
 @bp.route('/edit/<path:file_id>')
 @obsidian_auth
 def edit(file_id):
-    vault_path = get_vault_path()
-    full_path = safe_join(vault_path, file_id)
-    
-    if not os.path.exists(full_path):
-        abort(404)
-    
-    update_recent_files(file_id)
-        
-    with open(full_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-        
-    stats = os.stat(full_path)
-    meta = {
-        'id': file_id,
-        'name': os.path.basename(file_id),
-        'modifiedTime': datetime.fromtimestamp(stats.st_mtime).isoformat()
-    }
-    
-    return render_template('obsidian/obsidian_edit.html', file=meta, content=content)
+    """Edit sayfasını iptal ediyoruz, index üzerinden edit yapılıyor."""
+    return redirect(url_for('obsidian.index', file=file_id))
 
 @bp.route('/new')
 @obsidian_auth
@@ -550,7 +533,7 @@ def api_graph_data():
 @obsidian_auth
 def api_search():
     query = request.args.get('q', '').lower().strip()
-    if not query or len(query) < 2:
+    if not query:
         return jsonify([])
     
     vault_path = get_vault_path()
@@ -558,13 +541,13 @@ def api_search():
         return jsonify([])
 
     results = []
-    MAX_RESULTS = 40
+    MAX_RESULTS = 50
     now = time.time()
     
     # Cache'i güncelle (Her 5 dakikada bir veya ilk çalışmada)
     refresh_cache = (now - _search_cache['last_scan']) > 300
     
-    if refresh_cache:
+    if refresh_cache or not _search_cache['files']:
         current_app.logger.info("Obsidian arama indeksi güncelleniyor...")
         new_files_cache = {}
         for root, dirs, files in os.walk(vault_path):
@@ -590,7 +573,7 @@ def api_search():
                                 'content': content,
                                 'content_lower': content.lower(),
                                 'mtime': mtime,
-                                'name_lower': file.lower()
+                                'name_lower': file.lower().replace('.md', '')
                             }
                 except:
                     continue
@@ -598,31 +581,53 @@ def api_search():
         _search_cache['files'] = new_files_cache
         _search_cache['last_scan'] = now
 
-    # İndeks üzerinden ara
+    # Fuzzy Search Mantığı
+    query_parts = query.split()
+    
     for rel_path, data in _search_cache['files'].items():
-        name_match = query in data['name_lower']
-        content_match = query in data['content_lower']
+        score = 0
+        name_lower = data['name_lower']
+        content_lower = data['content_lower']
         
-        if name_match or content_match:
-            snippet = ""
-            if content_match:
-                idx = data['content_lower'].find(query)
-                start = max(0, idx - 40)
-                end = min(len(data['content_lower']), idx + 60)
-                snippet = data['content'][start:end].replace('\n', ' ')
+        # 1. Tam isim eşleşmesi (En yüksek öncelik)
+        if query == name_lower:
+            score += 1000
+        elif query in name_lower:
+            score += 500
             
+        # 2. Parçalı eşleşme
+        matches_all_parts = True
+        for part in query_parts:
+            if part in name_lower:
+                score += 100
+            elif part in content_lower:
+                score += 10
+            else:
+                matches_all_parts = False
+        
+        if score > 0:
+            snippet = ""
+            if query in content_lower:
+                idx = content_lower.find(query)
+                start = max(0, idx - 40)
+                end = min(len(content_lower), idx + 60)
+                snippet = data['content'][start:end].replace('\n', ' ')
+            elif query_parts and query_parts[0] in content_lower:
+                idx = content_lower.find(query_parts[0])
+                start = max(0, idx - 40)
+                end = min(len(content_lower), idx + 60)
+                snippet = data['content'][start:end].replace('\n', ' ')
+
             results.append({
                 'id': rel_path,
-                'name': os.path.basename(rel_path),
+                'name': os.path.basename(rel_path).replace('.md', ''),
                 'snippet': f"...{snippet}..." if snippet else "",
-                'score': 100 if name_match else 1
+                'score': score + (100 if matches_all_parts else 0)
             })
             
-        if len(results) >= MAX_RESULTS:
-            break
-            
+    # Skora göre sırala ve limit koy
     results.sort(key=lambda x: x['score'], reverse=True)
-    return jsonify(results)
+    return jsonify(results[:MAX_RESULTS])
 
 @bp.route('/api/tree')
 @obsidian_auth
