@@ -1127,33 +1127,72 @@ async function showGraph() {
   const data = await res.json();
   
   const container = document.getElementById('graph-container');
+  
+  // Highlight management
+  let hoverNode = null;
+  const highlightNodes = new Set();
+  const highlightLinks = new Set();
+
   graphInstance = ForceGraph()(container)
     .graphData(data)
     .nodeId('id')
     .nodeLabel('name')
-    .nodeAutoColorBy('id')
-    .linkColor(() => 'rgba(255,255,255,0.2)')
-    .linkDirectionalParticles(2)
-    .linkDirectionalParticleSpeed(0.005)
+    .nodeColor(node => {
+      if (highlightNodes.has(node)) return node === hoverNode ? '#fff' : 'var(--accent)';
+      return 'rgba(255, 255, 255, 0.3)';
+    })
+    .linkColor(() => 'rgba(255, 255, 255, 0.1)')
+    .linkWidth(link => highlightLinks.has(link) ? 1.5 : 0.5)
+    .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
+    .linkDirectionalParticleWidth(1.5)
+    .linkDirectionalParticleSpeed(0.01)
+    .onNodeHover(node => {
+      highlightNodes.clear();
+      highlightLinks.clear();
+      if (node) {
+        highlightNodes.add(node);
+        data.links.forEach(link => {
+          if (link.source.id === node.id || link.target.id === node.id) {
+            highlightLinks.add(link);
+            highlightNodes.add(link.source);
+            highlightNodes.add(link.target);
+          }
+        });
+      }
+      hoverNode = node || null;
+      container.style.cursor = node ? 'pointer' : null;
+    })
     .nodeCanvasObject((node, ctx, globalScale) => {
       const label = node.name;
-      const fontSize = 12/globalScale;
+      const fontSize = 14/globalScale;
       ctx.font = `${fontSize}px Inter, sans-serif`;
-      const textWidth = ctx.measureText(label).width;
-      const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
-
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = node.color;
-      ctx.fillText(label, node.x, node.y);
+      
+      const isHighlighted = highlightNodes.has(node);
+      const isHovered = node === hoverNode;
+      
+      // Node circle
+      const r = isHovered ? 5 : (isHighlighted ? 4 : 3);
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
+      ctx.fillStyle = isHighlighted ? 'var(--accent)' : 'rgba(255, 255, 255, 0.4)';
+      ctx.fill();
+      
+      // Label (only show if zoomed in or highlighted)
+      if (globalScale > 1.5 || isHighlighted) {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = isHighlighted ? '#fff' : 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText(label, node.x, node.y + r + 5);
+      }
     })
     .onNodeClick(node => {
       hideGraph();
       previewFile(node.id, node.name + '.md');
     });
+
+  // Physics adjustments for a more "Obsidian-like" feel
+  graphInstance.d3Force('charge').strength(-120);
+  graphInstance.d3Force('link').distance(50);
 }
 
 function hideGraph() {
