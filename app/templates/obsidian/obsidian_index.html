@@ -1204,9 +1204,17 @@ async function showGraph() {
     });
 
   // Physics - Perfectly tuned for "Obsidian Feel"
-  graphInstance.d3Force('charge').strength(-40); // Soft repulsion
-  graphInstance.d3Force('link').distance(40).strength(0.5); // Natural distance
+  graphInstance.d3Force('charge').strength(-15); // Very low repulsion
+  graphInstance.d3Force('link').distance(30).strength(1); // Tighter links
   graphInstance.d3Force('center').strength(0.15); // Keep it centered
+  
+  // Add collision force to prevent overlap and maintain "absolute distance"
+  graphInstance.d3AlphaDecay(0.01); // Slower settling for smoother movement
+  graphInstance.d3VelocityDecay(0.3); // More friction, less "bouncing"
+  
+  // Custom collision force
+  const d3Collide = d3.forceCollide(10);
+  graphInstance.d3Force('collide', d3Collide);
   
   // Fit to canvas on load
   setTimeout(() => graphInstance.zoomToFit(400, 50), 100);
