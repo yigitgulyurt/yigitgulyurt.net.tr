@@ -1203,39 +1203,50 @@ async function showGraph() {
       previewFile(node.id, node.name + '.md');
     });
 
-  // Physics - Perfectly tuned for "Obsidian Feel"
-  // 1. İtme kuvvetini (repulsion) tamamen kapatıyoruz veya yok denecek kadar azaltıyoruz
-  // Obsidian'da notlar birbirini uzağa itmez, sadece üst üste binmezler.
-  graphInstance.d3Force('charge', null); // İtmeyi tamamen kapat
-    
-  // 2. Sıkı bağlantılar ve mesafe koruma
+  // Physics - Perfectly tuned for "Obsidian Feel" (Mathematical & Physical Optimization)
+  
+  // 1. Repel Force (Coulomb's Law Approximation)
+  // Obsidian Repel force: 12.40
+  graphInstance.d3Force('charge')
+    .strength(-120) // Coulomb-like repulsion
+    .distanceMax(250) // Optimization: don't calculate for far nodes
+    .theta(0.9); // Barnes-Hut optimization
+
+  // 2. Link Force (Hooke's Law - Spring Force)
+  // Obsidian Link distance: 30, Link force: 0.91
   graphInstance.d3Force('link')
     .distance(30)
-    .strength(1);
-    
-  // 3. Konum sabitleme (Dağılmayı önleyen en kritik ayar)
-  graphInstance.d3Force('x', d3.forceX(0).strength(0.05));
-  graphInstance.d3Force('y', d3.forceY(0).strength(0.05));
-  
-  // 4. Çarpışma (Collision) - Notların üst üste binmesini engeller ama itmez
-  graphInstance.d3Force('collide', d3.forceCollide(12));
-  
-  // 5. Hareket direnci (Tuttuğunda diğerlerinin kaçmasını engeller)
-  graphInstance.d3VelocityDecay(0.7); // Çok yüksek sürtünme
-  graphInstance.d3AlphaDecay(0.01); 
+    .strength(0.9);
 
-  // Drag işlemi sırasında tüm sistemin sarsılmasını engelle
-  graphInstance.onNodeDrag((node, translate) => {
-    // Sürüklenen notun sabitlenmesini sağla
+  // 3. Center Force (Gravity towards center)
+  // Obsidian Center force: 0.65
+  graphInstance.d3Force('center')
+    .strength(0.6);
+
+  // 4. Collision Force (Preventing Overlap)
+  // Node size: 0.51 -> radius approx 4-5
+  graphInstance.d3Force('collide', d3.forceCollide(8).iterations(2));
+
+  // 5. Velocity & Alpha Decay (Buttery Smooth Movement)
+  graphInstance.d3VelocityDecay(0.4); // Resistance to movement
+  graphInstance.d3AlphaDecay(0.0228); // Standard d3 decay for stability
+
+  // 6. Custom Forces for "Stable" dragging
+  graphInstance.onNodeDrag((node) => {
     node.fx = node.x;
     node.fy = node.y;
+    // Sürüklerken sistemi biraz "ısıt" ki diğer notlar tepki versin ama uçmasın
+    graphInstance.d3AlphaTarget(0.1).restart();
   });
   
   graphInstance.onNodeDragEnd(node => {
-    // Bırakıldığında yavaşça yerine otursun (veya sabit kalsın)
     node.fx = null;
     node.fy = null;
+    graphInstance.d3AlphaTarget(0); // Sistemi tekrar soğut
   });
+
+  // Fit to canvas on load
+  setTimeout(() => graphInstance.zoomToFit(400, 50), 100);
   
   // Fit to canvas on load
   setTimeout(() => graphInstance.zoomToFit(400, 50), 100);
