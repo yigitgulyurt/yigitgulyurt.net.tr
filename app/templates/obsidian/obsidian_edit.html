@@ -544,10 +544,12 @@ const renderer = new marked.Renderer();
 // Checklist support: [ ] ve [x]
 renderer.listitem = (text, task, checked) => {
   if (task) {
+    // marked.js gfm modunda bazen text içine kendi checkbox'ını koyar, onu temizleyelim
+    const cleanText = text.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '').trim();
     return `
       <li class="task-list-item">
         <input type="checkbox" ${checked ? 'checked' : ''} disabled>
-        ${text}
+        ${cleanText}
       </li>`;
   }
   return `<li>${text}</li>`;
