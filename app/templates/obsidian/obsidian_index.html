@@ -699,9 +699,13 @@ const renderer = new marked.Renderer();
 // Checklist support: [ ] ve [x]
 renderer.listitem = (text, task, checked) => {
   if (task) {
+    // text içindeki tırnak işaretlerini escape et
+    const escapedText = text.replace(/'/g, "\\'");
     return `
       <li class="task-list-item">
-        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleIndexChecklist(this, '${text.replace(/'/g, "\\'")}', '${activeTabId}')">
+        <input type="checkbox" ${checked ? 'checked' : ''} 
+               data-text="${escapedText}"
+               onchange="toggleIndexChecklist(this)">
         ${text}
       </li>`;
   }
@@ -833,68 +837,94 @@ async function toggleBacklinks() {
   }
 }
 
-async function toggleIndexChecklist(cb, text, fileId) {
-  if (!fileId) return;
-  const isChecked = cb.checked;
-  const oldContent = fileCache.get(fileId);
-  if (!oldContent) return;
+async function toggleIndexChecklist(cb) {
+  const fileId = activeTabId;
+  const text = cb.getAttribute('data-text');
+  
+  if (!fileId || !text) {
+    console.error("Checklist hatası: fileId veya text bulunamadı", { fileId, text });
+    return;
+  }
 
-  // Daha esnek bir regex: Satır başındaki boşlukları ve markdown liste işaretlerini dikkate al
-  // text parametresi html'den geldiği için bazı karakterler escape edilmiş olabilir, 
-  // ancak şimdilik en yaygın sorunu (regex eşleşmeme) hedefleyelim.
-  const searchStr = isChecked ? `- [ ] ${text}` : `- [x] ${text}`;
-  const replaceStr = isChecked ? `- [x] ${text}` : `- [ ] ${text}`;
+  const isChecked = cb.checked;
+  let oldContent = fileCache.get(fileId);
   
-  // Eğer tam eşleşme olmazsa alternatif olarak sadece [ ] kısmını değiştirmeyi deneyelim
-  let newContent = oldContent.replace(searchStr, replaceStr);
-  
-  if (newContent === oldContent) {
-    console.warn("Checklist metni tam eşleşmedi, alternatif arama yapılıyor...");
-    // Fallback: Satır bazlı arama (daha güvenli)
-    const lines = oldContent.split('\n');
-    const targetStatus = isChecked ? '[ ]' : '[x]';
-    const newStatus = isChecked ? '[x]' : '[ ]';
-    
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].includes(targetStatus) && lines[i].includes(text)) {
-        lines[i] = lines[i].replace(targetStatus, newStatus);
-        newContent = lines.join('\n');
-        break;
+  // Eğer cache boşsa (henüz yüklenmediyse)
+  if (!oldContent) {
+    console.warn("Checklist hatası: Cache henüz yüklenmedi, sunucudan çekiliyor...");
+    try {
+      const res = await fetch(`/api/file/${fileId}`);
+      const data = await res.json();
+      if (data.content) {
+        fileCache.set(fileId, data.content);
+        oldContent = data.content;
+      } else {
+        throw new Error("Dosya içeriği alınamadı");
       }
+    } catch (e) {
+      cb.checked = !isChecked;
+      return;
     }
   }
 
-  if (newContent === oldContent) {
-    console.error("Checklist içeriği değiştirilemedi!");
+  const targetStatus = isChecked ? '[ ]' : '[x]';
+  const newStatus = isChecked ? '[x]' : '[ ]';
+  
+  // HTML etiketlerini temizle (Markdown içinde ham metni aramak için)
+  const cleanText = text.replace(/<[^>]*>?/gm, '').trim();
+  
+  // Satır bazlı arama ve değiştirme (en güvenli yöntem)
+  const lines = oldContent.split('\n');
+  let found = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    // Satır hem status'u ([ ] veya [x]) hem de temizlenmiş metni içermeli
+    if (lines[i].includes(targetStatus) && lines[i].toLowerCase().includes(cleanText.toLowerCase())) {
+      lines[i] = lines[i].replace(targetStatus, newStatus);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    console.error("Checklist hatası: Eşleşen satır bulunamadı", { targetStatus, text });
     cb.checked = !isChecked; // UI'ı geri al
     return;
   }
 
-  // Update cache and UI immediately
+  const newContent = lines.join('\n');
+
+  // 1. Cache ve UI'ı anında güncelle
   fileCache.set(fileId, newContent);
-  if (activeTabId === fileId) {
-    const previewContent = document.querySelector('.preview-content');
-    if (previewContent) {
-      previewContent.innerHTML = marked.parse(newContent);
-      previewContent.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
-    }
+  const previewContent = document.querySelector('.preview-content');
+  if (previewContent) {
+    // Tüm içeriği marked ile tekrar render et (tutarlılık için)
+    previewContent.innerHTML = marked.parse(newContent);
+    previewContent.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
   }
 
-  // Save to server
+  // 2. Sunucuya kaydet
+  const apiUrl = `/api/file/${encodeURI(fileId)}`;
+  console.log("Checklist kaydediliyor:", apiUrl);
+  
   try {
-    const res = await fetch(`/api/file/${fileId}`, {
+    const res = await fetch(apiUrl, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: newContent })
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error);
-    console.log("Checklist başarıyla kaydedildi.");
+    console.log("Checklist başarıyla kaydedildi:", fileId);
   } catch (e) {
-    console.error('Checklist güncelleme hatası:', e);
-    alert('Değişiklik sunucuya kaydedilemedi: ' + e.message);
+    console.error('Checklist kaydetme hatası:', e);
+    alert('Değişiklik kaydedilemedi: ' + e.message);
     cb.checked = !isChecked; // UI'ı geri al
     fileCache.set(fileId, oldContent); // Cache'i geri al
+    // UI'ı eski haline döndürmek için tekrar render gerekebilir
+    if (previewContent) {
+        previewContent.innerHTML = marked.parse(oldContent);
+    }
   }
 }
 
