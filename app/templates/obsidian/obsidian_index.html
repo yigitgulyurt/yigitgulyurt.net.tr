@@ -394,31 +394,34 @@ html, body {
 
 .preview-container {
   display: grid;
-  grid-template-columns: 200px 1fr 200px;
-  gap: 20px;
+  grid-template-columns: 200px 1fr;
+  gap: 0;
   flex: 1;
   overflow: hidden;
   height: 100%;
 }
 .preview-side-panel {
-  padding: 20px 10px;
+  padding: 20px 15px;
   overflow-y: auto;
   font-size: 11px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
   user-select: none;
+  border-right: 0.5px solid var(--border);
+  background: var(--bg);
 }
 .side-panel-title {
   font-size: 10px;
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   opacity: 0.7;
+  font-weight: 600;
 }
 .toc-item {
-  padding: 4px 8px;
+  padding: 6px 10px;
   color: var(--text2);
   cursor: pointer;
   border-radius: 4px;
@@ -426,22 +429,50 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: all 0.1s;
+  font-size: 11px;
 }
 .toc-item:hover {
   background: var(--bg2);
   color: var(--text);
 }
-.toc-h1 { font-weight: 600; }
+.toc-h1 { font-weight: 600; color: var(--text); }
 .toc-h2 { padding-left: 16px; opacity: 0.9; }
 .toc-h3 { padding-left: 28px; opacity: 0.8; font-size: 10px; }
 
 .preview-content {
   flex: 1;
   overflow-y: auto; /* Kendi içinde scroll */
-  padding: 20px 0;
-  max-width: 1200px;
+  padding: 20px 40px;
+  max-width: 900px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* Split Editor */
+.split-editor-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+.split-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.split-pane-edit {
+  border-right: 0.5px solid var(--border);
+}
+.split-pane-preview {
+  background: var(--bg);
+  padding: 20px 40px;
+  overflow-y: auto;
+}
+.split-pane-preview #markdownBody {
+  max-width: 800px;
+  margin: 0 auto;
 }
 .preview-empty {
   display: flex;
@@ -1262,13 +1293,13 @@ async function previewFile(fileId, fileName, pushHistory = true) {
   }
 }
 
-async function renderContent(fileId, fileName, content) {
+async function renderContent(file_id, fileName, content) {
   const mainBody = document.getElementById('mainBody');
   const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
   
   // PDF Desteği
   if (fileName.toLowerCase().endsWith('.pdf')) {
-    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodeURIComponent(fileId)}`;
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodeURIComponent(file_id)}`;
     mainBody.innerHTML = `
       <div class="preview-header fade-in">
         <div class="preview-title">${cleanName}</div>
@@ -1291,10 +1322,6 @@ async function renderContent(fileId, fileName, content) {
           <svg class="icon"><use href="#icon-${currentMode === 'preview' ? 'edit' : 'book'}"></use></svg>
           ${currentMode === 'preview' ? 'düzenle' : 'önizleme'}
         </button>
-        <button class="btn" onclick="toggleBacklinks()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
-          <svg class="icon"><use href="#icon-link"></use></svg>
-          geri bağlantılar
-        </button>
         <button class="btn" onclick="copyContent()" style="font-size:11px; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
           <svg class="icon"><use href="#icon-copy"></use></svg>
           kopyala
@@ -1306,14 +1333,23 @@ async function renderContent(fileId, fileName, content) {
   if (currentMode === 'edit') {
     mainBody.innerHTML = `
       ${headerHtml}
-      <div class="editor-container fade-in">
-        <textarea class="ed-textarea" id="mainEditor" 
-                  spellcheck="false" 
-                  oninput="handleEditorInput(this)">${content}</textarea>
-        <div id="autocompleteMenu" class="autocomplete-menu" style="display:none;"></div>
-        <div class="editor-status">
-          <span id="saveStatus">Tüm değişiklikler kaydedildi</span>
-          <span>UTF-8</span>
+      <div class="split-editor-container fade-in">
+        <!-- Left: Editor -->
+        <div class="split-pane split-pane-edit">
+          <div class="editor-container">
+            <textarea class="ed-textarea" id="mainEditor" 
+                      spellcheck="false" 
+                      oninput="handleEditorInput(this)">${content}</textarea>
+            <div id="autocompleteMenu" class="autocomplete-menu" style="display:none;"></div>
+            <div class="editor-status">
+              <span id="saveStatus">Tüm değişiklikler kaydedildi</span>
+              <span>UTF-8</span>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Real-time Preview -->
+        <div class="split-pane split-pane-preview">
+          <div id="markdownBody">${htmlContent}</div>
         </div>
       </div>
     `;
@@ -1321,35 +1357,37 @@ async function renderContent(fileId, fileName, content) {
     mainBody.innerHTML = `
       ${headerHtml}
       <div class="preview-container fade-in">
-        <!-- Left Panel: TOC -->
+        <!-- Left Panel: TOC & Backlinks -->
         <aside class="preview-side-panel">
-          <div class="side-panel-title">İçindekiler</div>
-          <div id="tocContent"></div>
+          <div>
+            <div class="side-panel-title">İçindekiler</div>
+            <div id="tocContent"></div>
+          </div>
+          <div>
+            <div class="side-panel-title">Geri Bağlantılar</div>
+            <div id="backlinksSideList" style="display:flex; flex-direction:column; gap:4px;">
+              <div style="color:var(--text2); opacity:0.5;">Yükleniyor...</div>
+            </div>
+          </div>
+          <div>
+            <div class="side-panel-title">Etiketler</div>
+            <div id="tagsContent" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+          </div>
+          <div>
+            <div class="side-panel-title">Özellikler</div>
+            <div id="metaContent"></div>
+          </div>
         </aside>
 
         <!-- Center: Content -->
         <div class="preview-content">
           <div id="markdownBody">${htmlContent}</div>
         </div>
-
-        <!-- Right Panel: Meta & Tags -->
-        <aside class="preview-side-panel">
-          <div class="side-panel-title">Geri Bağlantılar</div>
-          <div id="backlinksSideList" style="display:flex; flex-direction:column; gap:4px; margin-bottom:20px;">
-            <div style="color:var(--text2); opacity:0.5;">Yükleniyor...</div>
-          </div>
-
-          <div class="side-panel-title">Etiketler</div>
-          <div id="tagsContent" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-          
-          <div class="side-panel-title" style="margin-top:20px;">Özellikler</div>
-          <div id="metaContent"></div>
-        </aside>
       </div>
     `;
     generateTOC();
     updateIndexMeta(content);
-    loadBacklinks(fileId);
+    loadBacklinks(file_id);
   }
   
   mainBody.querySelectorAll('pre code').forEach((el) => {
@@ -1369,6 +1407,13 @@ function toggleEditMode() {
 async function handleEditorInput(el) {
   const content = el.value;
   fileCache.set(activeTabId, content);
+  
+  // Real-time Preview Update
+  const previewBody = document.querySelector('.split-pane-preview #markdownBody');
+  if (previewBody) {
+    previewBody.innerHTML = marked.parse(content);
+    previewBody.querySelectorAll('pre code').forEach((codeEl) => hljs.highlightElement(codeEl));
+  }
   
   // Update status
   document.getElementById('saveStatus').innerText = 'Kaydediliyor...';
