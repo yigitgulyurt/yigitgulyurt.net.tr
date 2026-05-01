@@ -1274,6 +1274,11 @@ async function renderContent(fileId, fileName, content) {
         <aside class="preview-side-panel">
           <div class="side-panel-title">İçindekiler</div>
           <div id="tocContent"></div>
+
+          <div class="side-panel-title">Geri Bağlantılar</div>
+            <div id="backlinksSideList" style="display:flex; flex-direction:column; gap:4px; margin-bottom:20px;">
+              <div style="color:var(--text2); opacity:0.5;">Yükleniyor...</div>
+          </div>
         </aside>
 
         <!-- Center: Content -->
@@ -1283,11 +1288,7 @@ async function renderContent(fileId, fileName, content) {
 
         <!-- Right Panel: Meta & Tags -->
         <aside class="preview-side-panel">
-          <div class="side-panel-title">Geri Bağlantılar</div>
-          <div id="backlinksSideList" style="display:flex; flex-direction:column; gap:4px; margin-bottom:20px;">
-            <div style="color:var(--text2); opacity:0.5;">Yükleniyor...</div>
-          </div>
-
+        
           <div class="side-panel-title">Etiketler</div>
           <div id="tagsContent" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
           
