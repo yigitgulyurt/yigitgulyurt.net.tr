@@ -434,7 +434,7 @@ html, body {
   flex: 1;
   overflow-y: auto; /* Kendi içinde scroll */
   padding: 20px 0;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
@@ -1279,16 +1279,15 @@ async function renderContent(fileId, fileName, content) {
         <!-- Center: Content -->
         <div class="preview-content">
           <div id="markdownBody">${htmlContent}</div>
-          <div id="backlinksSection" style="margin-top:60px; padding-top:20px; border-top:1px solid var(--border);">
-            <div style="font-size:12px; color:var(--accent); margin-bottom:15px; font-weight:500; user-select:none;">BACKLINKS</div>
-            <div class="fade-in" id="backlinksList" style="display:flex; flex-direction:column; gap:8px;">
-              <div style="font-size:11px; color:var(--text2);">Yükleniyor...</div>
-            </div>
-          </div>
         </div>
 
         <!-- Right Panel: Meta & Tags -->
         <aside class="preview-side-panel">
+          <div class="side-panel-title">Geri Bağlantılar</div>
+          <div id="backlinksSideList" style="display:flex; flex-direction:column; gap:4px; margin-bottom:20px;">
+            <div style="color:var(--text2); opacity:0.5;">Yükleniyor...</div>
+          </div>
+
           <div class="side-panel-title">Etiketler</div>
           <div id="tagsContent" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
           
@@ -1474,25 +1473,24 @@ function updateIndexMeta(content) {
 }
 
 async function loadBacklinks(fileId) {
+  const sideList = document.getElementById('backlinksSideList');
+  if (!sideList) return;
+
   try {
     const res = await fetch(`/api/backlinks/${fileId}`);
     const links = await res.json();
-    const list = document.getElementById('backlinksList');
     
     if (links.length === 0) {
-      list.innerHTML = '<div style="font-size:11px; color:var(--text2); opacity:0.6; user-select:none;">Bu nota henüz link verilmemiş.</div>';
-      return;
+      sideList.innerHTML = '<div style="color:var(--text2); opacity:0.5;">Bağlantı yok.</div>';
+    } else {
+      sideList.innerHTML = links.map(link => `
+        <div class="toc-item" onclick="previewFile('${link.id}', '${link.name}')" title="${link.name}">
+          ${link.name}
+        </div>
+      `).join('');
     }
-    
-    list.innerHTML = links.map(link => `
-      <a href="javascript:previewFile('${link.id}', '${link.name}.md')" 
-         style="padding:10px 15px; background:var(--bg2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:13px; display:flex; justify-content:space-between; align-items:center; transition:0.2s;">
-         <span>${link.name}</span>
-         <svg class="icon" style="opacity:0.5; width:12px; height:12px;"><use href="#icon-chevron-right"></use></svg>
-      </a>
-    `).join('');
   } catch (e) {
-    document.getElementById('backlinksList').innerHTML = 'Hata oluştu.';
+    sideList.innerHTML = '<div style="color:var(--text2);">Hata oluştu.</div>';
   }
 }
 
