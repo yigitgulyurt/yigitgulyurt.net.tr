@@ -46,7 +46,7 @@ html, body {
 
 .vault-wrap {
   position: fixed;
-  top: 60px; /* Header yüksekliğine göre ayarlayın (genelde 50-60px) */
+  top: 50px; /* Boşluğu azaltmak için 60px'den 50px'e çekildi */
   left: 0;
   right: 0;
   bottom: 0;
@@ -73,11 +73,13 @@ html, body {
 }
 .vault-sidebar-header {
   flex-shrink: 0;
-  padding: 12px 16px;
+  padding: 0 16px; /* Padding dikeyden kaldırıldı, height ile sabitlendi */
+  height: 36px; /* Tab bar (vault-main-header) ile aynı yüksekliğe getirildi */
   border-bottom: 0.5px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: var(--bg2); /* Tab bar ile görsel bütünlük için */
 }
 .vault-title {
   font-size: 11px;
