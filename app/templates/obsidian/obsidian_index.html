@@ -46,7 +46,7 @@ html, body {
 
 .vault-wrap {
   position: fixed;
-  top: 50px; /* Boşluğu azaltmak için 60px'den 50px'e çekildi */
+  top: 43.5px; /* Boşluğu azaltmak için 60px'den 50px'e çekildi */
   left: 0;
   right: 0;
   bottom: 0;
@@ -126,12 +126,16 @@ html, body {
 /* ── FILE TREE ── */
 /* ── SIDEBAR SEARCH ── */
 .sidebar-header {
-  padding: 12px;
+  height: 50px; /* Sabit yükseklik */
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
   border-bottom: 0.5px solid var(--border);
-  position: relative; /* Sonuçların buna göre konumlanması için */
+  position: relative; 
 }
 .search-box {
   position: relative;
+  width: 100%;
 }
 .search-box input {
   width: 100%;
@@ -549,7 +553,8 @@ html, body {
   to { transform: rotate(360deg); }
 }
 .preview-header {
-  padding: 20px 40px;
+  height: 50px; /* Sidebar-header ile aynı yükseklik */
+  padding: 0 40px;
   border-bottom: 0.5px solid var(--border);
   display: flex;
   justify-content: space-between;
