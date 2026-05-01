@@ -90,7 +90,9 @@ def build_tree(root_path, current_path=''):
         if is_dir:
             node['children'] = build_tree(root_path, rel_path)
         else:
-            if not item.endswith('.md'):
+            # Sadece Markdown, PDF ve Resim dosyalarını göster
+            allowed_extensions = ('.md', '.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp')
+            if not item.lower().endswith(allowed_extensions):
                 continue
         
         tree.append(node)

@@ -696,6 +696,18 @@ marked.setOptions({
 // Wiki-links and Image Renderer
 const renderer = new marked.Renderer();
 
+// Checklist support: [ ] ve [x]
+renderer.listitem = (text, task, checked) => {
+  if (task) {
+    return `
+      <li class="task-list-item">
+        <input type="checkbox" ${checked ? 'checked' : ''} disabled>
+        ${text}
+      </li>`;
+  }
+  return `<li>${text}</li>`;
+};
+
 // Custom text parser for Wiki-links and Embeds
 const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
@@ -872,6 +884,22 @@ async function previewFile(fileId, fileName, pushHistory = true) {
 async function renderContent(fileId, fileName, content) {
   const mainBody = document.getElementById('mainBody');
   const cleanName = fileName.endsWith('.md') ? fileName.slice(0, -3) : fileName;
+  
+  // PDF Desteği
+  if (fileName.toLowerCase().endsWith('.pdf')) {
+    const url = `{{ url_for('obsidian.serve_media', filename='') }}${encodeURIComponent(fileId)}`;
+    mainBody.innerHTML = `
+      <div class="preview-header fade-in">
+        <div class="preview-title">${cleanName}</div>
+        <a href="${url}" target="_blank" class="btn btn-primary" style="font-size:11px; padding:5px 12px;">Yeni Sekmede Aç</a>
+      </div>
+      <div style="flex:1; overflow:hidden;">
+        <iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>
+      </div>
+    `;
+    return;
+  }
+
   const htmlContent = marked.parse(content);
   
   mainBody.innerHTML = `

@@ -159,7 +159,97 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   overflow: hidden;
+  position: relative;
 }
+
+/* Wiki-link Autocomplete */
+.autocomplete-menu {
+  position: absolute;
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  min-width: 200px;
+}
+.autocomplete-item {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.autocomplete-item:hover, .autocomplete-item.active {
+  background: var(--bg3);
+  color: var(--accent);
+}
+
+/* Tags & Meta Panel */
+.tags-panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 250px;
+  background: var(--bg2);
+  border-left: 0.5px solid var(--border);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+}
+.tags-panel-header {
+  padding: 12px 16px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+.tags-panel-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.tag-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--accent2);
+  margin-right: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.tag-badge:hover {
+  border-color: var(--accent2);
+}
+.meta-section {
+  margin-top: 20px;
+  border-top: 0.5px solid var(--border);
+  padding-top: 15px;
+}
+.meta-title {
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.meta-item {
+  font-size: 11px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.meta-label { color: var(--text2); }
+.meta-value { color: var(--text); }
+
 .editor-body.single { grid-template-columns: 1fr; }
 
 .ed-textarea {
@@ -331,6 +421,10 @@
       </div>
     </div>
     <div class="mini-danger">
+      <button class="delete-btn" onclick="toggleTagsPanel()" style="margin-bottom:8px;color:var(--accent2);border-color:var(--accent2); display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <svg class="icon"><use href="#icon-search"></use></svg>
+        etiketler & meta
+      </button>
       <button class="delete-btn" onclick="copyWikiLink()" style="margin-bottom:8px;color:var(--accent);border-color:var(--accent); display: flex; align-items: center; justify-content: center; gap: 6px;">
         <svg class="icon"><use href="#icon-copy"></use></svg>
         wiki-link kopyala
@@ -385,6 +479,14 @@
                 spellcheck="false"
                 autocorrect="off"
                 autocapitalize="off">{{ content }}</textarea>
+      <div id="autocompleteMenu" class="autocomplete-menu" style="display:none;"></div>
+      <div id="tagsPanel" class="tags-panel" style="display:none;">
+        <div class="tags-panel-header">
+          <span>// etiketler & meta</span>
+          <button class="vault-icon-btn" onclick="toggleTagsPanel()">×</button>
+        </div>
+        <div class="tags-panel-body" id="tagsPanelBody"></div>
+      </div>
       <div class="ed-preview" id="editorPreview"></div>
     </div>
   </div>
@@ -403,8 +505,26 @@ const FILE_ID = "{{ file.id }}";
 const textarea = document.getElementById('editorTextarea');
 const preview  = document.getElementById('editorPreview');
 const body     = document.getElementById('editorBody');
+const autocompleteMenu = document.getElementById('autocompleteMenu');
 let saveTimer  = null;
 let mode       = 'split';
+let allFiles   = [];
+let selectedIndex = 0;
+
+// Fetch all files for autocomplete
+async function fetchAllFiles() {
+  const res = await fetch('/api/tree');
+  const tree = await res.json();
+  allFiles = [];
+  const flatten = (nodes) => {
+    nodes.forEach(n => {
+      if (n.is_folder) flatten(n.children);
+      else if (n.name.endsWith('.md')) allFiles.push(n.name.slice(0, -3));
+    });
+  };
+  flatten(tree);
+}
+fetchAllFiles();
 
 // Marked config
 marked.setOptions({ 
@@ -421,9 +541,33 @@ marked.setOptions({
 // Wiki-links [[Link]] desteği ve Resim yolları
 const renderer = new marked.Renderer();
 
+// Checklist support: [ ] ve [x]
+renderer.listitem = (text, task, checked) => {
+  if (task) {
+    return `
+      <li class="task-list-item">
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleChecklist(this, '${text.replace(/'/g, "\\'")}')">
+        ${text}
+      </li>`;
+  }
+  return `<li>${text}</li>`;
+};
+
 // Custom text parser for Wiki-links and Embeds
 const originalText = renderer.text.bind(renderer);
 renderer.text = (text) => {
+  // 0. Obsidian Callouts [!info]
+  const calloutRegex = /^> \[!(\w+)\](.*?)\n((?:>.*\n?)*)/gm;
+  text = text.replace(calloutRegex, (match, type, title, content) => {
+    const cleanType = type.toLowerCase();
+    const cleanTitle = title.trim() || type;
+    const cleanContent = content.replace(/^> ?/gm, '');
+    return `<div class="callout ${cleanType}">
+      <div class="callout-title">${cleanTitle}</div>
+      <div class="callout-content">${marked.parse(cleanContent)}</div>
+    </div>`;
+  });
+
   // 1. Obsidian Embeds ![[image.png]]
   const embedRegex = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   text = text.replace(embedRegex, (match, target, size) => {
@@ -487,13 +631,103 @@ function setMode(m) {
 let hasUnsavedChanges = false;
 
 // Live preview
-textarea.addEventListener('input', () => {
+textarea.addEventListener('input', (e) => {
   renderPreview();
   hasUnsavedChanges = true;
   setStatus('değişiklikler var...', '');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveFile, 3000); // 3sn sonra otomatik kaydet
+  
+  handleAutocomplete(e);
 });
+
+function handleAutocomplete(e) {
+  const cursor = textarea.selectionStart;
+  const textBefore = textarea.value.substring(0, cursor);
+  const match = textBefore.match(/\[\[([^\]]*)$/);
+  
+  if (match) {
+    const query = match[1].toLowerCase();
+    const filtered = allFiles.filter(f => f.toLowerCase().includes(query)).slice(0, 10);
+    
+    if (filtered.length > 0) {
+      showAutocomplete(filtered);
+    } else {
+      hideAutocomplete();
+    }
+  } else {
+    hideAutocomplete();
+  }
+}
+
+function showAutocomplete(files) {
+  const cursor = textarea.selectionStart;
+  const coords = getCursorXY(textarea, cursor);
+  
+  autocompleteMenu.style.left = `${coords.x}px`;
+  autocompleteMenu.style.top = `${coords.y + 20}px`;
+  autocompleteMenu.style.display = 'block';
+  
+  autocompleteMenu.innerHTML = files.map((f, i) => `
+    <div class="autocomplete-item ${i === selectedIndex ? 'active' : ''}" onclick="insertWikiLink('${f}')">
+      ${f}
+    </div>
+  `).join('');
+}
+
+function hideAutocomplete() {
+  autocompleteMenu.style.display = 'none';
+  selectedIndex = 0;
+}
+
+function insertWikiLink(name) {
+  const cursor = textarea.selectionStart;
+  const textBefore = textarea.value.substring(0, cursor);
+  const textAfter = textarea.value.substring(cursor);
+  const match = textBefore.match(/\[\[[^\]]*$/);
+  
+  if (match) {
+    const newTextBefore = textBefore.substring(0, match.index) + `[[${name}]]`;
+    textarea.value = newTextBefore + textAfter;
+    textarea.selectionStart = textarea.selectionEnd = newTextBefore.length;
+    renderPreview();
+    hideAutocomplete();
+  }
+}
+
+// Helper to get cursor coordinates
+function getCursorXY(input, selectionStart) {
+  const { offsetLeft, offsetTop } = input;
+  const div = document.createElement('div');
+  const copyStyle = getComputedStyle(input);
+  for (const prop of copyStyle) {
+    div.style[prop] = copyStyle[prop];
+  }
+  div.style.position = 'absolute';
+  div.style.visibility = 'hidden';
+  div.style.whiteSpace = 'pre-wrap';
+  div.textContent = input.value.substring(0, selectionStart);
+  
+  const span = document.createElement('span');
+  span.textContent = input.value.substring(selectionStart) || '.';
+  div.appendChild(span);
+  document.body.appendChild(div);
+  const { offsetLeft: spanLeft, offsetTop: spanTop } = span;
+  document.body.removeChild(div);
+  return { x: offsetLeft + spanLeft, y: offsetTop + spanTop };
+}
+
+// Checklist toggle logic
+function toggleChecklist(cb, text) {
+  const isChecked = cb.checked;
+  const val = textarea.value;
+  const searchStr = isChecked ? `- [ ] ${text}` : `- [x] ${text}`;
+  const replaceStr = isChecked ? `- [x] ${text}` : `- [ ] ${text}`;
+  
+  textarea.value = val.replace(searchStr, replaceStr);
+  renderPreview();
+  saveFile();
+}
 
 // Unsaved changes warning
 window.onbeforeunload = () => {
@@ -502,6 +736,31 @@ window.onbeforeunload = () => {
 
 // Smart Editor Features
 textarea.addEventListener('keydown', (e) => {
+  if (autocompleteMenu.style.display === 'block') {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex + 1) % autocompleteMenu.children.length;
+      updateAutocompleteActive();
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex - 1 + autocompleteMenu.children.length) % autocompleteMenu.children.length;
+      updateAutocompleteActive();
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const activeItem = autocompleteMenu.children[selectedIndex];
+      if (activeItem) activeItem.click();
+      return;
+    }
+    if (e.key === 'Escape') {
+      hideAutocomplete();
+      return;
+    }
+  }
+
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
   const value = textarea.value;
@@ -549,6 +808,12 @@ textarea.addEventListener('keydown', (e) => {
   }
 });
 
+function updateAutocompleteActive() {
+  Array.from(autocompleteMenu.children).forEach((child, i) => {
+    child.classList.toggle('active', i === selectedIndex);
+  });
+}
+
 function wrapSelection(before, after) {
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
@@ -561,6 +826,59 @@ function wrapSelection(before, after) {
   textarea.selectionEnd = end + before.length;
   renderPreview();
   hasUnsavedChanges = true;
+  updateTagsAndMeta();
+}
+
+function updateTagsAndMeta() {
+  const content = textarea.value;
+  const panelBody = document.getElementById('tagsPanelBody');
+  
+  // Extract Tags (#tag)
+  const tagRegex = /#([\wğüşıöçĞÜŞİÖÇ/-]+)/g;
+  const tags = [...new Set([...content.matchAll(tagRegex)].map(m => m[1]))];
+  
+  // Extract YAML Frontmatter
+  const yamlRegex = /^---\n([\s\S]*?)\n---/;
+  const yamlMatch = content.match(yamlRegex);
+  let metaHtml = '';
+  
+  if (yamlMatch) {
+    const yamlContent = yamlMatch[1];
+    const lines = yamlContent.split('\n');
+    metaHtml = '<div class="meta-section"><div class="meta-title">Frontmatter</div>';
+    lines.forEach(line => {
+      const [key, ...valParts] = line.split(':');
+      if (key && valParts.length > 0) {
+        metaHtml += `
+          <div class="meta-item">
+            <span class="meta-label">${key.trim()}</span>
+            <span class="meta-value">${valParts.join(':').trim()}</span>
+          </div>`;
+      }
+    });
+    metaHtml += '</div>';
+  }
+
+  const tagsHtml = tags.length > 0 
+    ? tags.map(t => `<span class="tag-badge">#${t}</span>`).join('')
+    : '<div style="font-size:11px; color:var(--text2);">Etiket bulunamadı.</div>';
+
+  panelBody.innerHTML = `
+    <div class="meta-title">Etiketler</div>
+    <div style="margin-bottom:20px;">${tagsHtml}</div>
+    ${metaHtml}
+    <div class="meta-section">
+      <div class="meta-title">Dosya Bilgisi</div>
+      <div class="meta-item"><span class="meta-label">ID</span><span class="meta-value">${FILE_ID.split('/').pop()}</span></div>
+      <div class="meta-item"><span class="meta-label">Yol</span><span class="meta-value">${FILE_ID}</span></div>
+    </div>
+  `;
+}
+
+function toggleTagsPanel() {
+  const panel = document.getElementById('tagsPanel');
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+  if (panel.style.display === 'flex') updateTagsAndMeta();
 }
 
 function insertHeading() {
