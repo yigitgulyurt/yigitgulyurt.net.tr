@@ -701,7 +701,7 @@ renderer.listitem = (text, task, checked) => {
   if (task) {
     return `
       <li class="task-list-item">
-        <input type="checkbox" ${checked ? 'checked' : ''} disabled>
+        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleIndexChecklist(this, '${text.replace(/'/g, "\\'")}', '${activeTabId}')">
         ${text}
       </li>`;
   }
@@ -830,6 +830,42 @@ async function toggleBacklinks() {
     }
   } else {
     panel.style.display = 'none';
+  }
+}
+
+async function toggleIndexChecklist(cb, text, fileId) {
+  if (!fileId) return;
+  const isChecked = cb.checked;
+  const oldContent = fileCache.get(fileId);
+  if (!oldContent) return;
+
+  const searchStr = isChecked ? `- [ ] ${text}` : `- [x] ${text}`;
+  const replaceStr = isChecked ? `- [x] ${text}` : `- [ ] ${text}`;
+  const newContent = oldContent.replace(searchStr, replaceStr);
+
+  // Update cache and UI immediately
+  fileCache.set(fileId, newContent);
+  // Re-render only if still viewing the same file
+  if (activeTabId === fileId) {
+    // renderContent'i tekrar çağırmak yerine sadece marked ile parse edip içeriği güncelle
+    // Çünkü renderContent header'ı da sıfırlar.
+    const previewContent = document.querySelector('.preview-content');
+    if (previewContent) {
+      previewContent.innerHTML = marked.parse(newContent);
+      previewContent.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
+    }
+  }
+
+  // Save to server
+  try {
+    await fetch(`/api/file/${fileId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: newContent })
+    });
+  } catch (e) {
+    console.error('Checklist güncelleme hatası:', e);
+    alert('Değişiklik kaydedilemedi.');
   }
 }
 

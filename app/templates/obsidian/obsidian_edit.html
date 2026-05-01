@@ -546,7 +546,7 @@ renderer.listitem = (text, task, checked) => {
   if (task) {
     return `
       <li class="task-list-item">
-        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleChecklist(this, '${text.replace(/'/g, "\\'")}')">
+        <input type="checkbox" ${checked ? 'checked' : ''} disabled>
         ${text}
       </li>`;
   }
@@ -715,18 +715,6 @@ function getCursorXY(input, selectionStart) {
   const { offsetLeft: spanLeft, offsetTop: spanTop } = span;
   document.body.removeChild(div);
   return { x: offsetLeft + spanLeft, y: offsetTop + spanTop };
-}
-
-// Checklist toggle logic
-function toggleChecklist(cb, text) {
-  const isChecked = cb.checked;
-  const val = textarea.value;
-  const searchStr = isChecked ? `- [ ] ${text}` : `- [x] ${text}`;
-  const replaceStr = isChecked ? `- [x] ${text}` : `- [ ] ${text}`;
-  
-  textarea.value = val.replace(searchStr, replaceStr);
-  renderPreview();
-  saveFile();
 }
 
 // Unsaved changes warning
