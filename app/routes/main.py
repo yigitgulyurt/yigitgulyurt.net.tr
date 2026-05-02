@@ -19,26 +19,39 @@ def extract_slug(url):
         if domain.startswith('www.'):
             domain = domain[4:]
         
-        # Domain'den kısa kod çıkar (örn: youtube.com -> yt, github.com -> gh)
+        # Kapsamlı Domain Map
         domain_map = {
-            'youtube.com': 'yt',
-            'youtu.be': 'yt',
-            'github.com': 'gh',
-            'linkedin.com': 'ln',
-            'twitter.com': 'tw',
-            'x.com': 'tw',
-            'instagram.com': 'ig',
-            'medium.com': 'md'
+            # Video & Stream
+            'youtube.com': 'yt', 'youtu.be': 'yt', 'twitch.tv': 'tv', 'vimeo.com': 'vm', 'netflix.com': 'nf',
+            # Sosyal Medya
+            'twitter.com': 'tw', 'x.com': 'tw', 'instagram.com': 'ig', 'facebook.com': 'fb', 'fb.com': 'fb',
+            'tiktok.com': 'tk', 'reddit.com': 'rd', 'linkedin.com': 'ln', 'pinterest.com': 'pin',
+            # Müzik
+            'spotify.com': 'sp', 'open.spotify.com': 'sp', 'soundcloud.com': 'sc', 'music.apple.com': 'am',
+            # Yazılım & Geliştirme
+            'github.com': 'gh', 'gitlab.com': 'gl', 'stackoverflow.com': 'so', 'codepen.io': 'cp',
+            'medium.com': 'md', 'dev.to': 'dev', 'behance.net': 'be', 'dribbble.com': 'dr',
+            # Diğer Popüler
+            'amazon.com': 'amz', 'amazon.com.tr': 'amz', 'wikipedia.org': 'wiki', 'discord.com': 'dc',
+            'steamcommunity.com': 'st', 'steampowered.com': 'st', 't.me': 'tg', 'telegram.org': 'tg'
         }
         
         short_domain = domain_map.get(domain)
         if not short_domain:
-            # Eğer map'te yoksa domainin ilk parçasını al (örn: google.com -> google)
+            # Subdomain kontrolü (örn: open.spotify.com -> sp)
+            for d, code in domain_map.items():
+                if domain.endswith('.' + d):
+                    short_domain = code
+                    break
+        
+        if not short_domain:
             short_domain = domain.split('.')[0][:10]
         
-        # 1. Query parametrelerini kontrol et (v, id, p, vb.)
+        # 1. Query parametrelerini kontrol et
         qs = parse_qs(parsed.query)
-        for key in ['v', 'id', 'p', 'slug', 'article']:
+        # Önemli parametreler listesi
+        param_keys = ['v', 'id', 'p', 'slug', 'article', 'track', 'album', 's', 'post']
+        for key in param_keys:
             if key in qs and qs[key]:
                 val = qs[key][0]
                 if len(val) >= 3:
@@ -47,11 +60,24 @@ def extract_slug(url):
         # 2. Path segmentlerini kontrol et
         path_parts = [p for p in parsed.path.split('/') if p]
         if path_parts:
+            # Belirleyici anahtar kelimeler (örn: /track/ID, /p/ID, /watch/ID)
+            trigger_keywords = [
+                'track', 'album', 'playlist', 'u', 'user', 'posts', 'p', 'watch', 
+                'video', 'article', 'item', 'product', 'groups', 'community', 'channel'
+            ]
+            for i, part in enumerate(path_parts[:-1]):
+                if part.lower() in trigger_keywords:
+                    return short_domain, clean_slug(path_parts[i+1])
+            
+            # Eğer özel bir tetikleyici yoksa son anlamlı parçayı al
             last_segment = path_parts[-1]
             if '.' in last_segment:
                 last_segment = last_segment.rsplit('.', 1)[0]
             
             if len(last_segment) >= 3:
+                # Domain ismiyle aynıysa boş dön (örn: twitter.com/)
+                if last_segment.lower() in [short_domain.lower(), domain.split('.')[0].lower()]:
+                    return short_domain, None
                 return short_domain, clean_slug(last_segment)
                 
         return short_domain, None
@@ -60,11 +86,10 @@ def extract_slug(url):
     return "link", None
 
 def clean_slug(text):
-    # Sadece alfanumerik ve tire/alt çizgi bırak, Türkçe karakterleri basitçe geç (veya temizle)
-    # Burada basit bir temizlik yapıyoruz
     text = text.lower()
+    # Spotify ID'leri ve benzerleri için alfanumerik karakterleri koru
     text = re.sub(r'[^a-z0-9\-_]', '', text)
-    return text[:20] # Çok uzun olmasın
+    return text[:30] # Spotify ID'leri 22 karakterdir, sınırı biraz artırdık
 
 @bp.route('/')
 def index():
