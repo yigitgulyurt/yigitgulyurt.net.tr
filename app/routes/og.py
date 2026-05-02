@@ -245,6 +245,13 @@ def og_image():
     prompt   = request.args.get('prompt',   '$ whoami')[:60]
     domain   = request.args.get('domain',   'yigitgulyurt.net.tr')[:50]
 
+    # Unicode kaçış dizilerini (\uXXXX) gerçek karakterlere dönüştür
+    try:
+        if "\\" in prompt:
+            prompt = prompt.encode('utf-8').decode('unicode_escape')
+    except Exception:
+        pass
+
     data = _cached_og(title, subtitle, theme, prompt, domain)
     resp = send_file(io.BytesIO(data), mimetype='image/png')
     resp.headers['Cache-Control'] = 'public, max-age=3600'
