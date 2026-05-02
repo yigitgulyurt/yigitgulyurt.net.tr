@@ -38,38 +38,73 @@ H = 630    # yükseklik (piksel)
 THEMES = {
     'default': {
         'bg':      '#0d0d0d',
-        'accent':  '#4ade80',   # yeşil
+        'accent':  '#4ade80',   # yeşil (Terminal accent)
         'accent2': '#60a5fa',   # mavi
         'text':    '#e2e2e2',
-        'text2':   '#666666',
+        'text2':   '#888888',
     },
     'live': {
         'bg':      '#0d0d0d',
-        'accent':  '#f87171',   # kırmızı
+        'accent':  '#f87171',   # kırmızı (Recording/Live)
         'accent2': '#60a5fa',   # mavi
         'text':    '#e2e2e2',
-        'text2':   '#666666',
+        'text2':   '#888888',
     },
     'ataturk': {
         'bg':      '#080808',
         'accent':  '#e30a17',   # Türk kırmızısı
         'accent2': '#c5a059',   # altın
         'text':    '#f0f0f0',
-        'text2':   '#777777',
+        'text2':   '#999999',
     },
     'blog': {
         'bg':      '#0d0d0d',
-        'accent':  '#60a5fa',   # mavi
-        'accent2': '#4ade80',   # yeşil
+        'accent':  '#fb923c',   # turuncu (Yazı/Blog)
+        'accent2': '#fcd34d',   # kehribar
         'text':    '#e2e2e2',
-        'text2':   '#666666',
+        'text2':   '#888888',
     },
     'project': {
         'bg':      '#0d0d0d',
-        'accent':  '#4ade80',   # yeşil
-        'accent2': '#a78bfa',   # mor
+        'accent':  '#818cf8',   # indigo (Yaratıcılık/Proje)
+        'accent2': '#22d3ee',   # cyan
         'text':    '#e2e2e2',
-        'text2':   '#666666',
+        'text2':   '#888888',
+    },
+    'contact': {
+        'bg':      '#051010',   # çok koyu teal
+        'accent':  '#10b981',   # zümrüt (İletişim)
+        'accent2': '#2dd4bf',   # turkuaz
+        'text':    '#f9fafb',
+        'text2':   '#94a3b8',
+    },
+    'about': {
+        'bg':      '#0f172a',   # koyu slate
+        'accent':  '#a78bfa',   # mor (Kişisel)
+        'accent2': '#f472b6',   # pembe
+        'text':    '#f8fafc',
+        'text2':   '#94a3b8',
+    },
+    'cv': {
+        'bg':      '#0f172a',   # koyu slate
+        'accent':  '#38bdf8',   # gökyüzü mavisi (Profesyonel)
+        'accent2': '#94a3b8',   # slate
+        'text':    '#f1faee',
+        'text2':   '#a8dadc',
+    },
+    'main': {
+        'bg':      '#111827',   # koyu gri
+        'accent':  '#f59e0b',   # kehribar (Ana sayfa/Vurgu)
+        'accent2': '#fbbf24',   # sarı
+        'text':    '#f9fafb',
+        'text2':   '#9ca3af',
+    },
+    'qr': {
+        'bg':      '#000000',
+        'accent':  '#ffffff',   # beyaz
+        'accent2': '#888888',   # gri
+        'text':    '#ffffff',
+        'text2':   '#cccccc',
     },
 }
 

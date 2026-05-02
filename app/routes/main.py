@@ -4,11 +4,45 @@ from app import db
 from datetime import datetime
 import random
 import string
+import re
+from urllib.parse import urlparse, parse_qs
 
 bp = Blueprint('main', __name__)
 
 def generate_id(length=7):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+def extract_slug(url):
+    try:
+        parsed = urlparse(url)
+        # 1. Query parametrelerini kontrol et (v, id, p, vb.)
+        qs = parse_qs(parsed.query)
+        for key in ['v', 'id', 'p', 'slug', 'article']:
+            if key in qs and qs[key]:
+                val = qs[key][0]
+                if len(val) >= 3:
+                    return clean_slug(val)
+        
+        # 2. Path segmentlerini kontrol et
+        path_parts = [p for p in parsed.path.split('/') if p]
+        if path_parts:
+            # Son segmenti al, eğer dosya uzantısı varsa (.html vb) temizle
+            last_segment = path_parts[-1]
+            if '.' in last_segment:
+                last_segment = last_segment.rsplit('.', 1)[0]
+            
+            if len(last_segment) >= 3:
+                return clean_slug(last_segment)
+    except Exception:
+        pass
+    return None
+
+def clean_slug(text):
+    # Sadece alfanumerik ve tire/alt çizgi bırak, Türkçe karakterleri basitçe geç (veya temizle)
+    # Burada basit bir temizlik yapıyoruz
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9\-_]', '', text)
+    return text[:20] # Çok uzun olmasın
 
 @bp.route('/')
 def index():
@@ -62,6 +96,7 @@ def sitemap():
     base = 'https://yigitgulyurt.net.tr'
 
     static_pages = [
+        ('main.ataturk',   '0.8',  'monthly'),
         ('main.index',    '1.0',  'weekly'),
         ('main.about',    '0.8',  'monthly'),
         ('main.cv',       '0.7',  'monthly'),
@@ -111,9 +146,19 @@ def shorten():
     if existing:
         return jsonify({'short_id': existing.id})
     
-    short_id = generate_id()
-    while QrRedirect.query.get(short_id):
+    # URL'den anlamlı bir kısım çıkarmaya çalış
+    slug = extract_slug(url)
+    if slug:
+        short_id = slug
+        # Eğer bu slug zaten varsa sonuna kısa bir random ekle
+        if QrRedirect.query.get(short_id):
+            short_id = f"{slug}-{generate_id(3)}"
+            while QrRedirect.query.get(short_id):
+                short_id = f"{slug}-{generate_id(3)}"
+    else:
         short_id = generate_id()
+        while QrRedirect.query.get(short_id):
+            short_id = generate_id()
     
     redirect_obj = QrRedirect(id=short_id, url=url)
     db.session.add(redirect_obj)
@@ -130,7 +175,7 @@ def redirect_url(short_id):
 
 @bp.route('/qr-okuyucu')
 def qr_okuyucu():
-    return render_template('main/qr-reader.html')
+    return render_template('qr-reader/qr-reader.html')
 
 @bp.route('/robots.txt')
 def robots():
