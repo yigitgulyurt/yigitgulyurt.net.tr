@@ -244,3 +244,11 @@ def robots():
         "Sitemap: https://yigitgulyurt.net.tr/sitemap.xml\n"
     )
     return Response(content, mimetype='text/plain')
+
+@bp.route('/og/yigitgulyurt.net.tr')
+def yigitgulyurt_og():
+    return render_template('showcase/yigitgulyurt.html')
+
+@bp.route('/og/cagrivakti.com.tr')
+def cagrivakti_og():
+    return render_template('showcase/cagrivakti.html')
