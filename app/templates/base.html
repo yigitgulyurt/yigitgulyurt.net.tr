@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   {# ---- Temel meta ---- #}
-  <title>{% block title %}Yiğit Gülyurt{% endblock %} — yigitgulyurt.net.tr</title>
-  <meta name="description" content="{% block description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <title>{% block title %}Yiğit Gülyurt{% endblock %} | Portfolyo</title>
+  <meta name="description" content="{% block description %}Yiğit Gülyurt - Flask, nginx ve Python ile backend sistemler geliştiren Full-Stack Geliştirici.{% endblock %}">
   <meta name="author" content="Yiğit Gülyurt">
   <link rel="canonical" href="https://yigitgulyurt.net.tr{{ request.path }}">
 
   {# ---- Open Graph ---- #}
   <meta property="og:type"        content="{% block og_type %}website{% endblock %}">
-  <meta property="og:title"       content="{% block og_title %}Yiğit Gülyurt — yigitgulyurt.net.tr{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <meta property="og:title"       content="{% block og_title %}Yiğit Gülyurt{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Ben Yiğit Gülyurt.{% endblock %}">
   <meta property="og:url"         content="https://yigitgulyurt.net.tr{{ request.path }}">
-  <meta property="og:site_name"   content="yigitgulyurt.net.tr">
+  <meta property="og:site_name"   content="Yiğit Gülyurt">
   <meta property="og:image"       content="{% block og_image %}https://yigitgulyurt.net.tr/og-image?title=Yiğit+Gülyurt&subtitle=Full-Stack+Developer&theme=default&prompt=$+whoami&domain=yigitgulyurt.net.tr{% endblock %}">
   <meta property="og:image:width"  content="1200">
   <meta property="og:image:height" content="630">
@@ -23,8 +23,8 @@
 
   {# ---- Twitter Card ---- #}
   <meta name="twitter:card"        content="summary_large_image">
-  <meta name="twitter:title"       content="{% block tw_title %}Yiğit Gülyurt — yigitgulyurt.net.tr{% endblock %}">
-  <meta name="twitter:description" content="{% block tw_description %}Full-Stack Geliştirici — Flask, nginx, Python{% endblock %}">
+  <meta name="twitter:title"       content="{% block tw_title %}Yiğit Gülyurt{% endblock %}">
+  <meta name="twitter:description" content="{% block tw_description %}Ben Yiğit Gülyurt.{% endblock %}">
   <meta name="twitter:image"       content="{% block tw_image %}https://yigitgulyurt.net.tr/og-image?title=Yiğit+Gülyurt&subtitle=Full-Stack+Developer&theme=default&prompt=$+whoami&domain=yigitgulyurt.net.tr{% endblock %}">
 
   {# ---- Favicon ---- #}
@@ -32,13 +32,31 @@
 
   {# ---- Styles ---- #}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  
+  {# ---- Structured Data (Google Site Name) ---- #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Yiğit Gülyurt",
+    "url": "https://yigitgulyurt.net.tr/",
+    "sameAs": [
+      "https://github.com/yigitgulyurt",
+      "https://twitter.com/yigitgulyurt0",
+      "https://www.linkedin.com/in/yigitgulyurt/",
+      "https://www.instagram.com/yigitgulyurt/",
+      "https://www.youtube.com/@yigitgulyurt"
+    ]
+  }
+  </script>
+  
   {% block head %}{% endblock %}
 </head>
 <body>
 
   <nav class="nav">
     <a class="nav-logo" href="{{ url_for('main.index') }}">
-      yigitgulyurt<span class="cursor"></span>
+      Yiğit Gülyurt<span class="cursor"></span>
     </a>
     <div class="nav-links">
     {% if current_user.is_authenticated %}
@@ -84,7 +102,7 @@
   </main>
 
   <footer class="footer">
-    <div class="footer-copy">© {{ now.year }} yigitgulyurt.net.tr</div>
+    <div class="footer-copy">© {{ now.year }} Yiğit Gülyurt</div>
     <div class="footer-links">
       <a href="https://github.com/yigitgulyurt" target="_blank" rel="noopener">GitHub</a>
       <a href="https://linkedin.com/in/yigitgulyurt" target="_blank" rel="noopener">LinkedIn</a>

@@ -3,10 +3,10 @@
 {% block title %}{{ project.title }}{% endblock %}
 {% block description %}{{ project.description or project.title }}{% endblock %}
 {% block og_type %}article{% endblock %}
-{% block og_title %}{{ project.title }} — yigitgulyurt.net.tr{% endblock %}
+{% block og_title %}{{ project.title }} | Yiğit Gülyurt{% endblock %}
 {% block og_description %}{{ project.description or project.title }}{% endblock %}
 {% block og_image %}https://yigitgulyurt.net.tr/og-image?title={{ project.title | urlencode }}&subtitle={{ (project.tech_stack or 'proje') | urlencode }}&theme=project&prompt=$+cat+projects/{{ project.slug | urlencode }}.md&domain=yigitgulyurt.net.tr{% endblock %}
-{% block tw_title %}{{ project.title }} — yigitgulyurt.net.tr{% endblock %}
+{% block tw_title %}{{ project.title }} | Yiğit Gülyurt{% endblock %}
 {% block tw_description %}{{ project.description or project.title }}{% endblock %}
 {% block tw_image %}https://yigitgulyurt.net.tr/og-image?title={{ project.title | urlencode }}&subtitle={{ (project.tech_stack or 'proje') | urlencode }}&theme=project&prompt=$+cat+projects/{{ project.slug | urlencode }}.md&domain=yigitgulyurt.net.tr{% endblock %}
 
