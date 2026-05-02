@@ -111,7 +111,8 @@ class StreamConfig(db.Model):
 
 class QrRedirect(db.Model):
     __tablename__ = 'qr_redirect'
-    id = db.Column(db.String(8), primary_key=True)
+    id = db.Column(db.String(20), primary_key=True) # Uzunluğu artırdık
+    short_domain = db.Column(db.String(20), index=True) # Yeni alan
     url = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     hit_count = db.Column(db.Integer, default=0)

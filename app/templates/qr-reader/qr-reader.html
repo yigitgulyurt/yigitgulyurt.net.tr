@@ -227,7 +227,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 const data = await res.json();
                 if (data.short_id) {
-                    currentShortUrl = window.location.origin + `/r/${data.short_id}`;
+                    if (data.short_domain) {
+                        currentShortUrl = window.location.origin + `/r/${data.short_domain}/${data.short_id}`;
+                    } else {
+                        currentShortUrl = window.location.origin + `/r/${data.short_id}`;
+                    }
                 }
             } catch { currentShortUrl = text; }
         } else {

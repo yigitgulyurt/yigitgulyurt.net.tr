@@ -15,27 +15,49 @@ def generate_id(length=7):
 def extract_slug(url):
     try:
         parsed = urlparse(url)
+        domain = parsed.netloc.lower()
+        if domain.startswith('www.'):
+            domain = domain[4:]
+        
+        # Domain'den kısa kod çıkar (örn: youtube.com -> yt, github.com -> gh)
+        domain_map = {
+            'youtube.com': 'yt',
+            'youtu.be': 'yt',
+            'github.com': 'gh',
+            'linkedin.com': 'ln',
+            'twitter.com': 'tw',
+            'x.com': 'tw',
+            'instagram.com': 'ig',
+            'medium.com': 'md'
+        }
+        
+        short_domain = domain_map.get(domain)
+        if not short_domain:
+            # Eğer map'te yoksa domainin ilk parçasını al (örn: google.com -> google)
+            short_domain = domain.split('.')[0][:10]
+        
         # 1. Query parametrelerini kontrol et (v, id, p, vb.)
         qs = parse_qs(parsed.query)
         for key in ['v', 'id', 'p', 'slug', 'article']:
             if key in qs and qs[key]:
                 val = qs[key][0]
                 if len(val) >= 3:
-                    return clean_slug(val)
+                    return short_domain, clean_slug(val)
         
         # 2. Path segmentlerini kontrol et
         path_parts = [p for p in parsed.path.split('/') if p]
         if path_parts:
-            # Son segmenti al, eğer dosya uzantısı varsa (.html vb) temizle
             last_segment = path_parts[-1]
             if '.' in last_segment:
                 last_segment = last_segment.rsplit('.', 1)[0]
             
             if len(last_segment) >= 3:
-                return clean_slug(last_segment)
+                return short_domain, clean_slug(last_segment)
+                
+        return short_domain, None
     except Exception:
         pass
-    return None
+    return "link", None
 
 def clean_slug(text):
     # Sadece alfanumerik ve tire/alt çizgi bırak, Türkçe karakterleri basitçe geç (veya temizle)
@@ -144,10 +166,14 @@ def shorten():
     
     existing = QrRedirect.query.filter_by(url=url).first()
     if existing:
-        return jsonify({'short_id': existing.id})
+        return jsonify({
+            'short_id': existing.id,
+            'short_domain': existing.short_domain or 'r'
+        })
     
-    # URL'den anlamlı bir kısım çıkarmaya çalış
-    slug = extract_slug(url)
+    # URL'den anlamlı parçalar çıkarmaya çalış
+    short_domain_val, slug = extract_slug(url)
+    
     if slug:
         short_id = slug
         # Eğer bu slug zaten varsa sonuna kısa bir random ekle
@@ -160,14 +186,19 @@ def shorten():
         while QrRedirect.query.get(short_id):
             short_id = generate_id()
     
-    redirect_obj = QrRedirect(id=short_id, url=url)
+    redirect_obj = QrRedirect(id=short_id, short_domain=short_domain_val, url=url)
     db.session.add(redirect_obj)
     db.session.commit()
     
-    return jsonify({'short_id': short_id})
+    return jsonify({
+        'short_id': short_id,
+        'short_domain': short_domain_val
+    })
 
 @bp.route('/r/<short_id>')
-def redirect_url(short_id):
+@bp.route('/r/<short_domain>/<short_id>')
+def redirect_url(short_id, short_domain=None):
+    # short_domain opsiyonel, eski linklerin çalışması için hem tekli hem ikili rotayı destekliyoruz
     obj = QrRedirect.query.get_or_404(short_id)
     obj.hit_count += 1
     db.session.commit()
