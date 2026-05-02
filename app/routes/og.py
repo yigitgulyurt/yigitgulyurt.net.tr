@@ -5,16 +5,14 @@ Kullanım: /og-image?title=...&subtitle=...&theme=...&prompt=...&domain=...
 
 Parametreler:
   title    — Ana başlık metni           (max 80 karakter)
-  subtitle — Alt başlık metni           (max 100 karakter)
-  theme    — Renk teması                (default|live|ataturk|blog|project)
+  subtitle — Alt başlık metni           (max 120 karakter)
+  theme    — Renk teması                (default|live|ataturk|blog|project|contact|about|cv|main|qr)
   prompt   — Sol üstteki terminal komutu (max 60 karakter)
   domain   — Sağ alttaki domain metni  (max 50 karakter)
-
-Örnek:
-  /og-image?title=Yiğit+Gülyurt&subtitle=Full-Stack+Developer&theme=default&domain=yigitgulyurt.net.tr
 """
 
 import io
+from functools import lru_cache
 from flask import Blueprint, request, send_file
 from PIL import Image, ImageDraw, ImageFont
 
@@ -29,13 +27,8 @@ H = 630    # yükseklik (piksel)
 # ─────────────────────────────────────────────
 # RENK TEMALAR
 # Her tema: bg, accent, accent2, text, text2
-#   bg       — arka plan rengi
-#   accent   — üst çizgi, prompt ve sol vurgu rengi
-#   accent2  — domain ve bracket rengi
-#   text     — ana başlık rengi
-#   text2    — alt başlık rengi
 # ─────────────────────────────────────────────
-THEMES = {
+THEMES: dict[str, dict[str, str]] = {
     'default': {
         'bg':      '#0d0d0d',
         'accent':  '#4ade80',   # yeşil (Terminal accent)
@@ -110,10 +103,9 @@ THEMES = {
 
 # ─────────────────────────────────────────────
 # FONT YOLLARI (Ubuntu/Debian sunucu için)
-# Farklı bir sunucuda çalışıyorsa bu yolları güncelle
 # ─────────────────────────────────────────────
-FONT_BOLD = '/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf'
-FONT_REG  = '/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf'
+FONT_BOLD = '/usr/share/fonts/JetBrainsMono/JetBrainsMonoNerdFont-Bold.ttf'
+FONT_REG  = '/usr/share/fonts/JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf'
 
 # ─────────────────────────────────────────────
 # DİZAYN SABİTLERİ
@@ -132,47 +124,67 @@ TITLE_SIZES = (72, 58, 46, 36, 28)  # başlık için denenen font boyutları
 # YARDIMCI FONKSİYONLAR
 # ─────────────────────────────────────────────
 
-def _hex(h):
+def _hex_to_rgb(h: str) -> tuple[int, int, int]:
     """#rrggbb → (r, g, b) tuple"""
     h = h.lstrip('#')
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
-def _font(path, size):
+def _load_font(path: str, size: int) -> ImageFont.FreeTypeFont:
     """Font yükle, bulamazsa varsayılanı kullan"""
     try:
         return ImageFont.truetype(path, size)
     except Exception:
         return ImageFont.load_default()
 
-def _fit_title(d, text, max_width):
+def _fit_title_font(draw: ImageDraw.ImageDraw, text: str, max_width: int) -> tuple[ImageFont.FreeTypeFont, int]:
     """Başlığı taşırmadan sığacak en büyük font boyutunu bul"""
     for size in TITLE_SIZES:
-        f = _font(FONT_BOLD, size)
-        if d.textbbox((0, 0), text, font=f)[2] < max_width:
-            return f, size
-    return _font(FONT_BOLD, TITLE_SIZES[-1]), TITLE_SIZES[-1]
+        font = _load_font(FONT_BOLD, size)
+        bbox = draw.textbbox((0, 0), text, font=font)
+        if bbox[2] < max_width:
+            return font, size
+    font = _load_font(FONT_BOLD, TITLE_SIZES[-1])
+    return font, TITLE_SIZES[-1]
 
-def _draw_bracket(d, x1, y1, x2, y2, color):
-    """
-    4 köşeli bracket çerçevesi çizer.
-    Kol uzunluğu kutu genişliğiyle orantılıdır:
-      arm = max(20, min(36, genişlik × 0.18))
-    """
-    lw  = BRACKET_LW
+def _draw_bracket(draw, x1, y1, x2, y2, color):
+    """4 köşeli bracket (⌐ ¬) çerçevesi çizer."""
     arm = max(20, min(36, int((x2 - x1) * 0.18)))
+    lw  = BRACKET_LW
 
     # Sol üst ⌐
-    d.rectangle([x1,        y1,        x1 + arm, y1 + lw], fill=color)
-    d.rectangle([x1,        y1,        x1 + lw,  y1 + arm], fill=color)
+    draw.rectangle([x1,       y1,       x1 + arm, y1 + lw], fill=color)
+    draw.rectangle([x1,       y1,       x1 + lw,  y1 + arm], fill=color)
     # Sağ üst
-    d.rectangle([x2 - arm,  y1,        x2,        y1 + lw], fill=color)
-    d.rectangle([x2 - lw,   y1,        x2,        y1 + arm], fill=color)
+    draw.rectangle([x2 - arm, y1,       x2,        y1 + lw], fill=color)
+    draw.rectangle([x2 - lw,  y1,       x2,        y1 + arm], fill=color)
     # Sol alt
-    d.rectangle([x1,        y2 - lw,   x1 + arm,  y2], fill=color)
-    d.rectangle([x1,        y2 - arm,  x1 + lw,   y2], fill=color)
+    draw.rectangle([x1,       y2 - lw,  x1 + arm,  y2], fill=color)
+    draw.rectangle([x1,       y2 - arm, x1 + lw,   y2], fill=color)
     # Sağ alt ¬
-    d.rectangle([x2 - arm,  y2 - lw,   x2,        y2], fill=color)
-    d.rectangle([x2 - lw,   y2 - arm,  x2,        y2], fill=color)
+    draw.rectangle([x2 - arm, y2 - lw,  x2,        y2], fill=color)
+    draw.rectangle([x2 - lw,  y2 - arm, x2,        y2], fill=color)
+
+def _draw_subtitle_multiline(draw, text, x, y, font, color, max_width, line_spacing=12):
+    """Alt başlığı çok satırlı çizer (manuel '|' veya otomatik wrap)."""
+    if '|' in text:
+        line_h = draw.textbbox((0, 0), 'A', font=font)[3] + line_spacing
+        for i, line in enumerate(text.split('|')):
+            draw.text((x, y + i * line_h), line.strip(), font=font, fill=color)
+        return
+
+    words = text.split(' ')
+    line, cy = '', y
+    for word in words:
+        test = (line + ' ' + word).strip()
+        if draw.textbbox((0, 0), test, font=font)[2] <= max_width:
+            line = test
+        else:
+            if line:
+                draw.text((x, cy), line, font=font, fill=color)
+                cy += draw.textbbox((0, 0), line, font=font)[3] + line_spacing
+            line = word
+    if line:
+        draw.text((x, cy), line, font=font, fill=color)
 
 # ─────────────────────────────────────────────
 # ANA GÖRSEL ÜRETİCİ
@@ -180,43 +192,37 @@ def _draw_bracket(d, x1, y1, x2, y2, color):
 
 def make_og(title, subtitle, theme, prompt, domain):
     t   = THEMES.get(theme, THEMES['default'])
-    img = Image.new('RGB', (W, H), _hex(t['bg']))
+    img = Image.new('RGB', (W, H), _hex_to_rgb(t['bg']))
     d   = ImageDraw.Draw(img)
 
     # 1. Üst accent çizgisi
-    d.rectangle([0, 0, W, 3], fill=_hex(t['accent']))
+    d.rectangle([0, 0, W, 3], fill=_hex_to_rgb(t['accent']))
 
     # 2. Prompt (sol üst)
-    f_prompt = _font(FONT_REG, PROMPT_SZ)
-    d.text((PAD, 48), prompt, font=f_prompt, fill=_hex(t['accent']))
+    f_prompt = _load_font(FONT_REG, PROMPT_SZ)
+    d.text((PAD, 48), prompt, font=f_prompt, fill=_hex_to_rgb(t['accent']))
 
     # 3. Ana başlık (dikey merkez üstü)
-    f_title, title_size = _fit_title(d, title, W - PAD * 2)
+    max_title_w = W - PAD * 2
+    f_title, title_size = _fit_title_font(d, title, max_title_w)
     title_y = H // 2 - title_size - 16
-    d.text((PAD, title_y), title, font=f_title, fill=_hex(t['text']))
+    d.text((PAD, title_y), title, font=f_title, fill=_hex_to_rgb(t['text']))
 
-    # 4. Alt başlık
-    f_sub = _font(FONT_REG, SUBTITLE_SZ)
-    d.text((PAD, title_y + title_size + 20), subtitle,
-           font=f_sub, fill=_hex(t['text2']))
+    # 4. Alt başlık (multiline support)
+    f_sub = _load_font(FONT_REG, SUBTITLE_SZ)
+    _draw_subtitle_multiline(d, subtitle, PAD, title_y + title_size + 24, f_sub, _hex_to_rgb(t['text2']), max_title_w)
 
-    # 5. Domain + bracket (sağ alt)
-    f_domain = _font(FONT_REG, DOM_FONT_SZ)
+    # 5. Domain + bracket (sağ alt, merkezlenmiş)
+    f_domain = _load_font(FONT_REG, DOM_FONT_SZ)
     db = d.textbbox((0, 0), domain, font=f_domain)
     dw, dh = db[2] - db[0], db[3] - db[1]
 
-    # Bracket kutu sınırları
-    bx1 = W - MARGIN - dw - DOM_PAD_X * 2
-    by1 = H - MARGIN - dh - DOM_PAD_Y * 2
-    bx2 = W - MARGIN
-    by2 = H - MARGIN
+    bx_w, bx_h = dw + DOM_PAD_X * 2, dh + DOM_PAD_Y * 2
+    bx2, by2 = W - MARGIN, H - MARGIN
+    bx1, by1 = bx2 - bx_w, by2 - bx_h
 
-    # Domain metni
-    d.text((bx1 + DOM_PAD_X, by1 + DOM_PAD_Y),
-           domain, font=f_domain, fill=_hex(t['accent2']))
-
-    # Bracket çerçevesi
-    _draw_bracket(d, bx1, by1, bx2, by2, _hex(t['accent2']))
+    d.text(((bx1 + bx2) / 2, (by1 + by2) / 2), domain, font=f_domain, fill=_hex_to_rgb(t['accent2']), anchor="mm")
+    _draw_bracket(d, bx1, by1, bx2, by2, _hex_to_rgb(t['accent2']))
 
     return img
 
@@ -224,11 +230,7 @@ def make_og(title, subtitle, theme, prompt, domain):
 # FLASK ROUTE
 # ─────────────────────────────────────────────
 
-# Bellek içi cache — aynı parametrelerle tekrar istek gelirse yeniden üretmez
-# max 200 farklı görsel tutar, LRU mantığıyla eskiyi atar
-from functools import lru_cache
-
-@lru_cache(maxsize=200)
+@lru_cache(maxsize=300)
 def _cached_og(title, subtitle, theme, prompt, domain):
     img = make_og(title, subtitle, theme, prompt, domain)
     buf = io.BytesIO()
@@ -238,14 +240,12 @@ def _cached_og(title, subtitle, theme, prompt, domain):
 @bp.route('/og-image')
 def og_image():
     title    = request.args.get('title',    'Yiğit Gülyurt')[:80]
-    subtitle = request.args.get('subtitle', '')[:100]
+    subtitle = request.args.get('subtitle', '')[:120]
     theme    = request.args.get('theme',    'default')
     prompt   = request.args.get('prompt',   '$ whoami')[:60]
     domain   = request.args.get('domain',   'yigitgulyurt.net.tr')[:50]
 
     data = _cached_og(title, subtitle, theme, prompt, domain)
-
     resp = send_file(io.BytesIO(data), mimetype='image/png')
-    # Tarayıcı/CDN 1 saat cache'lesin
     resp.headers['Cache-Control'] = 'public, max-age=3600'
     return resp
