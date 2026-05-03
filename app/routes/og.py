@@ -104,8 +104,8 @@ THEMES: dict[str, dict[str, str]] = {
 # ─────────────────────────────────────────────
 # FONT YOLLARI (Ubuntu/Debian sunucu için)
 # ─────────────────────────────────────────────
-FONT_BOLD = 'app\static\fonts\jetbrainsmononerdfont\JetBrainsMonoNerdFont-Bold.ttf'
-FONT_REG  = 'app\static\fonts\jetbrainsmononerdfont\JetBrainsMonoNerdFont-Regular.ttf'
+FONT_BOLD = 'app\static\fonts\JetBrainsMonoNerdFont\JetBrainsMonoNerdFont-Bold.ttf'
+FONT_REG  = 'app\static\fonts\JetBrainsMonoNerdFont\JetBrainsMonoNerdFont-Regular.ttf'
 
 # ─────────────────────────────────────────────
 # DİZAYN SABİTLERİ
