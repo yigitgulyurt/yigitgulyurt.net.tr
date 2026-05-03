@@ -51,16 +51,9 @@ def generate_font_css(fonts_dir, base_url="https://fonts.yigitgulyurt.net.tr"):
                         weight = val
                         break
                 
-                # URL yolunu oluştur (Case-sensitivity sorunlarını önlemek için her zaman küçük harf klasör ismi kullan)
-                # Not: Sunucudaki fiziksel klasör isimlerinin de küçük harf olması önerilir.
+                # URL yolunu oluştur
                 rel_path = os.path.relpath(os.path.join(root, file), fonts_dir).replace("\\", "/")
-                # Klasör kısmını küçük harfe çevir, dosya adını olduğu gibi bırak
-                path_parts = rel_path.split('/')
-                if len(path_parts) > 1:
-                    path_parts[0] = path_parts[0].lower()
-                rel_path_lower = "/".join(path_parts)
-                
-                full_url = f"{base_url}/{rel_path_lower}"
+                full_url = f"{base_url}/{rel_path}"
                 
                 # Uzantıya göre format belirle
                 font_format = "truetype"
@@ -79,9 +72,11 @@ def generate_font_css(fonts_dir, base_url="https://fonts.yigitgulyurt.net.tr"):
 
     # Her aile için ayrı dosya oluştur
     for family, content in family_css.items():
-        # CSS dosyasını fontların olduğu klasörün içine koy (Küçük harf zorunluluğu kaldırıldı, mevcut klasörü kullan)
-        # Ancak dosya ismini her zaman küçük harf yapalım: family.css
+        # Dosya yolunu belirle: fonts/Family/family.css (küçük harf)
         family_dir = os.path.join(fonts_dir, family)
+        if not os.path.exists(family_dir):
+            os.makedirs(family_dir)
+            
         output_file = os.path.join(family_dir, f"{family.lower()}.css")
         
         with open(output_file, 'w', encoding='utf-8') as f:
