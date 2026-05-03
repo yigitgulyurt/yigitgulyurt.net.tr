@@ -245,5 +245,6 @@ def robots():
     )
     return Response(content, mimetype='text/plain')
 
-
-
+@bp.route('/font-test')
+def font_test():
+    return render_template('main/font-test.html')

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font System Test Dashboard</title>
+    
+    <!-- Merkezi Font Sistemi Importları -->
+    <style>
+        @import url('https://fonts.yigitgulyurt.net.tr/inter/inter.css');
+        @import url('https://fonts.yigitgulyurt.net.tr/orbitron/orbitron.css');
+        @import url('https://fonts.yigitgulyurt.net.tr/rajdhani/rajdhani.css');
+        @import url('https://fonts.yigitgulyurt.net.tr/playfair/playfair.css');
+        @import url('https://fonts.yigitgulyurt.net.tr/jetbrainsmononerd/jetbrainsmononerd.css');
+        @import url('https://fonts.yigitgulyurt.net.tr/cinzel/cinzel.css');
+        @import url('https://fonts.yigitgulyurt.net.tr/crimson-pro/crimson-pro.css');
+    </style>
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #38bdf8;
+            --border: rgba(255,255,255,0.1);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .font-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .font-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .font-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+
+        .font-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .font-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .font-tag {
+            font-size: 0.7rem;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .weight-row {
+            margin-bottom: 1rem;
+        }
+
+        .weight-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+            display: block;
+        }
+
+        .sample-text {
+            font-size: 1.2rem;
+            word-break: break-all;
+        }
+
+        /* Font Specific Classes */
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-crimson { font-family: 'Crimson Pro', serif; }
+
+        .w100 { font-weight: 100; }
+        .w200 { font-weight: 200; }
+        .w300 { font-weight: 300; }
+        .w400 { font-weight: 400; }
+        .w500 { font-weight: 500; }
+        .w600 { font-weight: 600; }
+        .w700 { font-weight: 700; }
+        .w800 { font-weight: 800; }
+        .w900 { font-weight: 900; }
+
+        .italic { font-style: italic; }
+
+        footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <p class="subtitle">Self-Hosted Font Management System</p>
+        <h1>Font Testing Dashboard</h1>
+    </header>
+
+    <div class="font-grid">
+        
+        <!-- INTER -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">Inter</span>
+                <span class="font-tag">Sans-Serif</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 100 (Thin)</span>
+                <div class="sample-text font-inter w100">The quick brown fox jumps over the lazy dog.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 (Regular)</span>
+                <div class="sample-text font-inter w400">The quick brown fox jumps over the lazy dog.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 700 (Bold)</span>
+                <div class="sample-text font-inter w700">The quick brown fox jumps over the lazy dog.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 900 (Black)</span>
+                <div class="sample-text font-inter w900">The quick brown fox jumps over the lazy dog.</div>
+            </div>
+        </div>
+
+        <!-- ORBITRON -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">Orbitron</span>
+                <span class="font-tag">Display</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 (Regular)</span>
+                <div class="sample-text font-orbitron w400">MISSION STATUS: OPERATIONAL</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 700 (Bold)</span>
+                <div class="sample-text font-orbitron w700">SYSTEM OVERRIDE DETECTED</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 900 (Black)</span>
+                <div class="sample-text font-orbitron w900">ACCESS GRANTED 100%</div>
+            </div>
+        </div>
+
+        <!-- RAJDHANI -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">Rajdhani</span>
+                <span class="font-tag">Technical</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 300 (Light)</span>
+                <div class="sample-text font-rajdhani w300">Advanced Neural Network Processing...</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 500 (Medium)</span>
+                <div class="sample-text font-rajdhani w500">Interface protocols active and stable.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 700 (Bold)</span>
+                <div class="sample-text font-rajdhani w700">LATENCY: 14MS | THROUGHPUT: 2GB/S</div>
+            </div>
+        </div>
+
+        <!-- PLAYFAIR -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">Playfair Display</span>
+                <span class="font-tag">Serif / Elegant</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 (Regular)</span>
+                <div class="sample-text font-playfair w400">A timeless classic in modern typography.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 700 (Bold)</span>
+                <div class="sample-text font-playfair w700">Exquisite attention to detail.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 900 (Black)</span>
+                <div class="sample-text font-playfair w900">Premium Design Language</div>
+            </div>
+        </div>
+
+        <!-- JETBRAINS MONO -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">JetBrains Mono</span>
+                <span class="font-tag">Monospace</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 (Regular)</span>
+                <div class="sample-text font-jetbrains w400">console.log("Hello, World!");</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 700 (Bold)</span>
+                <div class="sample-text font-jetbrains w700">public static void main(String[] args)</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 Italic</span>
+                <div class="sample-text font-jetbrains w400 italic">// This is a code comment</div>
+            </div>
+        </div>
+
+        <!-- CINZEL -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">Cinzel</span>
+                <span class="font-tag">Classical</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 (Regular)</span>
+                <div class="sample-text font-cinzel w400">SPQR - SENATVS POPVLVSQVE ROMANVS</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 700 (Bold)</span>
+                <div class="sample-text font-cinzel w700">ANCIENT WISDOM, MODERN CODE</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 900 (Black)</span>
+                <div class="sample-text font-cinzel w900">GLORY AND HONOR</div>
+            </div>
+        </div>
+
+        <!-- CRIMSON PRO -->
+        <div class="font-card">
+            <div class="font-info">
+                <span class="font-name">Crimson Pro</span>
+                <span class="font-tag">Book / Serif</span>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 300 (Light)</span>
+                <div class="sample-text font-crimson w300">In the beginning, there was only the font.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 (Regular)</span>
+                <div class="sample-text font-crimson w400">Typography is the craft of endowing human language.</div>
+            </div>
+            <div class="weight-row">
+                <span class="weight-label">Weight 400 Italic</span>
+                <div class="sample-text font-crimson w400 italic">Reading is a conversation between reader and writer.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 fonts.yigitgulyurt.net.tr — Centralized Font Delivery System</p>
+    </footer>
+</div>
+
+</body>
+</html>

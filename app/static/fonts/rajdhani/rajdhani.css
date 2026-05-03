@@ -1,0 +1,25 @@
+/* Auto-generated Font CSS for rajdhani */
+
+@font-face {
+  font-family: 'rajdhani';
+  src: url('https://fonts.yigitgulyurt.net.tr/rajdhani/rajdhani-v17-latin-300.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'rajdhani';
+  src: url('https://fonts.yigitgulyurt.net.tr/rajdhani/rajdhani-v17-latin-600.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'rajdhani';
+  src: url('https://fonts.yigitgulyurt.net.tr/rajdhani/rajdhani-v17-latin-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
