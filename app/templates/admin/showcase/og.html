@@ -1,172 +1,193 @@
 {% extends 'admin/base.html' %}
 {% block title %}OG Image Showcase{% endblock %}
 
-{% block extra_css %}
+{% block head %}
 <style>
     :root {
-        --admin-bg: #0a0a0a;
-        --card-bg: #141414;
+        --admin-bg: #050505;
+        --card-bg: rgba(255, 255, 255, 0.02);
         --card-border: rgba(255, 255, 255, 0.08);
         --accent-color: #4ade80;
-        --text-main: #f0f0f0;
-        --text-muted: #888;
+        --text-main: #ffffff;
+        --text-muted: #888888;
+        --glass-bg: rgba(20, 20, 20, 0.6);
     }
 
     .og-page-wrapper {
-        min-height: 80vh;
+        min-height: calc(100vh - 120px);
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 40px 20px;
-        background: var(--admin-bg);
     }
 
     .og-container {
         width: 100%;
-        max-width: 1000px;
+        max-width: 1100px;
     }
 
     .og-header {
         text-align: center;
-        margin-bottom: 60px;
+        margin-bottom: 80px;
     }
 
     .og-header h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
+        font-size: 3rem;
+        font-weight: 900;
         color: var(--text-main);
-        letter-spacing: -1px;
-        margin-bottom: 12px;
-        background: linear-gradient(to right, #fff, #666);
+        letter-spacing: -2px;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #fff 0%, #444 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
     .og-header p {
         color: var(--text-muted);
-        font-size: 1.1rem;
+        font-size: 1.2rem;
+        font-weight: 400;
+        letter-spacing: 0.5px;
     }
 
     .og-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 40px;
     }
 
     .og-card {
         background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--card-border);
-        border-radius: 24px;
-        padding: 40px;
+        border-radius: 32px;
+        padding: 48px;
         text-decoration: none;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         position: relative;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 32px;
     }
 
-    .og-card::before {
+    .og-card::after {
         content: '';
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle at top right, rgba(74, 222, 128, 0.05), transparent 60%);
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(74, 222, 128, 0.08), transparent 70%);
         opacity: 0;
-        transition: opacity 0.4s;
+        transition: opacity 0.5s;
     }
 
     .og-card:hover {
-        transform: translateY(-10px) scale(1.02);
-        border-color: var(--accent-color);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transform: translateY(-12px);
+        border-color: rgba(74, 222, 128, 0.4);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
     }
 
-    .og-card:hover::before {
+    .og-card:hover::after {
         opacity: 1;
     }
 
     .og-card-top {
         display: flex;
         align-items: center;
-        gap: 20px;
-        z-index: 1;
+        gap: 24px;
+        z-index: 2;
     }
 
     .og-card-icon {
-        width: 64px;
-        height: 64px;
+        width: 72px;
+        height: 72px;
         background: rgba(255, 255, 255, 0.03);
-        border-radius: 18px;
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: 32px;
         border: 1px solid var(--card-border);
-        transition: transform 0.4s;
+        transition: all 0.5s;
     }
 
     .og-card:hover .og-card-icon {
-        transform: rotate(-10deg) scale(1.1);
-        border-color: var(--accent-color);
+        transform: scale(1.1) rotate(-8deg);
         background: rgba(74, 222, 128, 0.1);
+        border-color: var(--accent-color);
     }
 
     .og-card-meta h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.8rem;
+        font-weight: 800;
         color: var(--text-main);
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
     }
 
     .og-card-meta span {
-        font-size: 0.95rem;
-        color: var(--text-muted);
+        font-size: 1rem;
+        color: var(--accent-color);
         font-family: 'JetBrains Mono', monospace;
+        opacity: 0.8;
     }
 
     .og-card-preview {
-        height: 120px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 12px;
+        height: 140px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 16px;
         border: 1px dashed var(--card-border);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #444;
-        font-size: 0.8rem;
+        color: #555;
+        font-size: 0.9rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        transition: all 0.4s;
+        letter-spacing: 3px;
+        font-weight: 600;
+        transition: all 0.5s;
+        z-index: 2;
     }
 
     .og-card:hover .og-card-preview {
-        border-color: rgba(74, 222, 128, 0.3);
+        border-color: var(--accent-color);
         color: var(--accent-color);
-        background: rgba(74, 222, 128, 0.02);
+        background: rgba(74, 222, 128, 0.03);
     }
 
     .og-card-action {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: var(--accent-color);
-        font-size: 1rem;
-        margin-top: 10px;
+        gap: 12px;
+        font-weight: 700;
+        color: #fff;
+        font-size: 1.1rem;
+        z-index: 2;
     }
 
     .og-card-action i {
-        transition: transform 0.3s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        font-style: normal;
+        font-size: 14px;
+        transition: all 0.3s;
     }
 
     .og-card:hover .og-card-action i {
+        background: var(--accent-color);
+        color: #000;
         transform: translate(4px, -4px);
     }
 
     @media (max-width: 768px) {
         .og-grid { grid-template-columns: 1fr; }
-        .og-header h1 { font-size: 2rem; }
+        .og-header h1 { font-size: 2.2rem; }
+        .og-card { padding: 32px; }
     }
 </style>
 {% endblock %}
