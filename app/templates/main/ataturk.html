@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mustafa Kemal Atatürk: Vizyoner Lider ve Modernleşme{% endblock %}
+{% block title %}Mustafa Kemal Atatürk{% endblock %}
 {% block description %}Türkiye Cumhuriyeti'nin kurucusu Mustafa Kemal Atatürk'ün hayatı, inkılapları ve mirası.{% endblock %}
 {% block og_title %}Mustafa Kemal Atatürk{% endblock %}
 {% block og_description %}Türkiye Cumhuriyeti'nin kurucusu Mustafa Kemal Atatürk'ün hayatı, inkılapları ve mirası.{% endblock %}
@@ -9,337 +9,463 @@
 
 {% block head %}
 <style>
-    :root {
-        --red: #e30a17;
-        --gold: #c5a059;
-        --bg: #080808;
-        --glass: rgba(15, 15, 15, 0.85);
-        --border: rgba(227, 10, 23, 0.15);
-        --text: #f0f0f0;
-        --text-dim: #999;
-    }
+  /* ── ATATÜRK SAYFASI ── */
+  .atk-page {
+    --red: #e30a17;
+    --red-dim: rgba(227,10,23,0.15);
+    --red-line: rgba(227,10,23,0.2);
+    --gold: #c5a059;
+    --gold-dim: rgba(197,160,89,0.12);
+  }
 
-    body {
-        background-color: var(--bg);
-        background-image: 
-            radial-gradient(circle at 0% 0%, rgba(227, 10, 23, 0.05) 0%, transparent 40%),
-            radial-gradient(circle at 100% 100%, rgba(197, 160, 89, 0.03) 0%, transparent 40%);
-        color: var(--text);
-    }
+  /* HERO */
+  .atk-hero {
+    position: relative;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 60px;
+    text-align: center;
+    overflow: hidden;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .atk-hero-bg {
+    position: absolute; inset: 0;
+    background-image: url('/static/img/ataturk/ataturk.jpg');
+    background-size: cover;
+    background-position: center 15%;
+    filter: grayscale(1) contrast(1.05) brightness(0.4);
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    z-index: 0;
+  }
+  .atk-hero-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(227,10,23,0.06) 0%, transparent 70%);
+    z-index: 1;
+  }
+  .atk-hero-content {
+    position: relative; z-index: 2;
+    padding: 0 24px;
+  }
+  .atk-eyebrow {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--atk-page, var(--text2));
+    color: rgba(197,160,89,0.7);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
 
-    /* ── HERO ── */
-    .hero {
-        position: relative;
-        height: 140vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
+  .atk-hero-name em {
+    color: var(--red);
+    font-style: normal;
+  }
+  .atk-hero-dates {
+    font-size: 12px;
+    color: var(--text2);
+    letter-spacing: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .atk-hero-dates::before { content: '//'; color: rgba(197,160,89,0.5); }
 
-    .hero-bg {
-        position: absolute; inset: 0;
-        background-image: url('/static/img/ataturk/ataturk.jpg');
-        background-size: cover;
-        background-position: center 15%;
-        filter: grayscale(1) contrast(1.1) brightness(0.3);
-        mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-        -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-        z-index: 1;
-    }
+  /* ANİMASYONLU HERO TITLE */
+  .atk-hero-name {
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    font-weight: 500;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .atk-first-name {
+    font-size: 0.45em;
+    letter-spacing: 8px;
+    color: var(--text2);
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-12px) scale(0.96);
+    transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 0;
+    overflow: hidden;
+    margin-bottom: 0;
+    display: block;
+  }
+  .atk-first-name.visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+    max-height: 80px;
+    margin-bottom: 4px;
+  }
+  .atk-last-name {
+    display: block;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 
-    .hero-content {
-        position: relative; z-index: 10;
-        text-align: center;
-        padding: 0 24px;
-    }
+  /* LAYOUT */
+  .atk-body {
+    padding: 48px 32px;
+  }
 
-    .hero-eyebrow {
-        font-size: 11px;
-        letter-spacing: 6px;
-        color: var(--gold);
-        text-transform: uppercase;
-        margin-bottom: 24px;
-        opacity: 0.8;
-    }
+  /* SECTION */
+  .atk-section {
+    margin-bottom: 56px;
+    padding-bottom: 56px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .atk-section:last-of-type { border-bottom: none; }
+  .atk-section-title {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .atk-section-title::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: linear-gradient(to right, var(--red-line), transparent);
+  }
+  .atk-text {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--text2);
+  }
+  .atk-text + .atk-text { margin-top: 14px; }
 
-    .hero-title {
-        font-size: clamp(3rem, 10vw, 8rem);
-        font-weight: 900;
-        line-height: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+  /* CARDS */
+  .atk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .atk-card {
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    transition: border-color .15s;
+  }
+  .atk-card:hover { border-color: var(--red-line); }
+  .atk-card-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--red);
+    margin-bottom: 8px;
+  }
+  .atk-card-text {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
 
-    .name-first {
-        font-size: 0.45em;
-        letter-spacing: 12px;
-        color: var(--text-dim);
-        max-height: 0;
-        opacity: 0;
-        filter: blur(8px);
-        transform: translateY(-20px);
-        transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
-    }
+  /* QUOTE */
+  .atk-quote {
+    border-left: 2px solid var(--red);
+    padding: 16px 20px;
+    margin: 28px 0;
+    background: var(--red-dim);
+    border-radius: 0 4px 4px 0;
+  }
+  .atk-quote-text {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.8;
+    margin-bottom: 8px;
+  }
+  .atk-quote-author {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
 
-    .name-first.visible {
-        max-height: 120px;
-        opacity: 1;
-        filter: blur(0);
-        transform: translateY(0);
-        margin-bottom: 10px;
-    }
+  /* TIMELINE */
+  .atk-timeline {
+    margin-top: 24px;
+    border-left: 0.5px solid var(--border);
+    padding-left: 24px;
+  }
+  .atk-tnode {
+    position: relative;
+    padding-bottom: 32px;
+  }
+  .atk-tnode:last-child { padding-bottom: 0; }
+  .atk-tnode::before {
+    content: '';
+    position: absolute;
+    left: -28px; top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+  }
+  .atk-tyear {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .atk-tdesc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
 
-    .name-last {
-        color: #fff;
-        text-transform: uppercase;
-        filter: drop-shadow(0 0 30px rgba(227, 10, 23, 0.3));
-    }
+  /* HITABE */
+  .atk-hitabe {
+    border: 0.5px solid var(--red-line);
+    border-radius: 6px;
+    padding: 28px;
+    background: var(--red-dim);
+    margin-top: 24px;
+  }
+  .atk-hitabe-text {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 2;
+    white-space: pre-line;
+  }
+  .atk-hitabe-footer {
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 0.5px solid var(--border);
+  }
 
-    .hero-dates {
-        font-size: 14px;
-        letter-spacing: 8px;
-        color: var(--gold);
-        margin-top: 24px;
-        display: flex; align-items: center; justify-content: center; gap: 20px;
-    }
-    .hero-dates::before, .hero-dates::after { content: ''; width: 40px; height: 1px; background: var(--border); }
+  /* REFS */
+  .atk-refs {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 2;
+  }
+  .atk-refs li { margin-bottom: 4px; list-style: none; padding-left: 16px; position: relative; }
+  .atk-refs li::before { content: '—'; position: absolute; left: 0; color: var(--red); }
 
-    /* ── WRAPPER ── */
-    .wrapper {
-        max-width: 1100px;
-        margin: -25vh auto 100px;
-        position: relative; z-index: 20;
-        padding: 0 24px;
-    }
+  /* ROTATING QUOTE */
+  .atk-dyn-quote {
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    margin: 32px 0;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: opacity .6s ease;
+  }
+  .atk-dyn-quote.fade { opacity: 0; }
 
-    .glass-card {
-        background: var(--glass);
-        backdrop-filter: blur(40px);
-        border: 1px solid var(--border);
-        border-radius: 40px;
-        padding: 80px 60px;
-        box-shadow: 0 60px 120px rgba(0,0,0,0.9);
-    }
-
-    .section { margin-bottom: 100px; }
-    .section-head { display: flex; align-items: center; gap: 24px; margin-bottom: 40px; }
-    .section-title { font-size: 2.2rem; font-weight: 800; color: #fff; white-space: nowrap; }
-    .section-line { flex: 1; height: 1px; background: linear-gradient(to right, var(--red), transparent); }
-
-    .main-text { font-size: 1.15rem; line-height: 2; color: var(--text-dim); margin-bottom: 40px; }
-
-    /* ── DYNAMIC QUOTE ── */
-    .quote-box {
-        background: rgba(227, 10, 23, 0.02);
-        border: 1px dashed var(--border);
-        border-radius: 24px;
-        padding: 60px 40px;
-        text-align: center;
-        margin: 60px 0;
-    }
-
-    .quote-text {
-        font-family: 'Amiri', serif;
-        font-size: clamp(1.5rem, 3vw, 2.5rem);
-        line-height: 1.4;
-        color: #fff;
-        min-height: 120px;
-        display: flex; align-items: center; justify-content: center;
-        transition: opacity 0.6s;
-    }
-    .quote-text.fade { opacity: 0; }
-
-    .signature { width: 220px; margin-top: 30px; filter: brightness(0) invert(1); opacity: 0.7; }
-
-    /* ── GRID ── */
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-    .card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(227, 10, 23, 0.05);
-        padding: 40px;
-        border-radius: 24px;
-        transition: all 0.4s;
-    }
-    .card:hover { transform: translateY(-10px); background: rgba(227, 10, 23, 0.05); border-color: var(--red); }
-    .card-icon { font-size: 24px; color: var(--red); margin-bottom: 20px; }
-    .card-title { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 16px; }
-    .card-text { font-size: 1rem; line-height: 1.7; color: var(--text-dim); }
-
-    /* ── TIMELINE ── */
-    .timeline { border-left: 2px solid var(--border); padding-left: 40px; margin-left: 10px; }
-    .t-node { position: relative; margin-bottom: 60px; }
-    .t-node::before {
-        content: ''; position: absolute; left: -49px; top: 8px;
-        width: 16px; height: 16px; background: var(--red); border-radius: 50%;
-        box-shadow: 0 0 15px var(--red);
-    }
-    .t-year { font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 10px; letter-spacing: 2px; }
-
-    /* ── HITABE ── */
-    .hitabe {
-        background: linear-gradient(135deg, rgba(227, 10, 23, 0.05) 0%, rgba(197, 160, 89, 0.05) 100%);
-        border: 1px solid var(--border);
-        border-radius: 30px; padding: 60px; text-align: center;
-    }
-    .hitabe-title { font-family: 'Amiri', serif; font-size: 2rem; color: var(--red); margin-bottom: 40px; letter-spacing: 3px; }
-    .hitabe-content { font-size: 1.1rem; line-height: 2.2; color: #eee; text-align: justify; max-width: 800px; margin: 0 auto; white-space: pre-line; }
-
-    @media (max-width: 768px) {
-        .hero { height: 100vh; }
-        .glass-card { padding: 40px 24px; border-radius: 24px; }
-        .section-title { font-size: 1.6rem; }
-        .grid { grid-template-columns: 1fr; }
-        .hitabe { padding: 30px 20px; }
-        .hero-title { font-size: 4rem; }
-    }
+  @media (max-width: 600px) {
+    .atk-hero { min-height: 60vh; padding-bottom: 40px; }
+    .atk-body { padding: 28px 20px; }
+    .atk-grid { grid-template-columns: 1fr; }
+    .atk-hitabe { padding: 20px; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ataturk-page">
+<div class="atk-page">
 
-    <!-- HERO -->
-    <section class="hero">
-        <div class="hero-bg"></div>
-        <div class="hero-content">
-            <div class="hero-eyebrow">✦ Modern Türkiye'nin Mimarı ✦</div>
-            <h1 class="hero-title">
-                <span class="name-first" id="atkFirstName">Mustafa Kemal</span>
-                <span class="name-last">Atatürk</span>
-            </h1>
-            <div class="hero-dates">1881 — 1938</div>
-        </div>
-    </section>
-
-    <!-- MAIN -->
-    <div class="wrapper">
-        <div class="glass-card">
-
-            <!-- VIZYON -->
-            <section class="section">
-                <div class="section-head">
-                    <h2 class="section-title">Aydınlanma ve Modernleşme</h2>
-                    <div class="section-line"></div>
-                </div>
-                <p class="main-text">
-                    Mustafa Kemal Atatürk, bir milletin küllerinden doğuşuna önderlik eden vizyoner bir liderdir. 
-                    Onun mirası, sadece kazanılmış zaferler değil; akıl, bilim ve çağdaşlık üzerine inşa edilmiş 
-                    bağımsız bir Türkiye idealidir.
-                </p>
-
-                <div class="quote-box">
-                    <div class="quote-text" id="quoteText">"Hayatta en hakiki mürşit ilimdir, fendir."</div>
-                    <img src="/static/img/ataturk/signature.png" alt="Signature" class="signature">
-                </div>
-            </section>
-
-            <!-- ILKELER -->
-            <section class="section">
-                <div class="section-head">
-                    <h2 class="section-title">Kurucu İlkeler ve İnkılaplar</h2>
-                    <div class="section-line"></div>
-                </div>
-                <div class="grid">
-                    <div class="card">
-                        <div class="card-icon">🗳️</div>
-                        <h3 class="card-title">Cumhuriyetçilik</h3>
-                        <p class="card-text">Egemenliğin kayıtsız şartsız millete ait olduğu, halk iradesinin esas alındığı yönetim biçimi.</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">⚖️</div>
-                        <h3 class="card-title">Laiklik</h3>
-                        <p class="card-text">Din ve devlet işlerinin ayrılması, inanç özgürlüğünün ve aklın rehberliğinin teminat altına alınması.</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">🎓</div>
-                        <h3 class="card-title">Eğitim Devrimi</h3>
-                        <p class="card-text">Tevhid-i Tedrisat ve Harf Devrimi ile cehalete karşı başlatılan topyekun aydınlanma savaşı.</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">🌍</div>
-                        <h3 class="card-title">Yurtta Sulh</h3>
-                        <p class="card-text">"Yurtta sulh, cihanda sulh" ilkesiyle hem içerde hem dışarda barış ve istikrarın tesisi.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- KRONOLOJI -->
-            <section class="section">
-                <div class="section-head">
-                    <h2 class="section-title">Bir Ömrün Mirası</h2>
-                    <div class="section-line"></div>
-                </div>
-                <div class="timeline">
-                    <div class="t-node">
-                        <div class="t-year">1919</div>
-                        <p class="main-text">Samsun'a çıkarak Milli Mücadele'nin ilk adımını attı ve tam bağımsızlık yolunu açtı.</p>
-                    </div>
-                    <div class="t-node">
-                        <div class="t-year">1923</div>
-                        <p class="main-text">Cumhuriyet'i ilan ederek modern Türkiye'nin kurumsal kimliğini dünyaya duyurdu.</p>
-                    </div>
-                    <div class="t-node">
-                        <div class="t-year">1928</div>
-                        <p class="main-text">Yeni Türk harflerini kabul ederek bir milletin okuma-yazma seferberliğini başlattı.</p>
-                    </div>
-                    <div class="t-node">
-                        <div class="t-year">1934</div>
-                        <p class="main-text">Kadınlara seçme ve seçilme hakkı vererek toplumsal eşitlikte devrim yaptı.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- HITABE -->
-            <section class="section">
-                <div class="hitabe">
-                    <h2 class="hitabe-title">GENÇLİĞE HİTABE</h2>
-                    <div class="hitabe-content">
-                        Ey Türk gençliği! Birinci vazifen; Türk istiklalini, Türk cumhuriyetini, ilelebet muhafaza ve müdafaa etmektir.
-
-                        Mevcudiyetinin ve istikbalinin yegâne temeli budur. Bu temel, senin en kıymetli hazinendir. İstikbalde dahi seni bu hazineden mahrum etmek isteyecek dâhilî ve haricî bedhahların olacaktır.
-
-                        Ey Türk istikbalinin evladı! İşte, bu ahval ve şerait içinde dahi vazifen, Türk istiklal ve cumhuriyetini kurtarmaktır. Muhtaç olduğun kudret, damarlarındaki asil kanda mevcuttur.
-                    </div>
-                    <div style="margin-top: 30px; font-weight: 800; color: var(--gold);">— MUSTAFA KEMAL ATATÜRK</div>
-                </div>
-            </section>
-
-        </div>
+  <!-- HERO -->
+  <div class="atk-hero">
+    <div class="atk-hero-bg"></div>
+    <div class="atk-hero-overlay"></div>
+    <div class="atk-hero-content">
+      <div class="atk-eyebrow">✦ Milletin Kaderini Değiştiren Ebedi Lider ✦</div>
+      <div class="atk-hero-name">
+        <span class="atk-first-name" id="atkFirstName">Mustafa Kemal</span>
+        <span class="atk-last-name"><em>Atatürk</em></span>
+      </div>
+      <div class="atk-hero-dates">1881 — 1938</div>
     </div>
-</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="atk-body">
+
+    <!-- BIO -->
+    <div class="atk-section">
+      <div class="atk-section-title">// vizyoner bir devlet adamı</div>
+      <p class="atk-text">
+        Mustafa Kemal Atatürk, askeri dehasının ötesinde, modern Türkiye'nin entelektüel ve kurumsal temellerini atan,
+        Türk milletinin hürriyet ve haysiyet mücadelesini zaferle taçlandıran eşsiz bir devlet adamıdır.
+        Onun liderliği, yalnızca siyasi bir dönüşüm değil; aynı zamanda aklın ve bilimin rehberliğinde şekillenen
+        köklü bir zihniyet devrimidir.
+      </p>
+
+      <!-- Dönen alıntı -->
+      <div class="atk-dyn-quote" id="dynQuote">
+        <div class="atk-quote-text" id="dynQuoteText">"Hayatta en hakiki mürşit ilimdir, fendir."</div>
+        <div class="atk-quote-author">Mustafa Kemal Atatürk</div>
+      </div>
+    </div>
+
+    <!-- DİN HİZMETLERİ -->
+    <div class="atk-section">
+      <div class="atk-section-title">// islam ve din hizmetlerine katkıları</div>
+      <p class="atk-text">
+        Atatürk, İslam dininin doğru anlaşılması ve hurafelerden arındırılarak aslına uygun yaşanması için
+        büyük hizmetlerde bulunmuştur. Cumhuriyet'in ilanıyla birlikte din hizmetlerini kurumsallaştırmış
+        ve Türk milletinin dini kaynaklara doğrudan erişebilmesini sağlamıştır.
+      </p>
+      <div class="atk-grid">
+        <div class="atk-card">
+          <div class="atk-card-title">Diyanet İşleri Başkanlığı</div>
+          <div class="atk-card-text">3 Mart 1924'te din hizmetlerinin siyasetten bağımsız, ehil ellerce ve devlet güvencesinde yürütülmesini sağlamıştır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Hak Dini Kur'an Dili</div>
+          <div class="atk-card-text">Elmalılı Hamdi Yazır'a bizzat talimat vererek hazırlattığı tefsir ile Kur'an'ın en doğru şekilde anlaşılmasına öncülük etmiştir.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Sahih-i Buhari Tercümesi</div>
+          <div class="atk-card-text">Hadis-i şeriflerin Türkçeye kazandırılması için alimler görevlendirerek İslam kültür mirasını halka açmıştır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Hutbelerin Türkçeleşmesi</div>
+          <div class="atk-card-text">Halkın vaaz ve hutbeleri tam olarak anlayabilmesi için Türkçe okunmasını başlatarak dini bilincin artmasını hedeflemiştir.</div>
+        </div>
+      </div>
+
+      <div class="atk-quote" style="margin-top:24px">
+        <div class="atk-quote-text">"Bizim dinimiz en makul ve en doğal bir dindir. Ve ancak bundan dolayıdır ki son din olmuştur."</div>
+        <div class="atk-quote-author">Mustafa Kemal Atatürk</div>
+      </div>
+    </div>
+
+    <!-- MİLLİ MÜCADELE -->
+    <div class="atk-section">
+      <div class="atk-section-title">// milli mücadele ve cumhuriyet</div>
+      <div class="atk-timeline">
+        <div class="atk-tnode">
+          <div class="atk-tyear">1881 — 1915</div>
+          <div class="atk-tdesc">Askeri rüştiyeden Çanakkale siperlerine uzanan, bir milletin kaderini sırtlayan profesyonel bir subayın ve strateji dehasının doğuşu.</div>
+        </div>
+        <div class="atk-tnode">
+          <div class="atk-tyear">1919 — 1922</div>
+          <div class="atk-tdesc">"Ya İstiklal Ya Ölüm" parolasıyla Anadolu'yu birleştiren, Milli Mücadele'yi Başkomutan sıfatıyla zaferle sonuçlandıran kurtuluş süreci.</div>
+        </div>
+        <div class="atk-tnode">
+          <div class="atk-tyear">1923 — 1938</div>
+          <div class="atk-tdesc">Cumhuriyet'in ilanı, kurumların modernizasyonu ve "Yurtta Sulh, Cihanda Sulh" ilkesiyle dünya barışına katkı sunan inşa dönemi.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- İNKILAPLAR -->
+    <div class="atk-section">
+      <div class="atk-section-title">// kurucu ilkeler ve inkılaplar</div>
+      <div class="atk-grid">
+        <div class="atk-card">
+          <div class="atk-card-title">Milli Egemenlik</div>
+          <div class="atk-card-text">Egemenliğin saraydan alınarak kayıtsız şartsız millete verilmesi, modern Türkiye'nin en büyük siyasi başarısıdır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Eğitim ve Kültür</div>
+          <div class="atk-card-text">Tevhid-i Tedrisat Kanunu ve Harf Devrimi ile cehalete karşı topyekun bir savaş açılmış, modern eğitim sistemi kurulmuştur.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">Toplumsal Eşitlik</div>
+          <div class="atk-card-text">Kadınlara tanınan siyasi ve sosyal haklarla, Türk toplumu çağdaş uygarlık düzeyinin üzerine çıkma hedefine yaklaşmıştır.</div>
+        </div>
+        <div class="atk-card">
+          <div class="atk-card-title">İktisadi Bağımsızlık</div>
+          <div class="atk-card-text">İzmir İktisat Kongresi ve sanayi hamleleriyle, siyasi bağımsızlık ekonomik güçle perçinlenmiştir.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENÇLİĞE HİTABE -->
+    <div class="atk-section">
+      <div class="atk-section-title">// gençliğe hitabe</div>
+      <div class="atk-hitabe">
+        <div class="atk-hitabe-text">Ey Türk gençliği! Birinci vazifen; Türk istiklalini, Türk cumhuriyetini, ilelebet muhafaza ve müdafaa etmektir.
+
+Mevcudiyetinin ve istikbalinin yegâne temeli budur. Bu temel, senin en kıymetli hazinendir. İstikbalde dahi seni bu hazineden mahrum etmek isteyecek dâhilî ve haricî bedhahların olacaktır. Bir gün, istiklal ve cumhuriyeti müdafaa mecburiyetine düşersen, vazifeye atılmak için içinde bulunacağın vaziyetin imkân ve şeraitini düşünmeyeceksin.
+
+Bu imkân ve şerait, çok namüsait bir mahiyette tezahür edebilir. İstiklal ve cumhuriyetine kastedecek düşmanlar, bütün dünyada emsali görülmemiş bir galibiyetin mümessili olabilirler. Cebren ve hile ile aziz vatanın bütün kaleleri zapt edilmiş, bütün tersanelerine girilmiş, bütün orduları dağıtılmış ve memleketin her köşesi bilfiil işgal edilmiş olabilir.
+
+Ey Türk istikbalinin evladı! İşte, bu ahval ve şerait içinde dahi vazifen, Türk istiklal ve cumhuriyetini kurtarmaktır. Muhtaç olduğun kudret, damarlarındaki asil kanda mevcuttur.</div>
+        <div class="atk-hitabe-footer">— Mustafa Kemal Atatürk</div>
+      </div>
+    </div>
+
+    <!-- KAYNAKLAR -->
+    <div class="atk-section">
+      <div class="atk-section-title">// kaynaklar</div>
+      <ul class="atk-refs">
+        <li>Atatürk, M. K. (1927). <em>Nutuk</em>. Ankara: Türk Tarih Kurumu Yayınları.</li>
+        <li>Bardakçı, M. (2017). <em>Atatürk'ün Mutfağı</em>.</li>
+        <li>Diyanet İşleri Başkanlığı Arşivleri. <em>Atatürk ve Din Hizmetleri</em>.</li>
+        <li>Mango, A. (1999). <em>Atatürk</em>. London: John Murray.</li>
+        <li>Gökrail, M. (2001). <em>Atatürk, Din ve Din Adamları</em>. Ankara: TTK.</li>
+      </ul>
+    </div>
+
+  </div><!-- /atk-body -->
+</div><!-- /atk-page -->
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
-    const firstName = document.getElementById('atkFirstName');
-    window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 50) firstName.classList.add('visible');
-        else firstName.classList.remove('visible');
+  // Hero title scroll animasyonu
+  var firstName = document.getElementById('atkFirstName');
+  if (firstName) {
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 30) {
+        firstName.classList.add('visible');
+      } else {
+        firstName.classList.remove('visible');
+      }
     }, { passive: true });
+  }
+})();
 
-    const quotes = [
-        "Hayatta en hakiki mürşit ilimdir, fendir.",
-        "Milletimiz çalışkandır, milletimiz zekidir.",
-        "İstikbal göklerdedir.",
-        "Egemenlik kayıtsız şartsız milletindir.",
-        "Yurtta sulh, cihanda sulh.",
-        "Beni görmek demek mutlaka yüzümü görmek değildir.",
-        "En büyük eserim, Türkiye Cumhuriyeti'dir."
-    ];
-    let i = 0;
-    const qText = document.getElementById('quoteText');
-    setInterval(() => {
-        qText.classList.add('fade');
-        setTimeout(() => {
-            i = (i + 1) % quotes.length;
-            qText.textContent = `"${quotes[i]}"`;
-            qText.classList.remove('fade');
-        }, 600);
-    }, 5000);
+(function() {
+  var quotes = [
+    "Hayatta en hakiki mürşit ilimdir, fendir.",
+    "Benim naçiz vücudum elbet bir gün toprak olacaktır, fakat Türkiye Cumhuriyeti ilelebet payidar kalacaktır.",
+    "Milletimiz din ve dil gibi kuvvetli iki fazilete maliktir.",
+    "Din lüzumlu bir müessesedir. Dinsiz milletlerin devamına imkan yoktur.",
+    "Egemenlik kayıtsız şartsız milletindir.",
+    "Türk milleti çalışkandır, Türk milleti zekidir.",
+    "İstikbal göklerdedir.",
+    "Yurtta sulh, cihanda sulh.",
+    "Türk çocuğu ecdadını tanıdıkça daha büyük işler yapmak için kendinde kuvvet bulacaktır.",
+    "Bizim dinimiz en makul ve en doğal bir dindir."
+  ];
+  var i = 0;
+  var el = document.getElementById('dynQuoteText');
+  var wrap = document.getElementById('dynQuote');
+  if (!el || !wrap) return;
+
+  setInterval(function() {
+    wrap.classList.add('fade');
+    setTimeout(function() {
+      i = (i + 1) % quotes.length;
+      el.textContent = '"' + quotes[i] + '"';
+      wrap.classList.remove('fade');
+    }, 600);
+  }, 5000);
 })();
 </script>
 {% endblock %}
