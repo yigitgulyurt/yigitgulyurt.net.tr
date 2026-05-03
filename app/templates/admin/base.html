@@ -17,7 +17,7 @@
     <a href="{{ url_for('admin.messages') }}">mesajlar</a>
     <a href="{{ url_for('admin.stream_config') }}">yayın</a>
     <a href="{{ url_for('admin.stream_viewers') }}">izleyiciler</a>
-    <a href="{{ url_for('admin.logout') }}" style="color:#f87171">çıkış</a>
+    <a href="{{ url_for('main.index') }}" style="color:#f87171">çıkış</a>
   </div>
 </nav>
 {% with messages = get_flashed_messages(with_categories=true) %}
