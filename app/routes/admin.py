@@ -226,14 +226,14 @@ def message_detail(id):
 @bp.route('/og')
 @login_required
 def og():
-    return render_template('showcase/og.html')
+    return render_template('admin/showcase/og.html')
 
 @bp.route('/og/yigitgulyurt.net.tr')
 @login_required
 def yigitgulyurt_og():
-    return render_template('showcase/yigitgulyurt.html')
+    return render_template('admin/showcase/yigitgulyurt.html')
 
 @bp.route('/og/cagrivakti.com.tr')
 @login_required
 def cagrivakti_og():
-    return render_template('showcase/cagrivakti.html')
+    return render_template('admin/showcase/cagrivakti.html')

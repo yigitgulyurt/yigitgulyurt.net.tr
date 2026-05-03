@@ -61,6 +61,7 @@
     <div class="nav-links">
     {% if current_user.is_authenticated %}
       <a href="{{ url_for('obsidian.index') }}">obsidian</a>
+      <a href="{{ url_for('admin.og') }}">og</a>
       <a href="{{ url_for('admin.dashboard') }}">admin</a>
     {% endif %}
       <a href="{{ url_for('projects.index') }}">
