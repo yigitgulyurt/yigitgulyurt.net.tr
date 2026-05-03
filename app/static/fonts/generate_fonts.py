@@ -72,11 +72,9 @@ def generate_font_css(fonts_dir, base_url="https://fonts.yigitgulyurt.net.tr"):
 
     # Her aile için ayrı dosya oluştur
     for family, content in family_css.items():
-        # Dosya yolunu belirle: fonts/Family/family.css (küçük harf)
+        # CSS dosyasını fontların olduğu klasörün içine koy (Küçük harf zorunluluğu kaldırıldı, mevcut klasörü kullan)
+        # Ancak dosya ismini her zaman küçük harf yapalım: family.css
         family_dir = os.path.join(fonts_dir, family)
-        if not os.path.exists(family_dir):
-            os.makedirs(family_dir)
-            
         output_file = os.path.join(family_dir, f"{family.lower()}.css")
         
         with open(output_file, 'w', encoding='utf-8') as f:
