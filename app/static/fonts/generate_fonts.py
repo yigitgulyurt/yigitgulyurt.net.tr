@@ -51,9 +51,16 @@ def generate_font_css(fonts_dir, base_url="https://fonts.yigitgulyurt.net.tr"):
                         weight = val
                         break
                 
-                # URL yolunu oluştur
+                # URL yolunu oluştur (Case-sensitivity sorunlarını önlemek için her zaman küçük harf klasör ismi kullan)
+                # Not: Sunucudaki fiziksel klasör isimlerinin de küçük harf olması önerilir.
                 rel_path = os.path.relpath(os.path.join(root, file), fonts_dir).replace("\\", "/")
-                full_url = f"{base_url}/{rel_path}"
+                # Klasör kısmını küçük harfe çevir, dosya adını olduğu gibi bırak
+                path_parts = rel_path.split('/')
+                if len(path_parts) > 1:
+                    path_parts[0] = path_parts[0].lower()
+                rel_path_lower = "/".join(path_parts)
+                
+                full_url = f"{base_url}/{rel_path_lower}"
                 
                 # Uzantıya göre format belirle
                 font_format = "truetype"
