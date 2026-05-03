@@ -85,24 +85,24 @@
   /* ANİMASYONLU HERO TITLE */
   .atk-hero-name {
     font-family: var(--atk-font);
-    font-size: clamp(2.4rem, 7vw, 5rem);
-    font-weight: 500;
-    letter-spacing: -1px;
-    line-height: 1.1;
-    color: var(--text);
-    margin-bottom: 6px;
+    font-size: clamp(3rem, 10vw, 8rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    color: #fff;
+    text-transform: uppercase;
   }
   .atk-first-name {
     font-family: var(--atk-font);
-    font-size: 0.45em;
-    letter-spacing: 8px;
-    color: var(--text2);
+    font-size: 0.4em;
+    letter-spacing: 15px;
+    color: var(--text-dim);
     opacity: 0;
-    filter: blur(8px);
-    transform: translateY(-12px) scale(0.96);
+    filter: blur(10px);
+    transform: translateY(-20px);
     transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     max-height: 0;
     overflow: hidden;
@@ -112,13 +112,14 @@
   .atk-first-name.visible {
     opacity: 1;
     filter: blur(0);
-    transform: translateY(0) scale(1);
-    max-height: 80px;
-    margin-bottom: 4px;
+    transform: translateY(0);
+    max-height: 120px;
+    margin-bottom: 10px;
   }
   .atk-last-name {
     font-family: var(--atk-font);
     display: block;
+    filter: drop-shadow(0 0 30px rgba(227, 10, 23, 0.3));
     transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
