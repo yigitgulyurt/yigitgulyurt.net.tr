@@ -2,7 +2,39 @@
 
 @font-face {
   font-family: 'cinzel';
-  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/cinzel-v26-latin-600.woff2') format('woff2');
+  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/Cinzel-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'cinzel';
+  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/Cinzel-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'cinzel';
+  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/Cinzel-ExtraBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'cinzel';
+  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/Cinzel-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'cinzel';
+  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/Cinzel-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -10,24 +42,8 @@
 
 @font-face {
   font-family: 'cinzel';
-  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/cinzel-v26-latin-700.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'cinzel';
-  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/cinzel-v26-latin-900.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'cinzel';
-  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/cinzel-v26-latin-regular.woff2') format('woff2');
-  font-weight: 400;
+  src: url('https://fonts.yigitgulyurt.net.tr/cinzel/Cinzel-SemiBold.ttf') format('truetype');
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }

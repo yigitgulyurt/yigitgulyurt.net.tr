@@ -20,7 +20,7 @@ def generate_font_css(fonts_dir, base_url="https://fonts.yigitgulyurt.net.tr"):
     }
 
     # Font ailesine göre CSS içeriklerini tutacak sözlük
-    # { 'Inter': ['@font-face...', ...], 'JetBrainsMono': [...] }
+    # { '': ['@font-face...', ...], 'JetBrainsMono': [...] }
     family_css = {}
 
     # Klasörleri gez
@@ -29,7 +29,7 @@ def generate_font_css(fonts_dir, base_url="https://fonts.yigitgulyurt.net.tr"):
             if file.endswith(('.ttf', '.woff2', '.woff')):
                 name_no_ext = os.path.splitext(file)[0]
                 
-                # Font ailesini tahmin et (Örn: Inter_18pt-Bold -> Inter)
+                # Font ailesini tahmin et (Örn: -Bold -> )
                 # Önce alt klasör ismine bak, yoksa dosya adından çıkar
                 rel_dir = os.path.basename(root)
                 if rel_dir and rel_dir != 'fonts':
