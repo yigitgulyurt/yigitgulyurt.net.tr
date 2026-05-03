@@ -1,672 +1,672 @@
-/* Auto-generated Font CSS for playfair */
+/* Auto-generated Font CSS for Playfair */
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-Black.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-BlackItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-BlackItalic.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-Bold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-BoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-BoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-ExtraBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-ExtraBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-ExtraBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-Italic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-Light.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-LightItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-LightItalic.ttf') format('truetype');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-Medium.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-MediumItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-MediumItalic.ttf') format('truetype');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-Regular.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-SemiBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt-SemiBoldItalic.ttf') format('truetype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-Black.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-BlackItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-BlackItalic.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-Bold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-BoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-BoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-ExtraBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-ExtraBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-ExtraBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-Italic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-Light.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-LightItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-LightItalic.ttf') format('truetype');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-Medium.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-MediumItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-MediumItalic.ttf') format('truetype');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-Regular.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-SemiBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiCondensed-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiCondensed-SemiBoldItalic.ttf') format('truetype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-Black.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-BlackItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-BlackItalic.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-Bold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-BoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-BoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-ExtraBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-ExtraBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-ExtraBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-Italic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-Light.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-LightItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-LightItalic.ttf') format('truetype');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-Medium.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-MediumItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-MediumItalic.ttf') format('truetype');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-Regular.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-SemiBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_144pt_SemiExpanded-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_144pt_SemiExpanded-SemiBoldItalic.ttf') format('truetype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-Black.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-BlackItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-BlackItalic.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-Bold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-BoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-BoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-ExtraBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-ExtraBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-ExtraBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-Italic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-Light.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-LightItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-LightItalic.ttf') format('truetype');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-Medium.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-MediumItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-MediumItalic.ttf') format('truetype');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-Regular.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-SemiBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt-SemiBoldItalic.ttf') format('truetype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-Black.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-BlackItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-BlackItalic.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-Bold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-BoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-BoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-ExtraBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-ExtraBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-ExtraBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-Italic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-Light.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-LightItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-LightItalic.ttf') format('truetype');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-Medium.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-MediumItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-MediumItalic.ttf') format('truetype');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-Regular.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-SemiBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiCondensed-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiCondensed-SemiBoldItalic.ttf') format('truetype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-Black.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-BlackItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-BlackItalic.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-Bold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-BoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-BoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-ExtraBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-ExtraBold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-ExtraBoldItalic.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-Italic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-Light.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-LightItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-LightItalic.ttf') format('truetype');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-Medium.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-MediumItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-MediumItalic.ttf') format('truetype');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-Regular.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-SemiBold.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'playfair';
-  src: url('https://fonts.yigitgulyurt.net.tr/playfair/Playfair_9pt_SemiExpanded-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('https://fonts.yigitgulyurt.net.tr/Playfair/Playfair_9pt_SemiExpanded-SemiBoldItalic.ttf') format('truetype');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
