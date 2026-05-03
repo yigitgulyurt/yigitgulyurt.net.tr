@@ -220,3 +220,20 @@ def message_detail(id):
     msg.read = True
     db.session.commit()
     return render_template('admin/message_detail.html', message=msg)
+
+# --- Og ---
+
+@bp.route('/og')
+@login_required
+def og():
+    return render_template('showcase/og.html')
+
+@bp.route('/og/yigitgulyurt.net.tr')
+@login_required
+def yigitgulyurt_og():
+    return render_template('showcase/yigitgulyurt.html')
+
+@bp.route('/og/cagrivakti.com.tr')
+@login_required
+def cagrivakti_og():
+    return render_template('showcase/cagrivakti.html')

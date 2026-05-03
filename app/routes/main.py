@@ -246,14 +246,4 @@ def robots():
     return Response(content, mimetype='text/plain')
 
 
-@bp.route('/og')
-def og():
-    return render_template('showcase/og.html')
 
-@bp.route('/og/yigitgulyurt.net.tr')
-def yigitgulyurt_og():
-    return render_template('showcase/yigitgulyurt.html')
-
-@bp.route('/og/cagrivakti.com.tr')
-def cagrivakti_og():
-    return render_template('showcase/cagrivakti.html')
